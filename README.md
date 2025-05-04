@@ -40,9 +40,19 @@ connection-tester/
   README.md
 ```
 
-## 🌍 Screenshots
+## 🗺️ How it works (Mermaid diagram)
 
-![screenshot](https://user-images.githubusercontent.com/placeholder/connection-tester-demo.png)
+```mermaid
+graph TD
+    User[User in browser]
+    User -->|Clicks buttons| UI[React UI]
+    UI -->|Fetch IP| IPAPI[api.ipify.org]
+    UI -->|Fetch Latency| GeoSites[Geo Targets (Yandex, BBC, Google, etc)]
+    UI -->|Fetch Speed| CDN[Cloudflare CDN]
+    UI -->|Change language| LocalStorage
+    UI -->|Render| Browser
+    LocalStorage --> UI
+```
 
 ## 📝 License
 
