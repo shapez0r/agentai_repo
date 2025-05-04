@@ -1,3 +1,10 @@
+body {
+  background: linear-gradient(135deg, #2d0608 0%, #1a0002 100%);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
 .App {
   text-align: center;
 }

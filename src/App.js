@@ -83,7 +83,6 @@ function App() {
   return (
     <div className="App" style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #0f2027 0%, #2c5364 100%)',
       color: '#fff',
       padding: 0,
       margin: 0,
