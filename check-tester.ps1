@@ -19,7 +19,7 @@ if (-not $mainJsRel) {
 $baseUrl = "https://shapez0r.github.io"
 $jsUrl = "$baseUrl$mainJsRel"
 $expected1 = 'Tester'
-$expected2 = 'Тестер'
+$expected2 = "Тестер"
 $timeoutSec = 40
 $intervalSec = 5
 $start = Get-Date
