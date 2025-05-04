@@ -2,36 +2,30 @@
 import './App.css';
 
 // Application version - updated during build process
-const VERSION = "f18b012df89abf52811f9c61023f8457cefcc6b8";
+const VERSION = "ca7b9ee84f0e9ff78d46bac1ecb4e32af729217d";
 
 // Added text encoding function to ensure proper character handling
 function encodeNonLatinChars(text) {
-  // Text is properly handled by React and modern browsers with UTF-8
-  // However, we need to ensure localStorage and data transfers handle it correctly
-  if (!text) return '';
-  
-  try {
-    // For localStorage and data transfers, ensure proper encoding
-    // This preserves all Unicode characters including Cyrillic, Asian scripts, etc.
-    return String(text);
-  } catch (e) {
-    console.error('Error handling text encoding:', e);
-    return text || '';
-  }
+  return text.normalize('NFC');
 }
 
 const geoOptions = [
-  { name: { en: 'Russia', ru: encodeNonLatinChars('Россия') }, url: 'https://yandex.ru', code: 'ru' },
-  { name: { en: 'Europe', ru: encodeNonLatinChars('Европа') }, url: 'https://www.bbc.co.uk', code: 'eu' },
-  { name: { en: 'US', ru: encodeNonLatinChars('США') }, url: 'https://www.google.com', code: 'us' },
-  { name: { en: 'Singapore', ru: encodeNonLatinChars('Сингапур') }, url: 'https://www.singtel.com', code: 'sg' },
-  { name: { en: 'Brazil', ru: encodeNonLatinChars('Бразилия') }, url: 'https://www.globo.com', code: 'br' },
-  { name: { en: 'India', ru: encodeNonLatinChars('Индия') }, url: 'https://www.airtel.in', code: 'in' },
-  { name: { en: 'Australia', ru: encodeNonLatinChars('Австралия') }, url: 'https://www.telstra.com.au', code: 'au' },
-  { name: { en: 'South Africa', ru: encodeNonLatinChars('ЮАР') }, url: 'https://www.telkom.co.za', code: 'za' },
-  { name: { en: 'Japan', ru: encodeNonLatinChars('Япония') }, url: 'https://www.yahoo.co.jp', code: 'jp' },
-  { name: { en: 'Canada', ru: encodeNonLatinChars('Канада') }, url: 'https://www.cbc.ca', code: 'ca' },
-];
+  { name: { en: 'Russia', ru: 'Россия', es: 'Rusia', de: 'Russland' }, url: 'https://yandex.ru', code: 'ru' },
+  { name: { en: 'Europe', ru: 'Европа', es: 'Europa', de: 'Europa' }, url: 'https://www.bbc.co.uk', code: 'eu' },
+  { name: { en: 'US', ru: 'США', es: 'EE.UU.', de: 'USA' }, url: 'https://www.google.com', code: 'us' },
+  { name: { en: 'Singapore', ru: 'Сингапур', es: 'Singapur', de: 'Singapur' }, url: 'https://www.singtel.com', code: 'sg' },
+  { name: { en: 'Brazil', ru: 'Бразилия', es: 'Brasil', de: 'Brasilien' }, url: 'https://www.globo.com', code: 'br' },
+  { name: { en: 'India', ru: 'Индия', es: 'India', de: 'Indien' }, url: 'https://www.airtel.in', code: 'in' },
+  { name: { en: 'Australia', ru: 'Австралия', es: 'Australia', de: 'Australien' }, url: 'https://www.telstra.com.au', code: 'au' },
+  { name: { en: 'South Africa', ru: 'ЮАР', es: 'Sudáfrica', de: 'Südafrika' }, url: 'https://www.telkom.co.za', code: 'za' },
+  { name: { en: 'Japan', ru: 'Япония', es: 'Japón', de: 'Japan' }, url: 'https://www.yahoo.co.jp', code: 'jp' },
+  { name: { en: 'Canada', ru: 'Канада', es: 'Canadá', de: 'Kanada' }, url: 'https://www.cbc.ca', code: 'ca' },
+].map(option => ({
+  ...option,
+  name: Object.fromEntries(
+    Object.entries(option.name).map(([lang, name]) => [lang, encodeNonLatinChars(name)])
+  )
+}));
 
 const speedTestOptions = [
   { name: { en: 'Cloudflare', ru: 'Cloudflare', es: 'Cloudflare', de: 'Cloudflare' }, url: 'https://speed.cloudflare.com/__down?bytes=10000000', code: 'us', cors: true },
@@ -213,7 +207,7 @@ function App() {
             {geoOptions.map(target => (
               <div key={target.code} style={{ display: 'grid', gridTemplateColumns: '40px 1fr 80px', alignItems: 'center', fontSize: 22, fontWeight: 500, margin: '10px 0', fontFamily: 'Inter, Segoe UI, Arial, sans-serif', letterSpacing: 0.5 }}>
                 <img src={`https://flagcdn.com/32x24/${target.code}.png`} alt={target.name[lang]} style={{ width: 32, height: 24, borderRadius: 4, boxShadow: '0 1px 4px #0002', flexShrink: 0, justifySelf: 'start' }} />
-                <span style={{ color: '#00c6ff', fontWeight: 700, minWidth: 120, textAlign: 'left', flexShrink: 0 }}>{target.name[lang]}</span>
+                <span style={{ color: '#00c6ff', fontWeight: 700, minWidth: 120, textAlign: 'left', flexShrink: 0 }}>{target.name[lang] || target.name.en}</span>
                 <span style={{ fontWeight: 600, color: '#fff', minWidth: 70, textAlign: 'left', justifySelf: 'start' }}>{latency[target.name.en] || latency[target.name.ru] || '-'}</span>
               </div>
             ))}
@@ -366,6 +360,10 @@ function App() {
 }
 
 export default App;
+
+
+
+
 
 
 

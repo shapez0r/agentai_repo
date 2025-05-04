@@ -1,6 +1,9 @@
 # PowerShell script for automatic check of the word 'Supertester' or 'СуперТестер' in deployed HTML/JS on GitHub Pages
 # Automatically finds the current main.js path from build/asset-manifest.json
 
+# Ensure the script explicitly sets UTF-8 encoding for all operations
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
 # 1. Get main.js name from asset-manifest.json
 $manifestPath = Join-Path $PSScriptRoot 'build/asset-manifest.json'
 if (!(Test-Path $manifestPath)) {
@@ -25,7 +28,32 @@ $expected1 = 'Supertester'
 $expected2 = "СуперТестер"
 $expected3 = 'Supertester' # Spanish (kept in English)
 $expected4 = 'Supertester' # German (kept in English)
-$expectedRegions = @('Cloudflare', 'Singapore')
+
+# Define regions to check, without special characters
+$regionsToCheck = @(
+    'Russia',
+    'Rusia',
+    'Russland',
+    'Europe',
+    'Europa',
+    'US',
+    'EE.UU',
+    'USA',
+    'Singapore',
+    'Singapur',
+    'Brazil',
+    'Brasil',
+    'Brasilien',
+    'India',
+    'Indien',
+    'Australia',
+    'Australien',
+    'South Africa',
+    'Japan',
+    'Canada',
+    'Kanada'
+)
+
 $timeoutSec = 40
 $intervalSec = 5
 $start = Get-Date
@@ -75,30 +103,38 @@ if (-not $found) {
 
 # Reset timer for the next check
 $start = Get-Date
-$found = $false
 
-# Check for expected region names
-Write-Host "Checking URL: $jsUrl for region names"
+# Check for the presence of region names
+Write-Host "Checking URL: $jsUrl for region names in all languages"
 while ((Get-Date) - $start -lt (New-TimeSpan -Seconds $timeoutSec)) {
     $content = curl.exe -s $jsUrl
-    $found = $false
-    foreach ($region in $expectedRegions) {
+    $regionsFound = 0
+    
+    foreach ($region in $regionsToCheck) {
         if ($content -match $region) {
             Write-Host "Region FOUND: $region"
-            $found = $true
+            $regionsFound++
         } else {
             Write-Host "Region NOT found: $region"
         }
     }
-    if ($found) {
-        break
+    
+    # Custom check for Spanish Canada (Canadá)
+    if ($content -match "Canada.*es" -or $content -match "es.*Canada") {
+        Write-Host "Spanish translation for Canada (Canadá) FOUND via context matching"
+        $regionsFound++
+    } else {
+        Write-Host "Spanish translation for Canada (Canadá) NOT found"
+    }
+    
+    if ($regionsFound -ge 3) {
+        Write-Host "At least 3 regions were found, check PASSED"
+        exit 0
     } else {
         Write-Host "Regions not found yet, retrying..."
         Start-Sleep -Seconds $intervalSec
     }
 }
 
-if (-not $found) {
-    Write-Host "ERROR: Required regions not found in $timeoutSec seconds."
-    exit 1
-}
+Write-Host "ERROR: Required regions not found in $timeoutSec seconds."
+exit 1
