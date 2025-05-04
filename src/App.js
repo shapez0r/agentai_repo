@@ -338,10 +338,11 @@ function App() {
       }}>
         &copy; {new Date().getFullYear()} Connection Tester &mdash; {t.designed}
         <br />
-        Version: {/* eslint-disable-next-line */}{__COMMIT_HASH__}
+        Version: {/* eslint-disable-next-line */}3bbbb69ac1eead75c5ed18ed0e0bbc5dc28e518f
       </footer>
     </div>
   );
 }
 
 export default App;
+

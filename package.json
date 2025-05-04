@@ -12,7 +12,9 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "prebuild": "powershell -ExecutionPolicy Bypass -File replace-commit-hash.ps1",
     "build": "cross-env REACT_APP_COMMIT_HASH=$env:REACT_APP_COMMIT_HASH react-scripts build",
+    "postbuild": "powershell -ExecutionPolicy Bypass -File patch-commit-hash.ps1",
     "predeploy": "npm run build",
     "deploy": "gh-pages -b gh-pages -d build --dest connection-tester",
     "test": "react-scripts test",
