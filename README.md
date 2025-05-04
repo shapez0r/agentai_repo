@@ -75,23 +75,14 @@ flowchart TD
     E --> F[Copilot runs npm run deploy]
     F --> G[replace-commit-hash.ps1 adds current commit ID to deployment]
     G --> H[Copilot waits for deployment propagation]
-    H --> I[Copilot runs check-tester.ps1 to verify deployment]
-    J{FOUND?}
-    K[Change is live!]
-
-    A --> B
-    B --> C
-    C --> D
-    D --> E
-    E --> F
-    F --> G
-    G --> H
-    H --> J
-    J -- Yes --> K
+    H --> I1[Copilot runs check-tester.ps1: finds commit ID]
+    I1 --> I2[Copilot runs check-tester.ps1: finds actual changes]
+    I2 --> J{FOUND?}
+    J -- Yes --> K[Change is live!]
     J -- No --> B
 ```
 
-Deployment and verification are fully automated: you dictate changes, Copilot applies them, commits, pushes, deploys, and verifies everything automatically. During the deployment process, the `replace-commit-hash.ps1` script is executed to embed the current commit ID into the deployment. This allows the `check-tester.ps1` script to verify that the live deployment matches the expected commit. If verification fails, Copilot will retry the cycle until success.
+Deployment and verification are fully automated: you dictate changes, Copilot applies them, commits, pushes, deploys, and verifies everything automatically. During the deployment process, the `replace-commit-hash.ps1` script is executed to embed the current commit ID into the deployment. This allows the `check-tester.ps1` script to verify that the live deployment matches the expected commit. The verification script now runs in two steps: first, it finds the commit ID, then it checks for the actual changes. If verification fails, Copilot will retry the cycle until success.
 
 ## 🔍 Verification Script
 
