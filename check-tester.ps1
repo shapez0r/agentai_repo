@@ -18,17 +18,18 @@ if (-not $mainJsRel) {
 # 2. Build full URL for check
 $baseUrl = "https://shapez0r.github.io"
 $jsUrl = "$baseUrl$mainJsRel"
-$expected = 'Español'
+$expected1 = 'Espa\xf1ol'
+$expected2 = 'EspaÃ±ol'
 $timeoutSec = 120
 $intervalSec = 5
 $start = Get-Date
 $found = $false
 
-Write-Host "Checking URL: $jsUrl for word '$expected'"
+Write-Host "Checking URL: $jsUrl for word '$expected1' or '$expected2'"
 
 while ((Get-Date) - $start -lt (New-TimeSpan -Seconds $timeoutSec)) {
     $content = curl.exe -s $jsUrl
-    if ($content -match $expected) {
+    if ($content -match $expected1 -or $content -match $expected2) {
         Write-Host "FOUND"
         $found = $true
         break
@@ -39,6 +40,6 @@ while ((Get-Date) - $start -lt (New-TimeSpan -Seconds $timeoutSec)) {
 }
 
 if (-not $found) {
-    Write-Host "ERROR: Word '$expected' not found in $timeoutSec seconds."
+    Write-Host "ERROR: Word '$expected1' or '$expected2' not found in $timeoutSec seconds."
     exit 1
 }
