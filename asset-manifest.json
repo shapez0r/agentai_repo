@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/agentai_repo/connection-tester/static/css/main.f855e6bc.css",
+    "main.js": "/agentai_repo/connection-tester/static/js/main.368994a7.js",
+    "index.html": "/agentai_repo/connection-tester/index.html",
+    "main.f855e6bc.css.map": "/agentai_repo/connection-tester/static/css/main.f855e6bc.css.map",
+    "main.368994a7.js.map": "/agentai_repo/connection-tester/static/js/main.368994a7.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.f855e6bc.css",
+    "static/js/main.368994a7.js"
+  ]
+}
