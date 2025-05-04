@@ -1,4 +1,4 @@
-# PowerShell script for automatic check of the word 'Conntester' or 'КоннТестер' in deployed HTML/JS on GitHub Pages
+# PowerShell script for automatic check of the word 'Supertester' or 'СуперТестер' in deployed HTML/JS on GitHub Pages
 # Automatically finds the current main.js path from build/asset-manifest.json
 
 # 1. Get main.js name from asset-manifest.json
@@ -21,8 +21,8 @@ $commitHash = git rev-parse HEAD
 # 2. Build full URL for check
 $baseUrl = "https://shapez0r.github.io"
 $jsUrl = "$baseUrl$mainJsRel"
-$expected1 = 'Conntester'
-$expected2 = [System.Text.Encoding]::UTF8.GetString([System.Text.Encoding]::Default.GetBytes("КоннТестер"))
+$expected1 = 'Supertester'
+$expected2 = [System.Text.Encoding]::UTF8.GetString([System.Text.Encoding]::Default.GetBytes("СуперТестер"))
 $expected3 = $commitHash
 $timeoutSec = 40
 $intervalSec = 5
