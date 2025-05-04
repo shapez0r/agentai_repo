@@ -12,7 +12,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "REACT_APP_COMMIT_HASH=%COMMIT_HASH% react-scripts build",
+    "build": "cross-env REACT_APP_COMMIT_HASH=$env:REACT_APP_COMMIT_HASH react-scripts build",
     "predeploy": "npm run build",
     "deploy": "gh-pages -b gh-pages -d build --dest connection-tester",
     "test": "react-scripts test",
@@ -35,5 +35,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
   }
 }

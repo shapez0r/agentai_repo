@@ -60,6 +60,15 @@ flowchart TD
 - All logic and UI are in `src/App.js` and `src/App.css`.
 - Deployment is automated to GitHub Pages (see workflow below).
 
+## 🛠️ Versioning & Commit Hash
+
+- Before each build and deploy, run the script:
+  ```powershell
+  powershell.exe -ExecutionPolicy Bypass -File .\generate-env.ps1
+  ```
+  This will generate a .env file with the current git commit hash for version tracking.
+- The commit hash will be shown in the site footer and checked by the verification script after deploy.
+
 ## 🚦 Deployment & Verification Flow
 
 ```mermaid
@@ -70,10 +79,11 @@ flowchart TD
     D[Copilot runs git add .]
     E[Copilot runs git commit]
     F[Copilot runs git push]
-    G[Automatic deploy to GitHub Pages]
-    H[Copilot runs check-tester.ps1]
-    I{FOUND?}
-    J[Change is live!]
+    G[Copilot runs generate-env.ps1]
+    H[Copilot runs npm run deploy]
+    I[Copilot runs check-tester.ps1]
+    J{FOUND?}
+    K[Change is live!]
 
     A --> B
     B --> C
@@ -83,11 +93,12 @@ flowchart TD
     F --> G
     G --> H
     H --> I
-    I -- Yes --> J
-    I -- No --> B
+    I --> J
+    J -- Yes --> K
+    J -- No --> B
 ```
 
-Deployment and verification are fully automated: you dictate changes, Copilot applies them, commits, pushes, deploys, and verifies everything automatically. If verification fails (timeout or not found), Copilot will automatically retry: обновит код и/или скрипт, снова закоммитит, запушит, задеплоит и проверит — до успеха.
+Deployment and verification are fully automated: you dictate changes, Copilot applies them, commits, pushes, generates .env with commit hash, deploys, and verifies everything automatically. If verification fails, Copilot will retry the cycle until success.
 
 ## 🔍 Verification Script
 
@@ -112,11 +123,13 @@ If the script outputs `FOUND`, your change is present on the live site.
    - `git add .`
    - `git commit -m "describe your change"`
    - `git push`
-4. Deploy to GitHub Pages:
+4. Generate the .env file with the current commit hash:
+   - `powershell.exe -ExecutionPolicy Bypass -File .\generate-env.ps1`
+5. Deploy to GitHub Pages:
    - `npm run deploy`
-5. Run the verification script:
+6. Run the verification script:
    - `powershell.exe -ExecutionPolicy Bypass -File .\check-tester.ps1`
-6. Make sure the script outputs `FOUND` — this means the change is live on the site.
+7. Make sure the script outputs `FOUND` — this means the change is live on the site.
 
 > Always keep the verification script up to date with the latest change you want to check after deployment!
 
