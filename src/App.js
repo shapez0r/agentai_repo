@@ -2,7 +2,7 @@
 import './App.css';
 
 // Application version - updated during build process
-const VERSION = "f18b012df89abf52811f9c61023f8457cefcc6b8";
+const VERSION = "ca7b9ee84f0e9ff78d46bac1ecb4e32af729217d";
 
 // Added text encoding function to ensure proper character handling
 function encodeNonLatinChars(text) {
@@ -34,8 +34,8 @@ const geoOptions = [
 ];
 
 const speedTestOptions = [
-  { name: { en: 'Cloudflare', ru: 'Cloudflare', es: 'Cloudflare', de: 'Cloudflare' }, url: 'https://speed.cloudflare.com/__down?bytes=10000000', code: 'us', cors: true },
-  { name: { en: 'Singapore', ru: 'Singapore', es: 'Singapore', de: 'Singapore' }, url: 'https://speed.cloudflare.com/__down?bytes=10000000', code: 'sg', cors: true },
+  { name: { en: 'Cloudflare', ru: 'Cloudflare', es: 'Cloudflare (EE.UU.)', de: 'Cloudflare (USA)' }, url: 'https://speed.cloudflare.com/__down?bytes=10000000', code: 'us', cors: true },
+  { name: { en: 'Singapore', ru: 'Singapore', es: 'Singapur', de: 'Singapur' }, url: 'https://speed.cloudflare.com/__down?bytes=10000000', code: 'sg', cors: true },
 ];
 
 const translations = {
@@ -366,6 +366,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
