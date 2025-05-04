@@ -74,7 +74,7 @@ flowchart TD
     D --> E[Copilot runs git push]
     E --> F[Copilot runs npm run deploy]
     F --> G[replace-commit-hash.ps1 adds current commit ID to deployment]
-    G --> H[Copilot waits for deployment and runs check-tester.ps1: finds commit ID]
+    G --> H[Copilot deploys and runs check-tester.ps1 - finding the latest commit ID in the actually deployed version]
     H --> I[Copilot runs check-tester.ps1: finds actual changes]
     I --> J{FOUND?}
     J -- Yes --> K[Change is live!]
