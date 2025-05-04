@@ -41,12 +41,36 @@ const translations = {
     latency: 'Задержка',
     downloadSpeed: 'Скорость загрузки',
     designed: 'Дизайн 2025',
+  },
+  es: {
+    connectionTester: 'Tester',
+    latencyTargets: 'Objetivos de latencia:',
+    downloadFrom: 'Descargar de:',
+    testMyConnection: 'Probar mi conexión',
+    testing: 'Probando...',
+    ipDetection: 'Detección de IP',
+    latency: 'Latencia',
+    downloadSpeed: 'Velocidad de descarga',
+    designed: 'Diseñado para 2025',
+  },
+  de: {
+    connectionTester: 'Tester',
+    latencyTargets: 'Latenzziele:',
+    downloadFrom: 'Herunterladen von:',
+    testMyConnection: 'Verbindung testen',
+    testing: 'Teste...',
+    ipDetection: 'IP-Erkennung',
+    latency: 'Latenz',
+    downloadSpeed: 'Download-Geschwindigkeit',
+    designed: 'Entworfen für 2025',
   }
 };
 
 const languageOptions = [
   { code: 'en', label: '🇬🇧 English' },
   { code: 'ru', label: '🇷🇺 Русский' },
+  { code: 'es', label: '🇪🇸 Español' },
+  { code: 'de', label: '🇩🇪 Deutsch' },
 ];
 
 function getSavedLang() {
@@ -61,7 +85,7 @@ function App() {
   const [testingSpeed, setTestingSpeed] = useState(false);
   const [selectedSpeedTest, setSelectedSpeedTest] = useState(speedTestOptions[0]);
   const [lang, setLang] = useState(getSavedLang());
-  const t = translations[lang];
+  const t = translations[lang] || translations['en'];
 
   useEffect(() => {
     localStorage.setItem('lang', lang);
