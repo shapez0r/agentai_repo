@@ -2,7 +2,7 @@
 import './App.css';
 
 // Application version - updated during build process
-const VERSION = "9bf51a1961f4bdd2a67e52663a864a6cc8d510b6";
+const VERSION = "3f272dbd26361c04c381bb08ba757dbec3f2445e";
 
 // Added text encoding function to ensure proper character handling
 function encodeNonLatinChars(text) {
@@ -34,8 +34,8 @@ const geoOptions = [
 ];
 
 const speedTestOptions = [
-  { name: { en: 'Cloudflare (US)', ru: encodeNonLatinChars('Cloudflare (США)') }, url: 'https://speed.cloudflare.com/__down?bytes=10000000', code: 'us', cors: true },
-  { name: { en: 'Singapore (SG)', ru: encodeNonLatinChars('Сингапур (SG)') }, url: 'https://speed.cloudflare.com/__down?bytes=10000000', code: 'sg', cors: true },
+  { name: { en: 'Cloudflare (US)' }, url: 'https://speed.cloudflare.com/__down?bytes=10000000', code: 'us', cors: true },
+  { name: { en: 'Singapore (SG)' }, url: 'https://speed.cloudflare.com/__down?bytes=10000000', code: 'sg', cors: true },
 ];
 
 const translations = {
@@ -366,6 +366,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
