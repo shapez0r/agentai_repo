@@ -28,6 +28,8 @@ $expected1 = 'Supertester'
 $expected2 = "СуперТестер"
 $expected3 = 'Supertester' # Spanish (kept in English)
 $expected4 = 'Supertester' # German (kept in English)
+$expected5 = 'rainbow-title'
+$expected6 = 'rainbow-text'
 
 # Define regions to check, both country names and server names
 $regionsToCheck = @(
@@ -88,7 +90,7 @@ $found = $false
 Write-Host "Checking URL: $jsUrl for words in all languages"
 while ((Get-Date) - $start -lt (New-TimeSpan -Seconds $timeoutSec)) {
     $content = curl.exe -s $jsUrl
-    if ($content -match $expected1 -or $content -match $expected2 -or $content -match $expected3 -or $content -match $expected4) {
+    if ($content -match $expected1 -or $content -match $expected2 -or $content -match $expected3 -or $content -match $expected4 -or $content -match $expected5 -or $content -match $expected6) {
         Write-Host "Words FOUND in all languages"
         $found = $true
         break

@@ -60,7 +60,7 @@ flowchart TD
 - All logic and UI are in `src/App.js` and `src/App.css`.
 - Deployment is automated to GitHub Pages (see workflow below).
 
-## 🚦 Deployment & Verification Flow
+## 🤖 Instructions for Copilot
 
 ```mermaid
 flowchart TD
@@ -75,7 +75,22 @@ flowchart TD
     H -- No --> B
 ```
 
-Deployment and verification are fully automated: you dictate changes, Copilot applies them, updates the verification script, commits, pushes, deploys, and verifies everything automatically. During the deployment process, the `replace-commit-hash.ps1` script is executed to embed the current commit ID into the deployment. This allows the `check-tester.ps1` script to verify that the live deployment matches the expected commit. The verification script now runs in two steps: first, it finds the commit ID (to prove the latest changes in the repo are deployed), then it checks for the actual changes. If verification fails, Copilot will retry the cycle until success.
+These instructions must be followed by Copilot (you) after each change:
+
+1. Apply the requested code changes in the application
+2. Update the verification script (`check-tester.ps1`) to check for the new/changed features
+3. Commit and push changes:
+   - `git add .`
+   - `git commit -m "descriptive message about the changes"`
+   - `git push`
+4. Deploy the application:
+   - `npm run deploy`
+5. Wait for deployment propagation
+6. Run verification:
+   - `powershell.exe -ExecutionPolicy Bypass -File .\check-tester.ps1`
+7. Confirm success or troubleshoot if verification fails
+
+During deployment, the `replace-commit-hash.ps1` script embeds the current commit ID into the build, allowing the verification script to confirm the correct version is deployed. The verification runs in two steps: first checking the commit ID, then verifying the actual features. If verification fails, Copilot must repeat the process until success.
 
 ## 🔍 Verification Script
 
