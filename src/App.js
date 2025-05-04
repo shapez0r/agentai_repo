@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
-// Revert the commit hash placeholder to its original state
-const COMMIT_HASH = "__COMMIT_HASH__";
+// Application version - updated during build process
+const VERSION = "ca7cf97c27161b1e5923c2da420763a355874a94";
 
 const geoOptions = [
   { name: { en: 'Russia', ru: 'Россия' }, url: 'https://yandex.ru', code: 'ru' },
@@ -38,7 +38,7 @@ const translations = {
     connectionTester: 'СуперТестер',
     latencyTargets: 'Цели для задержки:',
     downloadFrom: 'Скачать из:',
-    testMyConnection: 'Проверить соединение',
+    testMyConnection: 'Проверить моё соединение',
     testing: 'Тестирование...',
     ipDetection: 'Определение IP',
     latency: 'Задержка',
@@ -70,10 +70,10 @@ const translations = {
 };
 
 const languageOptions = [
-  { code: 'en', label: '🇬🇧 English' },
-  { code: 'ru', label: '🇷🇺 Русский' },
-  { code: 'es', label: '🇪🇸 Español' },
-  { code: 'de', label: '🇩🇪 Deutsch' },
+  { code: 'en', label: 'English' },
+  { code: 'ru', label: 'Русский' },
+  { code: 'es', label: 'Español' },
+  { code: 'de', label: 'Deutsch' },
 ];
 
 function getSavedLang() {
@@ -94,7 +94,6 @@ function App() {
     localStorage.setItem('lang', lang);
   }, [lang]);
 
-  // Показывать IP сразу при загрузке
   useEffect(() => {
     (async () => {
       try {
@@ -128,10 +127,21 @@ function App() {
         WebkitTextFillColor: 'transparent',
         fontFamily: 'Inter, Segoe UI, Arial, sans-serif',
       }}>{t.connectionTester}</h1>
+      
+      {/* Version tag under the main title */}
+      <div style={{ 
+        fontSize: '12px', 
+        marginBottom: '20px', 
+        color: '#00c6ff70',
+        fontFamily: 'monospace'
+      }}>
+        v.{VERSION}
+      </div>
+      
       <div style={{ display: 'flex', gap: 24, marginBottom: 32, alignItems: 'center', justifyContent: 'flex-end', width: '100%', maxWidth: 1100 }}>
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
           <label htmlFor="lang-select" style={{ fontWeight: 600, fontSize: 18, color: '#00c6ff', marginRight: 8 }}>
-            🌐 {lang === 'ru' ? 'Выбор языка:' : 'Language:'}
+            {lang === 'ru' ? 'Язык:' : 'Language:'}
           </label>
           <select
             id="lang-select"
@@ -196,7 +206,6 @@ function App() {
             onClick={async () => {
               setTestingPing(true);
               setLatency({});
-              // IP Detection (вернуть первоначальный вариант)
               try {
                 const res = await fetch('https://api.ipify.org?format=json');
                 const data = await res.json();
@@ -204,7 +213,6 @@ function App() {
               } catch {
                 setIp('Error');
               }
-              // Latency
               const latencyResults = {};
               for (const target of geoOptions) {
                 const start = performance.now();
@@ -272,7 +280,6 @@ function App() {
               setDownloadSpeed('-'); // reset
               let speedError = '';
               try {
-                // Only use CORS-friendly endpoints
                 if (selectedSpeedTest.cors) {
                   const fileUrl = selectedSpeedTest.url + (selectedSpeedTest.url.includes('?') ? '&' : '?') + 'cacheBust=' + Date.now();
                   const start = performance.now();
@@ -337,18 +344,12 @@ function App() {
         opacity: 0.7,
       }}>
         &copy; {new Date().getFullYear()} Connection Tester &mdash; {t.designed}
-        <br />
-        Version: {/* eslint-disable-next-line */}3bbbb69ac1eead75c5ed18ed0e0bbc5dc28e518f
       </footer>
     </div>
   );
 }
 
 export default App;
-
-
-
-
 
 
 
