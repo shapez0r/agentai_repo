@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 
 // Application version - updated during build process
-const VERSION = "010813c1b5b80da29bc324628c9fa886f427ecf8";
+const VERSION = "2cc51b44f0aefd3252c3d40b420cbeb9e8c2d7b6";
 
 // Added text encoding function to ensure proper character handling
 function encodeNonLatinChars(text) {
