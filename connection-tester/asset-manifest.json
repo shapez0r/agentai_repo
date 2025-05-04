@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/agentai_repo/connection-tester/static/css/main.8c74386b.css",
-    "main.js": "/agentai_repo/connection-tester/static/js/main.cddbd8d2.js",
+    "main.js": "/agentai_repo/connection-tester/static/js/main.fcc4ee24.js",
     "index.html": "/agentai_repo/connection-tester/index.html",
     "main.8c74386b.css.map": "/agentai_repo/connection-tester/static/css/main.8c74386b.css.map",
-    "main.cddbd8d2.js.map": "/agentai_repo/connection-tester/static/js/main.cddbd8d2.js.map"
+    "main.fcc4ee24.js.map": "/agentai_repo/connection-tester/static/js/main.fcc4ee24.js.map"
   },
   "entrypoints": [
     "static/css/main.8c74386b.css",
-    "static/js/main.cddbd8d2.js"
+    "static/js/main.fcc4ee24.js"
   ]
 }
