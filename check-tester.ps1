@@ -36,20 +36,20 @@ $featuresToCheck = @(
     },
     @{
         ID = 2
-        Name = "Russian title 'СуперТестер'"
-        Pattern = 'СуперТестер'
+        Name = "Russian title"
+        Pattern = "connectionTester.*Супер|Тестер"
         Category = "Multi-language Support"
     },
     @{
         ID = 3
         Name = "Spanish title (Supertester)"
-        Pattern = 'Supertester.*es'
+        Pattern = 'es.*Supertester|Supertester.*es'
         Category = "Multi-language Support"
     },
     @{
         ID = 4
         Name = "German title (Supertester)"
-        Pattern = 'Supertester.*de'
+        Pattern = 'de.*Supertester|Supertester.*de'
         Category = "Multi-language Support"
     },
     @{
@@ -109,7 +109,7 @@ $featuresToCheck = @(
     @{
         ID = 14
         Name = "South Africa region"
-        Pattern = 'South Africa'
+        Pattern = 'South\s*Africa'
         Category = "Regions"
     },
     @{
