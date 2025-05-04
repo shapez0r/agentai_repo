@@ -29,7 +29,7 @@ $expected2 = "СуперТестер"
 $expected3 = 'Supertester' # Spanish (kept in English)
 $expected4 = 'Supertester' # German (kept in English)
 
-# Define regions to check, without special characters
+# Define regions to check, both country names and server names
 $regionsToCheck = @(
     'Russia',
     'Rusia',
@@ -53,6 +53,8 @@ $regionsToCheck = @(
     'Canada',
     'Kanada'
 )
+
+$expectedServers = @('Cloudflare', 'Cloudflare (EE.UU.)', 'Cloudflare (USA)', 'Singapore', 'Singapur')
 
 $timeoutSec = 40
 $intervalSec = 5
@@ -110,12 +112,23 @@ while ((Get-Date) - $start -lt (New-TimeSpan -Seconds $timeoutSec)) {
     $content = curl.exe -s $jsUrl
     $regionsFound = 0
     
+    # Check country regions
     foreach ($region in $regionsToCheck) {
         if ($content -match $region) {
             Write-Host "Region FOUND: $region"
             $regionsFound++
         } else {
             Write-Host "Region NOT found: $region"
+        }
+    }
+    
+    # Check server regions
+    foreach ($server in $expectedServers) {
+        if ($content -match $server) {
+            Write-Host "Server FOUND: $server"
+            $regionsFound++
+        } else {
+            Write-Host "Server NOT found: $server"
         }
     }
     

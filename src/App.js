@@ -28,8 +28,8 @@ const geoOptions = [
 }));
 
 const speedTestOptions = [
-  { name: { en: 'Cloudflare', ru: 'Cloudflare', es: 'Cloudflare', de: 'Cloudflare' }, url: 'https://speed.cloudflare.com/__down?bytes=10000000', code: 'us', cors: true },
-  { name: { en: 'Singapore', ru: 'Singapore', es: 'Singapore', de: 'Singapore' }, url: 'https://speed.cloudflare.com/__down?bytes=10000000', code: 'sg', cors: true },
+  { name: { en: 'Cloudflare', ru: 'Cloudflare', es: 'Cloudflare (EE.UU.)', de: 'Cloudflare (USA)' }, url: 'https://speed.cloudflare.com/__down?bytes=10000000', code: 'us', cors: true },
+  { name: { en: 'Singapore', ru: 'Singapore', es: 'Singapur', de: 'Singapur' }, url: 'https://speed.cloudflare.com/__down?bytes=10000000', code: 'sg', cors: true },
 ];
 
 const translations = {
@@ -360,26 +360,3 @@ function App() {
 }
 
 export default App;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
