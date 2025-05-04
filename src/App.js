@@ -24,7 +24,7 @@ const speedTestOptions = [
 
 const translations = {
   en: {
-    connectionTester: 'SuperTester',
+    connectionTester: 'MegaTester',
     latencyTargets: 'Latency Targets:',
     downloadFrom: 'Download From:',
     testMyConnection: 'Test My Connection',
@@ -46,7 +46,7 @@ const translations = {
     designed: 'Дизайн 2025',
   },
   es: {
-    connectionTester: 'SuperTester',
+    connectionTester: 'MegaTester',
     latencyTargets: 'Objetivos de latencia:',
     downloadFrom: 'Descargar de:',
     testMyConnection: 'Probar mi conexión',
@@ -57,7 +57,7 @@ const translations = {
     designed: 'Diseñado para 2025',
   },
   de: {
-    connectionTester: 'SuperTester',
+    connectionTester: 'MegaTester',
     latencyTargets: 'Latenzziele:',
     downloadFrom: 'Herunterladen von:',
     testMyConnection: 'Verbindung testen',
