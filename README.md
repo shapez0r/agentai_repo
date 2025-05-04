@@ -64,16 +64,19 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A[Make code or UI change] --> B[Update check-tester.ps1]
-    B --> C[git add .]
-    C --> D[git commit]
-    D --> E[git push]
-    E --> F[npm run deploy]
-    F --> G[Run check-tester.ps1]
-    G --> H{FOUND?}
-    H -- Yes --> I[Change is live!]
-    H -- No --> J[Wait & retry or fix]
+    A[User dictates changes to Copilot] --> B[Copilot applies changes to code]
+    B --> C[Copilot updates check-tester.ps1 for new check]
+    C --> D[Copilot runs git add .]
+    D --> E[Copilot runs git commit]
+    E --> F[Copilot runs git push]
+    F --> G[Automatic deploy to GitHub Pages]
+    G --> H[Copilot runs check-tester.ps1]
+    H --> I{FOUND?}
+    I -- Yes --> J[Change is live!]
+    I -- No --> K[Copilot retries or fixes]
 ```
+
+Deployment and verification are fully automated: you dictate changes, Copilot applies them, commits, pushes, deploys, and verifies everything automatically — no manual steps required.
 
 ## 🔍 Verification Script
 
