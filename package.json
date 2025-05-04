@@ -12,9 +12,9 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "prebuild": "",
+    "prebuild": "powershell -ExecutionPolicy Bypass -File replace-commit-hash.ps1",
     "build": "react-scripts build",
-    "postbuild": "powershell -ExecutionPolicy Bypass -File replace-commit-hash.ps1",
+    "postbuild": "",
     "predeploy": "npm run build",
     "deploy": "gh-pages -b gh-pages -d build --dest connection-tester",
     "test": "react-scripts test",
