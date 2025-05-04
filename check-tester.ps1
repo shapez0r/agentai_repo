@@ -36,8 +36,8 @@ $featuresToCheck = @(
     },
     @{
         ID = 2
-        Name = "Russian title 'СуперТестер'"
-        Pattern = 'ru.*connectionTester|connectionTester.*ru|\\"ru\\".*Супер|СуперТестер'
+        Name = "Russian title"
+        Pattern = 'ru.{0,20}connectionTester|connectionTester.{0,20}ru|ru.{0,30}Tester'
         Category = "Multi-language Support"
     },
     @{
