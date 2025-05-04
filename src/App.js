@@ -2,7 +2,7 @@
 import './App.css';
 
 // Application version - updated during build process
-const VERSION = "e7c213962ab890233ebf1dd85142c33510be3f42";
+const VERSION = "16c0cd0a76ebe3be48c478b6fc46920f1cb57d73";
 
 // Added text encoding function to ensure proper character handling
 function encodeNonLatinChars(text) {
@@ -34,8 +34,8 @@ const geoOptions = [
 ];
 
 const speedTestOptions = [
-  { name: { en: 'Cloudflare (US)', ru: 'Cloudflare (США)', es: 'Cloudflare (EE.UU.)', de: 'Cloudflare (USA)' }, url: 'https://speed.cloudflare.com/__down?bytes=10000000', code: 'us', cors: true },
-  { name: { en: 'Singapore (SG)', ru: 'Сингапур (SG)', es: 'Singapur (SG)', de: 'Singapur (SG)' }, url: 'https://speed.cloudflare.com/__down?bytes=10000000', code: 'sg', cors: true },
+  { name: { en: 'Cloudflare', ru: 'Cloudflare', es: 'Cloudflare', de: 'Cloudflare' }, url: 'https://speed.cloudflare.com/__down?bytes=10000000', code: 'us', cors: true },
+  { name: { en: 'Singapore', ru: 'Singapore', es: 'Singapore', de: 'Singapore' }, url: 'https://speed.cloudflare.com/__down?bytes=10000000', code: 'sg', cors: true },
 ];
 
 const translations = {
@@ -276,7 +276,7 @@ function App() {
           <h2 style={{ fontWeight: 700, fontSize: 24, marginBottom: 16, letterSpacing: -1, fontFamily: 'Inter, Segoe UI, Arial, sans-serif' }}>{t.downloadSpeed}</h2>
           <div style={{ fontSize: 22, marginBottom: 8, fontFamily: 'Inter, Segoe UI, Arial, sans-serif', display: 'flex', alignItems: 'center' }}>
             <img src={`https://flagcdn.com/32x24/${selectedSpeedTest.code}.png`} alt={selectedSpeedTest.name[lang]} style={{ width: 32, height: 24, marginRight: 8, borderRadius: 4, boxShadow: '0 1px 4px #0002' }} />
-            <span style={{ color: '#00c6ff', fontWeight: 700 }}>{selectedSpeedTest.name[lang]}</span>
+            <span style={{ color: '#00c6ff', fontWeight: 700 }}>{selectedSpeedTest.name[lang] || selectedSpeedTest.name.en}</span>
           </div>
           <select
             value={selectedSpeedTest.name[lang]}
@@ -366,6 +366,10 @@ function App() {
 }
 
 export default App;
+
+
+
+
 
 
 
