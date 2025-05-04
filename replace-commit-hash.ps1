@@ -14,8 +14,8 @@ if (-not (Test-Path $appJsPath)) {
     exit 1
 }
 
-# Read the entire file
-$content = Get-Content -Path $appJsPath -Raw
+# Read the entire file as UTF-8
+$content = Get-Content -Path $appJsPath -Raw -Encoding UTF8
 
 # Check encoding of App.js before writing
 $encoding = (Get-Content -Path $appJsPath -Encoding Byte -Raw)[0..2]
@@ -29,15 +29,17 @@ if ($encoding[0] -eq 0xEF -and $encoding[1] -eq 0xBB -and $encoding[2] -eq 0xBF)
 if ($content -match 'const VERSION = ".*?"') {
     Write-Host "Found VERSION constant in App.js"
     
-    # Replace the version string directly - no regex complexity
-    $newContent = $content -replace 'const VERSION = ".*?"', "const VERSION = `"$commitHash`""
+    # Prepare the replacement string with the commit hash
+    $replacement = 'const VERSION = "' + $commitHash + '"'
+    # Replace the version string directly
+    $newContent = $content -replace 'const VERSION = ".*?"', $replacement
     
-    # Write back to the file with UTF-8 encoding without BOM
-    [System.IO.File]::WriteAllText($appJsPath, $newContent, [System.Text.UTF8Encoding]::new($false))
+    # Write back to the file with UTF-8 encoding (explicitly set)
+    Set-Content -Path $appJsPath -Value $newContent -Encoding UTF8
     
     # Verify the change
-    $updatedContent = Get-Content -Path $appJsPath -Raw
-    if ($updatedContent -like "*const VERSION = `"$commitHash`"*") {
+    $updatedContent = Get-Content -Path $appJsPath -Raw -Encoding UTF8
+    if ($updatedContent -like ('*' + $replacement + '*')) {
         Write-Host "SUCCESS: Commit hash updated successfully!"
         exit 0
     } else {
