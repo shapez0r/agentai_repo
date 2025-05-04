@@ -2,7 +2,7 @@
   "name": "connection-tester",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://shapez0r.github.io/agentai_repo/connection-tester",
+  "homepage": "https://shapez0r.github.io/agentai_repo",
   "dependencies": {
     "cra-template-pwa": "2.0.0",
     "gh-pages": "^6.3.0",
