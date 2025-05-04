@@ -1,4 +1,4 @@
-# PowerShell script for automatic check of the word 'Tester' in deployed HTML/JS on GitHub Pages
+# PowerShell script for automatic check of the word 'Español' in deployed HTML/JS on GitHub Pages
 # Automatically finds the current main.js path from build/asset-manifest.json
 
 # 1. Get main.js name from asset-manifest.json
@@ -18,7 +18,7 @@ if (-not $mainJsRel) {
 # 2. Build full URL for check
 $baseUrl = "https://shapez0r.github.io"
 $jsUrl = "$baseUrl$mainJsRel"
-$expected = 'Tester'
+$expected = 'Español'
 $timeoutSec = 120
 $intervalSec = 5
 $start = Get-Date
