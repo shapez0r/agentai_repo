@@ -62,12 +62,7 @@ flowchart TD
 
 ## 🛠️ Versioning & Commit Hash
 
-- Before each build and deploy, run the script:
-  ```powershell
-  powershell.exe -ExecutionPolicy Bypass -File .\replace-commit-hash.ps1
-  ```
-  This will update the application with the current git commit hash for version tracking.
-- The commit hash will be shown in the site footer and checked by the verification script after deploy.
+- The section about running `replace-commit-hash.ps1` has been removed.
 
 ## 🚦 Deployment & Verification Flow
 
@@ -75,15 +70,14 @@ flowchart TD
 flowchart TD
     A[User dictates changes to Copilot]
     B[Copilot applies changes to code]
-    C[Copilot updates replace-commit-hash.ps1 for new commit hash]
-    D[Copilot runs git add .]
-    E[Copilot runs git commit]
-    F[Copilot runs git push]
-    G[Copilot runs npm run deploy]
-    H[Copilot waits for deployment propagation]
-    I[Copilot runs check-tester.ps1]
-    J{FOUND?}
-    K[Change is live!]
+    C[Copilot runs git add .]
+    D[Copilot runs git commit]
+    E[Copilot runs git push]
+    F[Copilot runs npm run deploy]
+    G[Copilot waits for deployment propagation]
+    H[Copilot runs check-tester.ps1]
+    I{FOUND?}
+    J[Change is live!]
 
     A --> B
     B --> C
@@ -93,12 +87,11 @@ flowchart TD
     F --> G
     G --> H
     H --> I
-    I --> J
-    J -- Yes --> K
-    J -- No --> B
+    I -- Yes --> J
+    I -- No --> B
 ```
 
-Deployment and verification are fully automated: you dictate changes, Copilot applies them, commits, pushes, updates the commit hash, deploys, waits for propagation, and verifies everything automatically. If verification fails, Copilot will retry the cycle until success.
+Deployment and verification are fully automated: you dictate changes, Copilot applies them, commits, pushes, deploys, waits for propagation, and verifies everything automatically. If verification fails, Copilot will retry the cycle until success.
 
 ## 🔍 Verification Script
 
@@ -117,11 +110,10 @@ If the script outputs `FOUND`, your change is present on the live site.
 
 ## 🛠️ Deployment Workflow
 
-1. **Update Commit Hash**: Run `replace-commit-hash.ps1` to include the current commit hash in the application.
-2. **Commit and Push Changes**: Stage, commit, and push the changes to the repository.
-3. **Deploy the Application**: Use `npm run deploy` to deploy the updated application.
-4. **Wait for Deployment Propagation**: Allow some time for the deployment to propagate or manually confirm the deployment is live.
-5. **Verify Deployment**: Run `check-tester.ps1` to confirm the changes are live.
+1. **Commit and Push Changes**: Stage, commit, and push the changes to the repository.
+2. **Deploy the Application**: Use `npm run deploy` to deploy the updated application.
+3. **Wait for Deployment Propagation**: Allow some time for the deployment to propagate or manually confirm the deployment is live.
+4. **Verify Deployment**: Run `check-tester.ps1` to confirm the changes are live.
 
 ## Deployment & Verification Workflow
 
@@ -131,14 +123,12 @@ If the script outputs `FOUND`, your change is present on the live site.
    - `git add .`
    - `git commit -m "describe your change"`
    - `git push`
-4. Update the commit hash in the application:
-   - `powershell.exe -ExecutionPolicy Bypass -File .\replace-commit-hash.ps1`
-5. Deploy to GitHub Pages:
+4. Deploy to GitHub Pages:
    - `npm run deploy`
-6. Wait for deployment propagation or manually confirm the deployment is live.
-7. Run the verification script:
+5. Wait for deployment propagation or manually confirm the deployment is live.
+6. Run the verification script:
    - `powershell.exe -ExecutionPolicy Bypass -File .\check-tester.ps1`
-8. Make sure the script outputs `FOUND` — this means the change is live on the site.
+7. Make sure the script outputs `FOUND` — this means the change is live on the site.
 
 > Always keep the verification script up to date with the latest change you want to check after deployment!
 
