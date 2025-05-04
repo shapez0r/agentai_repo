@@ -21,7 +21,7 @@ const speedTestOptions = [
 
 const translations = {
   en: {
-    connectionTester: 'Tester',
+    connectionTester: 'ConnectionTester',
     latencyTargets: 'Latency Targets:',
     downloadFrom: 'Download From:',
     testMyConnection: 'Test My Connection',
@@ -32,7 +32,7 @@ const translations = {
     designed: 'Designed for 2025',
   },
   ru: {
-    connectionTester: 'Тестер',
+    connectionTester: 'КоннекшТестер',
     latencyTargets: 'Цели для задержки:',
     downloadFrom: 'Скачать из:',
     testMyConnection: 'Проверить соединение',
