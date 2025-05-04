@@ -67,13 +67,6 @@ flowchart TD
   LocalStorage --> UI
 ```
 
-```mermaid
-flowchart TD
-  A[Start] --> B{Is it working?}
-  B -- Yes --> C[Great!]
-  B -- No --> D[Check on github.com]
-```
-
 ## 📝 License
 
 MIT. Use, modify, and share freely.
