@@ -29,21 +29,44 @@ $intervalSec = 5
 $start = Get-Date
 $found = $false
 
-Write-Host "Checking URL: $jsUrl for word '$expected1' or '$expected2' and commit hash $expected3"
-
+# Check for commit hash first
+Write-Host "Checking URL: $jsUrl for commit hash $expected3"
 while ((Get-Date) - $start -lt (New-TimeSpan -Seconds $timeoutSec)) {
     $content = curl.exe -s $jsUrl
-    if (($content -match $expected1 -or $content -match $expected2) -and ($content -match $expected3)) {
-        Write-Host "FOUND"
+    if ($content -match $expected3) {
+        Write-Host "Commit hash FOUND"
         $found = $true
         break
     } else {
-        Write-Host "Not found yet, retrying..."
+        Write-Host "Commit hash not found yet, retrying..."
         Start-Sleep -Seconds $intervalSec
     }
 }
 
 if (-not $found) {
-    Write-Host "ERROR: Required words or commit hash not found in $timeoutSec seconds."
+    Write-Host "ERROR: Commit hash not found in $timeoutSec seconds."
+    exit 1
+}
+
+# Reset timer for the next check
+$start = Get-Date
+$found = $false
+
+# Check for expected words
+Write-Host "Checking URL: $jsUrl for word '$expected1' or '$expected2'"
+while ((Get-Date) - $start -lt (New-TimeSpan -Seconds $timeoutSec)) {
+    $content = curl.exe -s $jsUrl
+    if ($content -match $expected1 -or $content -match $expected2) {
+        Write-Host "Words FOUND"
+        $found = $true
+        break
+    } else {
+        Write-Host "Words not found yet, retrying..."
+        Start-Sleep -Seconds $intervalSec
+    }
+}
+
+if (-not $found) {
+    Write-Host "ERROR: Required words not found in $timeoutSec seconds."
     exit 1
 }

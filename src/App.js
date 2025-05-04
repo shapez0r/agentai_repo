@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
+// Temporary definition for build
+const __COMMIT_HASH__ = 'PLACEHOLDER';
+
 const geoOptions = [
   { name: { en: 'Russia', ru: 'Россия' }, url: 'https://yandex.ru', code: 'ru' },
   { name: { en: 'Europe', ru: 'Европа' }, url: 'https://www.bbc.co.uk', code: 'eu' },
