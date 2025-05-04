@@ -335,7 +335,7 @@ function App() {
       }}>
         &copy; {new Date().getFullYear()} Connection Tester &mdash; {t.designed}
         <br />
-        Version: {process.env.REACT_APP_COMMIT_HASH || 'dev'}
+        Version: {/* eslint-disable-next-line */}{__COMMIT_HASH__}
       </footer>
     </div>
   );
