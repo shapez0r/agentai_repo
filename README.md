@@ -40,18 +40,38 @@ connection-tester/
   README.md
 ```
 
-## 🗺️ How it works (Mermaid diagram)
+## 🗺️ How it works
 
 ```mermaid
-graph TD
-    User[User in browser]
-    User -->|Clicks buttons| UI[React UI]
-    UI -->|Fetch IP| IPAPI[api.ipify.org]
-    UI -->|Fetch Latency| GeoSites[Geo Targets (Yandex, BBC, Google, etc)]
-    UI -->|Fetch Speed| CDN[Cloudflare CDN]
-    UI -->|Change language| LocalStorage
-    UI -->|Render| Browser
-    LocalStorage --> UI
+flowchart TD
+  User["User in browser"]
+  UI["React UI"]
+  IPAPI["api.ipify.org (IP detection)"]
+  Yandex["Yandex (RU)"]
+  BBC["BBC (EU)"]
+  Google["Google (US)"]
+  Singtel["Singtel (SG)"]
+  Cloudflare["Cloudflare CDN (Speed)"]
+  LocalStorage["LocalStorage"]
+  Browser["Browser"]
+
+  User -->|Clicks buttons| UI
+  UI -->|Fetch IP| IPAPI
+  UI -->|Fetch Latency| Yandex
+  UI -->|Fetch Latency| BBC
+  UI -->|Fetch Latency| Google
+  UI -->|Fetch Latency| Singtel
+  UI -->|Fetch Speed| Cloudflare
+  UI -->|Change language| LocalStorage
+  UI -->|Render| Browser
+  LocalStorage --> UI
+```
+
+```mermaid
+flowchart TD
+  A[Start] --> B{Is it working?}
+  B -- Yes --> C[Great!]
+  B -- No --> D[Check on github.com]
 ```
 
 ## 📝 License
