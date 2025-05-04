@@ -17,6 +17,14 @@ if (-not (Test-Path $appJsPath)) {
 # Read the entire file
 $content = Get-Content -Path $appJsPath -Raw
 
+# Check encoding of App.js before writing
+$encoding = (Get-Content -Path $appJsPath -Encoding Byte -Raw)[0..2]
+if ($encoding[0] -eq 0xEF -and $encoding[1] -eq 0xBB -and $encoding[2] -eq 0xBF) {
+    Write-Host "INFO: App.js has a UTF-8 BOM."
+} else {
+    Write-Host "INFO: App.js does not have a UTF-8 BOM. (This is normal for web projects)"
+}
+
 # Look for the VERSION constant line
 if ($content -match 'const VERSION = ".*?"') {
     Write-Host "Found VERSION constant in App.js"

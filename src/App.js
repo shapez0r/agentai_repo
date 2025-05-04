@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 
 // Application version - updated during build process
-const VERSION = "010813c1b5b80da29bc324628c9fa886f427ecf8";
+const VERSION = "1c3d35375afa63747a06fabdfd5544b58d3c122a";
 
 // Added text encoding function to ensure proper character handling
 function encodeNonLatinChars(text) {
@@ -21,21 +21,21 @@ function encodeNonLatinChars(text) {
 }
 
 const geoOptions = [
-  { name: { en: 'Russia', ru: encodeNonLatinChars('Россия') }, url: 'https://yandex.ru', code: 'ru' },
-  { name: { en: 'Europe', ru: encodeNonLatinChars('Европа') }, url: 'https://www.bbc.co.uk', code: 'eu' },
-  { name: { en: 'US', ru: encodeNonLatinChars('США') }, url: 'https://www.google.com', code: 'us' },
-  { name: { en: 'Singapore', ru: encodeNonLatinChars('Сингапур') }, url: 'https://www.singtel.com', code: 'sg' },
-  { name: { en: 'Brazil', ru: encodeNonLatinChars('Бразилия') }, url: 'https://www.globo.com', code: 'br' },
-  { name: { en: 'India', ru: encodeNonLatinChars('Индия') }, url: 'https://www.airtel.in', code: 'in' },
-  { name: { en: 'Australia', ru: encodeNonLatinChars('Австралия') }, url: 'https://www.telstra.com.au', code: 'au' },
-  { name: { en: 'South Africa', ru: encodeNonLatinChars('ЮАР') }, url: 'https://www.telkom.co.za', code: 'za' },
-  { name: { en: 'Japan', ru: encodeNonLatinChars('Япония') }, url: 'https://www.yahoo.co.jp', code: 'jp' },
-  { name: { en: 'Canada', ru: encodeNonLatinChars('Канада') }, url: 'https://www.cbc.ca', code: 'ca' },
+  { name: { en: 'Russia', ru: encodeNonLatinChars('Ð Ð¾ÑÑÐ¸Ñ') }, url: 'https://yandex.ru', code: 'ru' },
+  { name: { en: 'Europe', ru: encodeNonLatinChars('Ð•Ð²Ñ€Ð¾Ð¿Ð°') }, url: 'https://www.bbc.co.uk', code: 'eu' },
+  { name: { en: 'US', ru: encodeNonLatinChars('Ð¡Ð¨Ð') }, url: 'https://www.google.com', code: 'us' },
+  { name: { en: 'Singapore', ru: encodeNonLatinChars('Ð¡Ð¸Ð½Ð³Ð°Ð¿ÑƒÑ€') }, url: 'https://www.singtel.com', code: 'sg' },
+  { name: { en: 'Brazil', ru: encodeNonLatinChars('Ð‘Ñ€Ð°Ð·Ð¸Ð»Ð¸Ñ') }, url: 'https://www.globo.com', code: 'br' },
+  { name: { en: 'India', ru: encodeNonLatinChars('Ð˜Ð½Ð´Ð¸Ñ') }, url: 'https://www.airtel.in', code: 'in' },
+  { name: { en: 'Australia', ru: encodeNonLatinChars('ÐÐ²ÑÑ‚Ñ€Ð°Ð»Ð¸Ñ') }, url: 'https://www.telstra.com.au', code: 'au' },
+  { name: { en: 'South Africa', ru: encodeNonLatinChars('Ð®ÐÐ ') }, url: 'https://www.telkom.co.za', code: 'za' },
+  { name: { en: 'Japan', ru: encodeNonLatinChars('Ð¯Ð¿Ð¾Ð½Ð¸Ñ') }, url: 'https://www.yahoo.co.jp', code: 'jp' },
+  { name: { en: 'Canada', ru: encodeNonLatinChars('ÐšÐ°Ð½Ð°Ð´Ð°') }, url: 'https://www.cbc.ca', code: 'ca' },
 ];
 
 const speedTestOptions = [
-  { name: { en: 'Cloudflare (US)', ru: encodeNonLatinChars('Cloudflare (США)') }, url: 'https://speed.cloudflare.com/__down?bytes=10000000', code: 'us', cors: true },
-  { name: { en: 'Singapore (SG)', ru: encodeNonLatinChars('Сингапур (SG)') }, url: 'https://speed.cloudflare.com/__down?bytes=10000000', code: 'sg', cors: true },
+  { name: { en: 'Cloudflare (US)', ru: encodeNonLatinChars('Cloudflare (Ð¡Ð¨Ð)') }, url: 'https://speed.cloudflare.com/__down?bytes=10000000', code: 'us', cors: true },
+  { name: { en: 'Singapore (SG)', ru: encodeNonLatinChars('Ð¡Ð¸Ð½Ð³Ð°Ð¿ÑƒÑ€ (SG)') }, url: 'https://speed.cloudflare.com/__down?bytes=10000000', code: 'sg', cors: true },
 ];
 
 const translations = {
@@ -51,26 +51,26 @@ const translations = {
     designed: 'Designed for 2025',
   },
   ru: {
-    connectionTester: 'СуперТестер',
-    latencyTargets: 'Цели для задержки:',
-    downloadFrom: 'Скачать из:',
-    testMyConnection: 'Проверить моё соединение',
-    testing: 'Тестирование...',
-    ipDetection: 'Определение IP',
-    latency: 'Задержка',
-    downloadSpeed: 'Скорость загрузки',
-    designed: 'Дизайн 2025',
+    connectionTester: 'Ð¡ÑƒÐ¿ÐµÑ€Ð¢ÐµÑÑ‚ÐµÑ€',
+    latencyTargets: 'Ð¦ÐµÐ»Ð¸ Ð´Ð»Ñ Ð·Ð°Ð´ÐµÑ€Ð¶ÐºÐ¸:',
+    downloadFrom: 'Ð¡ÐºÐ°Ñ‡Ð°Ñ‚ÑŒ Ð¸Ð·:',
+    testMyConnection: 'ÐŸÑ€Ð¾Ð²ÐµÑ€Ð¸Ñ‚ÑŒ Ð¼Ð¾Ñ‘ ÑÐ¾ÐµÐ´Ð¸Ð½ÐµÐ½Ð¸Ðµ',
+    testing: 'Ð¢ÐµÑÑ‚Ð¸Ñ€Ð¾Ð²Ð°Ð½Ð¸Ðµ...',
+    ipDetection: 'ÐžÐ¿Ñ€ÐµÐ´ÐµÐ»ÐµÐ½Ð¸Ðµ IP',
+    latency: 'Ð—Ð°Ð´ÐµÑ€Ð¶ÐºÐ°',
+    downloadSpeed: 'Ð¡ÐºÐ¾Ñ€Ð¾ÑÑ‚ÑŒ Ð·Ð°Ð³Ñ€ÑƒÐ·ÐºÐ¸',
+    designed: 'Ð”Ð¸Ð·Ð°Ð¹Ð½ 2025',
   },
   es: {
     connectionTester: 'MegaTester',
     latencyTargets: 'Objetivos de latencia:',
     downloadFrom: 'Descargar de:',
-    testMyConnection: 'Probar mi conexión',
+    testMyConnection: 'Probar mi conexiÃ³n',
     testing: 'Probando...',
-    ipDetection: 'Detección de IP',
+    ipDetection: 'DetecciÃ³n de IP',
     latency: 'Latencia',
     downloadSpeed: 'Velocidad de descarga',
-    designed: 'Diseñado para 2025',
+    designed: 'DiseÃ±ado para 2025',
   },
   de: {
     connectionTester: 'MegaTester',
@@ -81,14 +81,14 @@ const translations = {
     ipDetection: 'IP-Erkennung',
     latency: 'Latenz',
     downloadSpeed: 'Download-Geschwindigkeit',
-    designed: 'Entworfen für 2025',
+    designed: 'Entworfen fÃ¼r 2025',
   }
 };
 
 const languageOptions = [
   { code: 'en', label: 'English' },
-  { code: 'ru', label: 'Русский' },
-  { code: 'es', label: 'Español' },
+  { code: 'ru', label: 'Ð ÑƒÑÑÐºÐ¸Ð¹' },
+  { code: 'es', label: 'EspaÃ±ol' },
   { code: 'de', label: 'Deutsch' },
 ];
 
@@ -157,14 +157,14 @@ function App() {
       <div style={{ display: 'flex', gap: 24, marginBottom: 32, alignItems: 'center', justifyContent: 'flex-end', width: '100%', maxWidth: 1100 }}>
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
           <label htmlFor="lang-select" style={{ fontWeight: 600, fontSize: 18, color: '#00c6ff', marginRight: 8 }}>
-            {lang === 'ru' ? 'Язык:' : 'Language:'}
+            {lang === 'ru' ? 'Ð¯Ð·Ñ‹Ðº:' : 'Language:'}
           </label>
           <select
             id="lang-select"
             value={lang}
             onChange={e => setLang(e.target.value)}
             style={{ fontSize: 18, borderRadius: 8, padding: '4px 12px', fontWeight: 600 }}
-            aria-label={lang === 'ru' ? 'Язык' : 'Language'}
+            aria-label={lang === 'ru' ? 'Ð¯Ð·Ñ‹Ðº' : 'Language'}
           >
             {languageOptions.map(opt => (
               <option key={opt.code} value={opt.code}>{opt.label}</option>
@@ -258,7 +258,7 @@ function App() {
               width: '100%',
             }}
           >
-            {testingPing ? t.testing : (lang === 'ru' ? 'Обновить пинг' : 'Refresh Ping')}
+            {testingPing ? t.testing : (lang === 'ru' ? 'ÐžÐ±Ð½Ð¾Ð²Ð¸Ñ‚ÑŒ Ð¿Ð¸Ð½Ð³' : 'Refresh Ping')}
           </button>
         </div>
         {/* Download Speed */}
@@ -346,7 +346,7 @@ function App() {
               width: '100%',
             }}
           >
-            {testingSpeed ? t.testing : (lang === 'ru' ? 'Скорость загрузки' : 'Download Speed')}
+            {testingSpeed ? t.testing : (lang === 'ru' ? 'Ð¡ÐºÐ¾Ñ€Ð¾ÑÑ‚ÑŒ Ð·Ð°Ð³Ñ€ÑƒÐ·ÐºÐ¸' : 'Download Speed')}
           </button>
         </div>
       </div>
