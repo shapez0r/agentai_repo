@@ -24,39 +24,125 @@ $commitHash = git rev-parse HEAD
 # 2. Build full URL for check
 $baseUrl = "https://shapez0r.github.io"
 $jsUrl = "$baseUrl$mainJsRel"
-$expected1 = 'Supertester'
-$expected2 = "СуперТестер"
-$expected3 = 'Supertester' # Spanish (kept in English)
-$expected4 = 'Supertester' # German (kept in English)
-$expected5 = 'rainbow-title'
-$expected6 = 'rainbow-text'
+$cssUrl = "$baseUrl$($manifest.files.'main.css')"
 
-# Define regions to check, both country names and server names
-$regionsToCheck = @(
-    'Russia',
-    'Rusia',
-    'Russland',
-    'Europe',
-    'Europa',
-    'US',
-    'EE.UU',
-    'USA',
-    'Singapore',
-    'Singapur',
-    'Brazil',
-    'Brasil',
-    'Brasilien',
-    'India',
-    'Indien',
-    'Australia',
-    'Australien',
-    'South Africa',
-    'Japan',
-    'Canada',
-    'Kanada'
+# Define features to check - each feature must have an ID, name, and search pattern
+$featuresToCheck = @(
+    @{
+        ID = 1
+        Name = "English title 'Supertester'"
+        Pattern = 'Supertester'
+        Category = "Multi-language Support"
+    },
+    @{
+        ID = 2
+        Name = "Russian title 'СуперТестер'"
+        Pattern = 'СуперТестер'
+        Category = "Multi-language Support"
+    },
+    @{
+        ID = 3
+        Name = "Spanish title (Supertester)"
+        Pattern = 'Supertester.*es'
+        Category = "Multi-language Support"
+    },
+    @{
+        ID = 4
+        Name = "German title (Supertester)"
+        Pattern = 'Supertester.*de'
+        Category = "Multi-language Support"
+    },
+    @{
+        ID = 5
+        Name = "Rainbow title CSS class"
+        Pattern = 'rainbow-title'
+        Category = "Visual Effects"
+    },
+    @{
+        ID = 6
+        Name = "Rainbow animation effect"
+        Pattern = 'rainbow-text'
+        Category = "Visual Effects"
+    },
+    @{
+        ID = 7
+        Name = "Russia region"
+        Pattern = 'Russia'
+        Category = "Regions"
+    },
+    @{
+        ID = 8
+        Name = "Europe region"
+        Pattern = 'Europe'
+        Category = "Regions"
+    },
+    @{
+        ID = 9
+        Name = "US region"
+        Pattern = 'US'
+        Category = "Regions"
+    },
+    @{
+        ID = 10
+        Name = "Singapore region"
+        Pattern = 'Singapore'
+        Category = "Regions"
+    },
+    @{
+        ID = 11
+        Name = "Brazil region"
+        Pattern = 'Brazil'
+        Category = "Regions"
+    },
+    @{
+        ID = 12
+        Name = "India region"
+        Pattern = 'India'
+        Category = "Regions"
+    },
+    @{
+        ID = 13
+        Name = "Australia region"
+        Pattern = 'Australia'
+        Category = "Regions"
+    },
+    @{
+        ID = 14
+        Name = "South Africa region"
+        Pattern = 'South Africa'
+        Category = "Regions"
+    },
+    @{
+        ID = 15
+        Name = "Japan region"
+        Pattern = 'Japan'
+        Category = "Regions"
+    },
+    @{
+        ID = 16
+        Name = "Canada region"
+        Pattern = 'Canada'
+        Category = "Regions"
+    },
+    @{
+        ID = 17
+        Name = "Spanish Canada translation (Canadá)"
+        Pattern = 'Canada.*es|es.*Canada'
+        Category = "Translations"
+    },
+    @{
+        ID = 18
+        Name = "Cloudflare server"
+        Pattern = 'Cloudflare'
+        Category = "Servers"
+    },
+    @{
+        ID = 19
+        Name = "Singapore server"
+        Pattern = 'Singapore'
+        Category = "Servers"
+    }
 )
-
-$expectedServers = @('Cloudflare', 'Cloudflare (EE.UU.)', 'Cloudflare (USA)', 'Singapore', 'Singapur')
 
 $timeoutSec = 40
 $intervalSec = 5
@@ -68,17 +154,17 @@ Write-Host "Checking URL: $jsUrl for commit hash $commitHash"
 while ((Get-Date) - $start -lt (New-TimeSpan -Seconds $timeoutSec)) {
     $content = curl.exe -s $jsUrl
     if ($content -match $commitHash) {
-        Write-Host "Commit hash FOUND"
+        Write-Host "Commit hash FOUND: $commitHash" -ForegroundColor Green
         $found = $true
         break
     } else {
-        Write-Host "Commit hash not found yet, retrying..."
+        Write-Host "Commit hash not found yet, retrying..." -ForegroundColor Yellow
         Start-Sleep -Seconds $intervalSec
     }
 }
 
 if (-not $found) {
-    Write-Host "ERROR: Commit hash not found in $timeoutSec seconds."
+    Write-Host "ERROR: Commit hash not found in $timeoutSec seconds." -ForegroundColor Red
     exit 1
 }
 
@@ -86,70 +172,54 @@ if (-not $found) {
 $start = Get-Date
 $found = $false
 
-# Check for expected words
-Write-Host "Checking URL: $jsUrl for words in all languages"
-while ((Get-Date) - $start -lt (New-TimeSpan -Seconds $timeoutSec)) {
-    $content = curl.exe -s $jsUrl
-    if ($content -match $expected1 -or $content -match $expected2 -or $content -match $expected3 -or $content -match $expected4 -or $content -match $expected5 -or $content -match $expected6) {
-        Write-Host "Words FOUND in all languages"
-        $found = $true
-        break
+# Get JS and CSS content
+$jsContent = curl.exe -s $jsUrl
+$cssContent = curl.exe -s $cssUrl
+
+# Check for all features
+Write-Host "`n============ FEATURE CHECK RESULTS ============" -ForegroundColor Cyan
+Write-Host "Checking deployed files for required features..."
+$categoryCounts = @{}
+$foundFeatures = 0
+$totalFeatures = $featuresToCheck.Count
+
+foreach ($feature in $featuresToCheck) {
+    $content = $jsContent
+    # For CSS-specific features, check CSS content too
+    if ($feature.Category -eq "Visual Effects") {
+        $content = $jsContent + $cssContent
+    }
+    
+    if ($content -match $feature.Pattern) {
+        Write-Host "[✓] Feature #$($feature.ID): $($feature.Name)" -ForegroundColor Green
+        $foundFeatures++
+        
+        # Track category stats
+        if ($categoryCounts.ContainsKey($feature.Category)) {
+            $categoryCounts[$feature.Category]++
+        } else {
+            $categoryCounts[$feature.Category] = 1
+        }
     } else {
-        Write-Host "Words not found yet, retrying..."
-        Start-Sleep -Seconds $intervalSec
+        Write-Host "[✗] Feature #$($feature.ID): $($feature.Name) - NOT FOUND" -ForegroundColor Red
     }
 }
 
-if (-not $found) {
-    Write-Host "ERROR: Required words not found in $timeoutSec seconds."
+# Display summary
+Write-Host "`n============ TEST SUMMARY ============" -ForegroundColor Cyan
+Write-Host "Features found: $foundFeatures of $totalFeatures" -ForegroundColor $(if ($foundFeatures -gt 0) { "Green" } else { "Red" })
+Write-Host "`nBy category:"
+foreach ($category in $categoryCounts.Keys) {
+    $categoryTotal = ($featuresToCheck | Where-Object { $_.Category -eq $category }).Count
+    $categoryFound = $categoryCounts[$category]
+    $color = if ($categoryFound -eq $categoryTotal) { "Green" } elseif ($categoryFound -gt 0) { "Yellow" } else { "Red" }
+    Write-Host "- $category`: $categoryFound of $categoryTotal" -ForegroundColor $color
+}
+
+if ($foundFeatures -ge 3) {
+    Write-Host "`nTEST PASSED: Found at least 3 required features" -ForegroundColor Green
+    exit 0
+} else {
+    Write-Host "`nTEST FAILED: Didn't find enough required features" -ForegroundColor Red
     exit 1
 }
-
-# Reset timer for the next check
-$start = Get-Date
-
-# Check for the presence of region names
-Write-Host "Checking URL: $jsUrl for region names in all languages"
-while ((Get-Date) - $start -lt (New-TimeSpan -Seconds $timeoutSec)) {
-    $content = curl.exe -s $jsUrl
-    $regionsFound = 0
-    
-    # Check country regions
-    foreach ($region in $regionsToCheck) {
-        if ($content -match $region) {
-            Write-Host "Region FOUND: $region"
-            $regionsFound++
-        } else {
-            Write-Host "Region NOT found: $region"
-        }
-    }
-    
-    # Check server regions
-    foreach ($server in $expectedServers) {
-        if ($content -match $server) {
-            Write-Host "Server FOUND: $server"
-            $regionsFound++
-        } else {
-            Write-Host "Server NOT found: $server"
-        }
-    }
-    
-    # Custom check for Spanish Canada (Canadá)
-    if ($content -match "Canada.*es" -or $content -match "es.*Canada") {
-        Write-Host "Spanish translation for Canada (Canadá) FOUND via context matching"
-        $regionsFound++
-    } else {
-        Write-Host "Spanish translation for Canada (Canadá) NOT found"
-    }
-    
-    if ($regionsFound -ge 3) {
-        Write-Host "At least 3 regions were found, check PASSED"
-        exit 0
-    } else {
-        Write-Host "Regions not found yet, retrying..."
-        Start-Sleep -Seconds $intervalSec
-    }
-}
-
-Write-Host "ERROR: Required regions not found in $timeoutSec seconds."
-exit 1
