@@ -73,7 +73,7 @@ flowchart TD
     C --> D[Copilot runs git add .]
     D --> E[Copilot runs git commit]
     E --> F[Copilot runs git push]
-    F --> G[Copilot runs npm run deploy with embeeede replace-commit-hash.ps1 to deploy the commit ID as version]
+    F --> G[Copilot runs npm run deploy with embedded replace-commit-hash.ps1 to deploy the commit ID as version]
     G --> H[Copilot runs check-tester.ps1: finds commit ID to prove latest repo changes are deployed]
     H --> I[Copilot runs check-tester.ps1: finds actual changes]
     I --> J{FOUND?}
