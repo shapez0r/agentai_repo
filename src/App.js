@@ -40,7 +40,7 @@ const speedTestOptions = [
 
 const translations = {
   en: {
-    connectionTester: 'MegaTester',
+    connectionTester: 'Conntester',
     latencyTargets: 'Latency Targets:',
     downloadFrom: 'Download From:',
     testMyConnection: 'Test My Connection',
@@ -51,7 +51,7 @@ const translations = {
     designed: 'Designed for 2025',
   },
   ru: {
-    connectionTester: 'СуперТестер',
+    connectionTester: 'КоннТестер',
     latencyTargets: 'Цели для задержки:',
     downloadFrom: 'Скачать из:',
     testMyConnection: 'Проверить моё соединение',
@@ -62,7 +62,7 @@ const translations = {
     designed: 'Дизайн 2025',
   },
   es: {
-    connectionTester: 'MegaTester',
+    connectionTester: 'Conntester',
     latencyTargets: 'Objetivos de latencia:',
     downloadFrom: 'Descargar de:',
     testMyConnection: 'Probar mi conexión',
@@ -73,7 +73,7 @@ const translations = {
     designed: 'Diseñado para 2025',
   },
   de: {
-    connectionTester: 'MegaTester',
+    connectionTester: 'Conntester',
     latencyTargets: 'Latenzziele:',
     downloadFrom: 'Herunterladen von:',
     testMyConnection: 'Verbindung testen',
@@ -359,7 +359,7 @@ function App() {
         textAlign: 'center',
         opacity: 0.7,
       }}>
-        &copy; {new Date().getFullYear()} Connection Tester &mdash; {t.designed}
+        &copy; {new Date().getFullYear()} Conntester &mdash; {t.designed}
       </footer>
     </div>
   );
