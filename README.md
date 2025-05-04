@@ -68,16 +68,16 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A[User dictates changes to Copilot]
-    B[Copilot applies changes to code]
-    C[Copilot runs git add .]
-    D[Copilot runs git commit]
-    E[Copilot runs git push]
-    F[Copilot runs npm run deploy]
-    G[Copilot waits for deployment propagation]
-    H[Copilot runs check-tester.ps1]
-    I{FOUND?}
-    J[Change is live!]
+    A[User dictates changes to Copilot] --> B[Copilot applies changes to code]
+    B --> C[Copilot runs git add .]
+    C --> D[Copilot runs git commit]
+    D --> E[Copilot runs git push]
+    E --> F[Copilot runs npm run deploy]
+    F --> G[replace-commit-hash.ps1 adds current commit ID to deployment]
+    G --> H[Copilot waits for deployment propagation]
+    H --> I[Copilot runs check-tester.ps1 to verify deployment]
+    J{FOUND?}
+    K[Change is live!]
 
     A --> B
     B --> C
@@ -86,12 +86,12 @@ flowchart TD
     E --> F
     F --> G
     G --> H
-    H --> I
-    I -- Yes --> J
-    I -- No --> B
+    H --> J
+    J -- Yes --> K
+    J -- No --> B
 ```
 
-Deployment and verification are fully automated: you dictate changes, Copilot applies them, commits, pushes, deploys, waits for propagation, and verifies everything automatically. If verification fails, Copilot will retry the cycle until success.
+Deployment and verification are fully automated: you dictate changes, Copilot applies them, commits, pushes, deploys, and verifies everything automatically. During the deployment process, the `replace-commit-hash.ps1` script is executed to embed the current commit ID into the deployment. This allows the `check-tester.ps1` script to verify that the live deployment matches the expected commit. If verification fails, Copilot will retry the cycle until success.
 
 ## 🔍 Verification Script
 
