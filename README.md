@@ -66,15 +66,13 @@ flowchart TD
 flowchart TD
     A[User dictates changes to Copilot] --> B[Copilot applies changes to code]
     B --> C[Copilot updates check-tester.ps1 for new verification]
-    C --> D[Copilot runs git add .]
-    D --> E[Copilot runs git commit]
-    E --> F[Copilot runs git push]
-    F --> G[Copilot runs npm run deploy with embedded replace-commit-hash.ps1 to deploy the commit ID as version]
-    G --> H[Copilot runs check-tester.ps1: finds commit ID to prove latest repo changes are deployed]
-    H --> I[Copilot runs check-tester.ps1: finds actual changes]
-    I --> J{FOUND?}
-    J -- Yes --> K[Change is live!]
-    J -- No --> B
+    C --> D[Copilot pushes all changes to GitHub]
+    D --> E[Copilot runs npm run deploy with embedded replace-commit-hash.ps1 to deploy the commit ID as version]
+    E --> F[Copilot runs check-tester.ps1: finds commit ID to prove latest repo changes are deployed]
+    F --> G[Copilot runs check-tester.ps1: finds actual changes]
+    G --> H{FOUND?}
+    H -- Yes --> I[Change is live!]
+    H -- No --> B
 ```
 
 Deployment and verification are fully automated: you dictate changes, Copilot applies them, updates the verification script, commits, pushes, deploys, and verifies everything automatically. During the deployment process, the `replace-commit-hash.ps1` script is executed to embed the current commit ID into the deployment. This allows the `check-tester.ps1` script to verify that the live deployment matches the expected commit. The verification script now runs in two steps: first, it finds the commit ID (to prove the latest changes in the repo are deployed), then it checks for the actual changes. If verification fails, Copilot will retry the cycle until success.
