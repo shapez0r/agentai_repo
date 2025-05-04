@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
-// Temporary definition for build
-const __COMMIT_HASH__ = 'PLACEHOLDER';
+// Revert the commit hash placeholder to its original state
+const COMMIT_HASH = "__COMMIT_HASH__";
 
 const geoOptions = [
   { name: { en: 'Russia', ru: 'Россия' }, url: 'https://yandex.ru', code: 'ru' },
@@ -345,4 +345,6 @@ function App() {
 }
 
 export default App;
+
+
 
