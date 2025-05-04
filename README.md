@@ -60,10 +60,6 @@ flowchart TD
 - All logic and UI are in `src/App.js` and `src/App.css`.
 - Deployment is automated to GitHub Pages (see workflow below).
 
-## 🛠️ Versioning & Commit Hash
-
-- The section about running `replace-commit-hash.ps1` has been removed.
-
 ## 🚦 Deployment & Verification Flow
 
 ```mermaid
