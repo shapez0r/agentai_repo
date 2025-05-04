@@ -12,7 +12,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "REACT_APP_COMMIT_HASH=%COMMIT_HASH% react-scripts build",
     "predeploy": "npm run build",
     "deploy": "gh-pages -b gh-pages -d build --dest connection-tester",
     "test": "react-scripts test",

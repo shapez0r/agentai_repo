@@ -15,21 +15,25 @@ if (-not $mainJsRel) {
     exit 1
 }
 
+# Get current commit hash
+$commitHash = git rev-parse HEAD
+
 # 2. Build full URL for check
 $baseUrl = "https://shapez0r.github.io"
 $jsUrl = "$baseUrl$mainJsRel"
 $expected1 = 'Tester'
 $expected2 = "Тестер"
+$expected3 = $commitHash
 $timeoutSec = 40
 $intervalSec = 5
 $start = Get-Date
 $found = $false
 
-Write-Host "Checking URL: $jsUrl for word '$expected1' or '$expected2'"
+Write-Host "Checking URL: $jsUrl for word '$expected1' or '$expected2' and commit hash $expected3"
 
 while ((Get-Date) - $start -lt (New-TimeSpan -Seconds $timeoutSec)) {
     $content = curl.exe -s $jsUrl
-    if ($content -match $expected1 -or $content -match $expected2) {
+    if (($content -match $expected1 -or $content -match $expected2) -and ($content -match $expected3)) {
         Write-Host "FOUND"
         $found = $true
         break
@@ -40,6 +44,6 @@ while ((Get-Date) - $start -lt (New-TimeSpan -Seconds $timeoutSec)) {
 }
 
 if (-not $found) {
-    Write-Host "ERROR: Word '$expected1' or '$expected2' not found in $timeoutSec seconds."
+    Write-Host "ERROR: Required words or commit hash not found in $timeoutSec seconds."
     exit 1
 }

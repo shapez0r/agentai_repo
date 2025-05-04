@@ -334,6 +334,8 @@ function App() {
         opacity: 0.7,
       }}>
         &copy; {new Date().getFullYear()} Connection Tester &mdash; {t.designed}
+        <br />
+        Version: {process.env.REACT_APP_COMMIT_HASH || 'dev'}
       </footer>
     </div>
   );
