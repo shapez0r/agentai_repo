@@ -22,18 +22,20 @@ $commitHash = git rev-parse HEAD
 $baseUrl = "https://shapez0r.github.io"
 $jsUrl = "$baseUrl$mainJsRel"
 $expected1 = 'Supertester'
-$expected2 = [System.Text.Encoding]::UTF8.GetString([System.Text.Encoding]::Default.GetBytes("СуперТестер"))
-$expected3 = $commitHash
+$expected2 = "СуперТестер"
+$expected3 = 'Supertester' # Spanish (kept in English)
+$expected4 = 'Supertester' # German (kept in English)
+$expectedRegions = @('Cloudflare (US)', 'Singapore (SG)')
 $timeoutSec = 40
 $intervalSec = 5
 $start = Get-Date
 $found = $false
 
 # Check for commit hash first
-Write-Host "Checking URL: $jsUrl for commit hash $expected3"
+Write-Host "Checking URL: $jsUrl for commit hash $commitHash"
 while ((Get-Date) - $start -lt (New-TimeSpan -Seconds $timeoutSec)) {
     $content = curl.exe -s $jsUrl
-    if ($content -match $expected3) {
+    if ($content -match $commitHash) {
         Write-Host "Commit hash FOUND"
         $found = $true
         break
@@ -53,11 +55,11 @@ $start = Get-Date
 $found = $false
 
 # Check for expected words
-Write-Host "Checking URL: $jsUrl for word '$expected1' or '$expected2'"
+Write-Host "Checking URL: $jsUrl for words in all languages"
 while ((Get-Date) - $start -lt (New-TimeSpan -Seconds $timeoutSec)) {
     $content = curl.exe -s $jsUrl
-    if ($content -match $expected1 -or $content -match $expected2) {
-        Write-Host "Words FOUND"
+    if ($content -match $expected1 -or $content -match $expected2 -or $content -match $expected3 -or $content -match $expected4) {
+        Write-Host "Words FOUND in all languages"
         $found = $true
         break
     } else {
@@ -68,5 +70,35 @@ while ((Get-Date) - $start -lt (New-TimeSpan -Seconds $timeoutSec)) {
 
 if (-not $found) {
     Write-Host "ERROR: Required words not found in $timeoutSec seconds."
+    exit 1
+}
+
+# Reset timer for the next check
+$start = Get-Date
+$found = $false
+
+# Check for expected region names
+Write-Host "Checking URL: $jsUrl for region names"
+while ((Get-Date) - $start -lt (New-TimeSpan -Seconds $timeoutSec)) {
+    $content = curl.exe -s $jsUrl
+    $found = $false
+    foreach ($region in $expectedRegions) {
+        if ($content -match $region) {
+            Write-Host "Region FOUND: $region"
+            $found = $true
+        } else {
+            Write-Host "Region NOT found: $region"
+        }
+    }
+    if ($found) {
+        break
+    } else {
+        Write-Host "Regions not found yet, retrying..."
+        Start-Sleep -Seconds $intervalSec
+    }
+}
+
+if (-not $found) {
+    Write-Host "ERROR: Required regions not found in $timeoutSec seconds."
     exit 1
 }
