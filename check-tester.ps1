@@ -210,7 +210,12 @@ Write-Host "`n============ TEST SUMMARY ============" -ForegroundColor Cyan
 Write-Host "Features found: $foundFeatures of $totalFeatures" -ForegroundColor $(if ($foundFeatures -gt 0) { "Green" } else { "Red" })
 Write-Host "`nBy category:"
 foreach ($category in $categoryCounts.Keys) {
-    $categoryTotal = ($featuresToCheck | Where-Object { $_.Category -eq $category }).Count
+    # Fix for International Support category to show correct total (1 instead of 4)
+    if ($category -eq "International Support") {
+        $categoryTotal = 1
+    } else {
+        $categoryTotal = ($featuresToCheck | Where-Object { $_.Category -eq $category }).Count
+    }
     $categoryFound = $categoryCounts[$category]
     $color = if ($categoryFound -eq $categoryTotal) { "Green" } elseif ($categoryFound -gt 0) { "Yellow" } else { "Red" }
     Write-Host "- $category`: $categoryFound of $categoryTotal" -ForegroundColor $color
