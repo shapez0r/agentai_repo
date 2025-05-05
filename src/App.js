@@ -14,7 +14,7 @@ L.Icon.Default.mergeOptions({
 });
 
 // Application version - updated during build process
-const VERSION = "82755beac818769449b9b402679a6210142ce931";
+const VERSION = "3e67bd2a51e3b694e7c188257be09206072a5a42";
 
 // Added text encoding function to ensure proper character handling
 function encodeNonLatinChars(text) {
@@ -35,61 +35,61 @@ function encodeNonLatinChars(text) {
 const geoOptions = [
   {
     name: { en: 'New York', ru: encodeNonLatinChars('Нью-Йорк'), es: 'Nueva York', de: 'New York' },
-    url: 'https://cloudfront-us-east-1.amazonaws.com/favicon.ico',
+    url: 'https://www.nytimes.com/favicon.ico',
     code: 'us',
     coords: [40.7128, -74.0060]
   },
   {
     name: { en: 'London', ru: encodeNonLatinChars('Лондон'), es: 'Londres', de: 'London' },
-    url: 'https://cloudfront-eu-west-2.amazonaws.com/favicon.ico',
+    url: 'https://www.bbc.co.uk/favicon.ico',
     code: 'gb',
     coords: [51.5074, -0.1278]
   },
   {
     name: { en: 'Sydney', ru: encodeNonLatinChars('Сидней'), es: 'Sídney', de: 'Sydney' },
-    url: 'https://cloudfront-ap-southeast-2.amazonaws.com/favicon.ico',
+    url: 'https://www.sydney.com.au/favicon.ico',
     code: 'au',
     coords: [-33.8688, 151.2093]
   },
   {
     name: { en: 'Singapore', ru: encodeNonLatinChars('Сингапур'), es: 'Singapur', de: 'Singapur' },
-    url: 'https://cloudfront-ap-southeast-1.amazonaws.com/favicon.ico',
+    url: 'https://www.gov.sg/favicon.ico',
     code: 'sg',
     coords: [1.3521, 103.8198]
   },
   {
     name: { en: 'Frankfurt', ru: encodeNonLatinChars('Франкфурт'), es: 'Fráncfort', de: 'Frankfurt' },
-    url: 'https://cloudfront-eu-central-1.amazonaws.com/favicon.ico',
+    url: 'https://www.deutsche-bank.de/favicon.ico',
     code: 'de',
     coords: [50.1109, 8.6821]
   },
   {
     name: { en: 'Mumbai', ru: encodeNonLatinChars('Мумбаи'), es: 'Bombay', de: 'Mumbai' },
-    url: 'https://cloudfront-ap-south-1.amazonaws.com/favicon.ico',
+    url: 'https://www.mumbai.org.uk/favicon.ico',
     code: 'in',
     coords: [19.0760, 72.8777]
   },
   {
     name: { en: 'Sao Paulo', ru: encodeNonLatinChars('Сан-Паулу'), es: 'São Paulo', de: 'São Paulo' },
-    url: 'https://cloudfront-sa-east-1.amazonaws.com/favicon.ico',
+    url: 'https://www.saopaulo.sp.gov.br/favicon.ico',
     code: 'br',
     coords: [-23.5505, -46.6333]
   },
   {
     name: { en: 'Tokyo', ru: encodeNonLatinChars('Токио'), es: 'Tokio', de: 'Tokio' },
-    url: 'https://cloudfront-ap-northeast-1.amazonaws.com/favicon.ico',
+    url: 'https://www.japan.go.jp/favicon.ico',
     code: 'jp',
     coords: [35.6762, 139.6503]
   },
   {
     name: { en: 'Johannesburg', ru: encodeNonLatinChars('Йоханнесбург'), es: 'Johannesburgo', de: 'Johannesburg' },
-    url: 'https://cloudfront-af-south-1.amazonaws.com/favicon.ico',
+    url: 'https://www.joburg.org.za/favicon.ico',
     code: 'za',
     coords: [-26.2041, 28.0473]
   },
   {
     name: { en: 'Toronto', ru: encodeNonLatinChars('Торонто'), es: 'Toronto', de: 'Toronto' },
-    url: 'https://cloudfront-ca-central-1.amazonaws.com/favicon.ico',
+    url: 'https://www.toronto.ca/favicon.ico',
     code: 'ca',
     coords: [43.6532, -79.3832]
   }
@@ -532,6 +532,9 @@ function App() {
 }
 
 export default App;
+
+
+
 
 
 
