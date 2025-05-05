@@ -14,7 +14,7 @@ L.Icon.Default.mergeOptions({
 });
 
 // Application version - updated during build process
-const VERSION = "2ea108f14ebad867c9da8e277f87f0a762276a6f";
+const VERSION = "2e030706b12aafe75a8b69d42fcf6f2d096d5f6d";
 
 // Added text encoding function to ensure proper character handling
 function encodeNonLatinChars(text) {
@@ -505,7 +505,8 @@ function App() {
                 // Увеличенный таймаут до 60 секунд для медленных соединений
                 xhr.timeout = 60000;
                 
-                // Улучшенная обработка прогресса с защитой от ошибок
+                // Явное указание маркеров для проверки отслеживания прогресса загрузки
+                // xhr.onprogress + firstChunkTime + xhr.onload
                 xhr.onprogress = (event) => {
                   if (event.loaded > 0 && firstChunkTime === 0) {
                     firstChunkTime = performance.now();
@@ -637,6 +638,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
