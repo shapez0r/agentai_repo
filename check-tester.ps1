@@ -291,6 +291,36 @@ $featuresToCheck = @(
         Name = "OVH 10MB test file"
         Pattern = 'OVH.+10MB|proof\.ovh\.net\/files\/10Mb\.dat'
         Category = "Speed Test"
+    },
+    @{
+        ID = 45
+        Name = "XMLHttpRequest download implementation"
+        Pattern = 'xhr\.open\(|XMLHttpRequest\(\)|responseType = \'arraybuffer\''
+        Category = "Speed Test"
+    },
+    @{
+        ID = 46
+        Name = "Download progress tracking"
+        Pattern = 'xhr\.onprogress|firstChunkTime|receivedLength'
+        Category = "Speed Test"
+    },
+    @{
+        ID = 47
+        Name = "Download error handling"
+        Pattern = 'CORS error|Connection timed out|xhr\.onerror'
+        Category = "Speed Test"
+    },
+    @{
+        ID = 48
+        Name = "Real-time speed calculation"
+        Pattern = 'currentSpeedMbps|setDownloadSpeed\(currentSpeedMbps'
+        Category = "Speed Test"
+    },
+    @{
+        ID = 49
+        Name = "Timeout handling for downloads"
+        Pattern = 'xhr\.timeout|30000.*timeout|setDownloadSpeed\(\'Connection timed out'
+        Category = "Speed Test"
     }
 )
 

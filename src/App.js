@@ -14,7 +14,7 @@ L.Icon.Default.mergeOptions({
 });
 
 // Application version - updated during build process
-const VERSION = "73a3022ef5fad460377a7d880201bcf386db5c65";
+const VERSION = "74fffe122999580dd6c51627ee120e6cfbe663df";
 
 // Added text encoding function to ensure proper character handling
 function encodeNonLatinChars(text) {
@@ -486,42 +486,84 @@ function App() {
             onClick={async () => {
               setTestingSpeed(true);
               setDownloadSpeed(null);
-              setDownloadSpeed('-'); // reset
-              let speedError = '';
+              
               try {
-                if (selectedSpeedTest.cors) {
-                  const fileUrl = selectedSpeedTest.url + (selectedSpeedTest.url.includes('?') ? '&' : '?') + 'cacheBust=' + Date.now();
-                  const start = performance.now();
-                  const response = await fetch(fileUrl, { cache: 'no-store' });
-                  if (!response.ok || !response.body) throw new Error('Speed test fetch failed');
-                  const reader = response.body.getReader();
-                  let receivedLength = 0;
-                  let firstChunk = true;
-                  let firstChunkTime = 0;
-                  while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-                    if (firstChunk) {
-                      firstChunk = false;
-                      firstChunkTime = performance.now();
-                    }
-                    receivedLength += value.length;
+                const fileUrl = selectedSpeedTest.url + (selectedSpeedTest.url.includes('?') ? '&' : '?') + 'nocache=' + Date.now();
+                
+                console.log('Starting download test from:', fileUrl);
+                const start = performance.now();
+                
+                // Use XMLHttpRequest instead of fetch for better compatibility and progress tracking
+                const xhr = new XMLHttpRequest();
+                let receivedLength = 0;
+                let firstChunkTime = 0;
+                
+                xhr.open('GET', fileUrl, true);
+                xhr.responseType = 'arraybuffer';
+                
+                // Handle progress events to track download
+                xhr.onprogress = (event) => {
+                  if (event.loaded > 0 && firstChunkTime === 0) {
+                    firstChunkTime = performance.now();
                   }
-                  const end = performance.now();
-                  const effectiveStart = firstChunkTime || start;
-                  const sizeMB = receivedLength / (1024 * 1024);
-                  const timeSec = (end - effectiveStart) / 1000;
+                  receivedLength = event.loaded;
+                  
+                  // Update speed in real-time (optional)
+                  if (firstChunkTime > 0) {
+                    const currentTime = performance.now();
+                    const sizeMB = receivedLength / (1024 * 1024);
+                    const timeSec = (currentTime - firstChunkTime) / 1000;
+                    if (timeSec > 0) {
+                      const currentSpeedMbps = ((sizeMB * 8) / timeSec).toFixed(2);
+                      setDownloadSpeed(currentSpeedMbps + ' Mbps');
+                    }
+                  }
+                };
+                
+                // Create a promise that resolves when the request completes
+                const downloadPromise = new Promise((resolve, reject) => {
+                  xhr.onload = () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                      resolve(xhr.response);
+                    } else {
+                      reject(new Error(`HTTP error ${xhr.status}: ${xhr.statusText}`));
+                    }
+                  };
+                  xhr.onerror = () => reject(new Error('Network error occurred'));
+                  xhr.ontimeout = () => reject(new Error('Request timed out'));
+                });
+                
+                // Set a timeout to abort very slow connections
+                xhr.timeout = 30000; // 30 seconds timeout
+                xhr.send();
+                
+                // Wait for download to complete
+                await downloadPromise;
+                
+                const end = performance.now();
+                const effectiveStart = firstChunkTime || start;
+                const sizeMB = receivedLength / (1024 * 1024);
+                const timeSec = (end - effectiveStart) / 1000;
+                
+                if (timeSec > 0 && sizeMB > 0) {
                   const speedMbps = ((sizeMB * 8) / timeSec).toFixed(2);
                   setDownloadSpeed(speedMbps + ' Mbps');
                 } else {
-                  setDownloadSpeed('N/A: CORS not supported');
+                  setDownloadSpeed('Test failed - no data received');
                 }
               } catch (err) {
-                speedError = err.message;
-                setDownloadSpeed('N/A: ' + speedError);
-                console.error('Download speed test failed:', speedError);
+                console.error('Download speed test error:', err.message);
+                // Provide more helpful error message
+                if (err.message.includes('CORS') || err.message.includes('cross-origin')) {
+                  setDownloadSpeed('CORS error - try another server');
+                } else if (err.message.includes('timeout')) {
+                  setDownloadSpeed('Connection timed out');
+                } else {
+                  setDownloadSpeed('Error: ' + err.message);
+                }
+              } finally {
+                setTestingSpeed(false);
               }
-              setTestingSpeed(false);
             }}
             disabled={testingSpeed}
             style={{
@@ -559,6 +601,8 @@ function App() {
 }
 
 export default App;
+
+
 
 
 
