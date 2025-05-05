@@ -294,32 +294,32 @@ $featuresToCheck = @(
     },
     @{
         ID = 45
-        Name = "XMLHttpRequest download implementation"
-        Pattern = 'xhr\.open|XMLHttpRequest|responseType = "arraybuffer"'
+        Name = "Modern Download API implementation"
+        Pattern = 'fetch\(fileUrl|Fetch API|getReader|response\.body'
         Category = "Speed Test"
     },
     @{
         ID = 46
         Name = "Download progress tracking"
-        Pattern = 'xhr\.onprogress|firstChunkTime|xhr\.onload'
+        Pattern = 'bytesReceived|processDownloadProgress|speedSamples'
         Category = "Speed Test"
     },
     @{
         ID = 47
         Name = "Download error handling"
-        Pattern = 'CORS error|Connection timed out|xhr\.onerror'
+        Pattern = 'CORS error|NetworkError|AbortError|Failed to fetch'
         Category = "Speed Test"
     },
     @{
         ID = 48
         Name = "Real-time speed calculation"
-        Pattern = 'currentSpeedMbps|sizeMB|timeSec|toFixed\(2\)'
+        Pattern = 'megabitsReceived|speedMbps|bytesReceived|toFixed\(2\)'
         Category = "Speed Test"
     },
     @{
         ID = 49
         Name = "Timeout handling for downloads"
-        Pattern = 'xhr\.timeout|30000.*timeout|Connection timed out'
+        Pattern = 'controller\.abort|AbortController|60000|Test timed out'
         Category = "Speed Test"
     }
 )

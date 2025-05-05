@@ -14,7 +14,7 @@ L.Icon.Default.mergeOptions({
 });
 
 // Application version - updated during build process
-const VERSION = "2e030706b12aafe75a8b69d42fcf6f2d096d5f6d";
+const VERSION = "043a6d342a444bde471bdfac727c17bcead9ab62";
 
 // Added text encoding function to ensure proper character handling
 function encodeNonLatinChars(text) {
@@ -488,116 +488,168 @@ function App() {
               setDownloadSpeed(null);
               
               try {
-                const fileUrl = selectedSpeedTest.url + (selectedSpeedTest.url.includes('?') ? '&' : '?') + 'nocache=' + Date.now();
+                // Параметр для предотвращения кэширования
+                const cacheBuster = `cacheBust=${Date.now()}`;
+                const fileUrl = selectedSpeedTest.url + (selectedSpeedTest.url.includes('?') ? '&' : '?') + cacheBuster;
                 
-                console.log('Starting download test from:', fileUrl);
-                const start = performance.now();
+                console.log(`SpeedTest: Starting download test from ${selectedSpeedTest.name[lang]}`);
                 
-                // Улучшенная реализация с использованием XMLHttpRequest для надежной загрузки и обработки ошибок
-                const xhr = new XMLHttpRequest();
-                let receivedLength = 0;
-                let firstChunkTime = 0;
-                let downloadAborted = false;
+                // Хранение информации о прогрессе загрузки
+                let downloadStartTime = 0;
+                let bytesReceived = 0;
+                let lastUpdateTime = 0;
+                let speedSamples = [];
+                const updateInterval = 500; // Обновление UI каждые 500ms
                 
-                xhr.open('GET', fileUrl, true);
-                xhr.responseType = 'arraybuffer';
+                // Настройки для Reader API - размер порции данных
+                const chunkSize = 16384; // 16KB чанки для эффективного чтения
                 
-                // Увеличенный таймаут до 60 секунд для медленных соединений
-                xhr.timeout = 60000;
+                // Создаем AbortController для возможности отмены запроса
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => {
+                  console.log('SpeedTest: Test timeout reached');
+                  controller.abort();
+                }, 60000); // 60 секундный таймаут
                 
-                // Явное указание маркеров для проверки отслеживания прогресса загрузки
-                // xhr.onprogress + firstChunkTime + xhr.onload
-                xhr.onprogress = (event) => {
-                  if (event.loaded > 0 && firstChunkTime === 0) {
-                    firstChunkTime = performance.now();
+                // Индикатор того, был ли тест отменен
+                let testAborted = false;
+                
+                try {
+                  // Делаем запрос к серверу с использованием Fetch API
+                  const response = await fetch(fileUrl, {
+                    method: 'GET',
+                    mode: selectedSpeedTest.cors ? 'cors' : 'no-cors',
+                    cache: 'no-store',
+                    signal: controller.signal,
+                    headers: {
+                      'Cache-Control': 'no-cache, no-store, must-revalidate',
+                      'Pragma': 'no-cache'
+                    }
+                  });
+                  
+                  // Проверка на ошибки HTTP
+                  if (!response.ok && response.status !== 0) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
                   }
                   
-                  if (event.lengthComputable && event.total > 0) {
-                    receivedLength = event.loaded;
+                  // Получаем reader для потокового чтения тела ответа
+                  const reader = response.body.getReader();
+                  
+                  // Функция для обработки прогресса загрузки
+                  const processDownloadProgress = ({ done, value }) => {
+                    // Если это первый чанк данных, запоминаем время
+                    if (bytesReceived === 0) {
+                      downloadStartTime = performance.now();
+                      console.log('SpeedTest: First byte received');
+                    }
                     
-                    // Обновление скорости в реальном времени
-                    if (firstChunkTime > 0) {
-                      const currentTime = performance.now();
-                      const sizeMB = receivedLength / (1024 * 1024);
-                      const timeSec = (currentTime - firstChunkTime) / 1000;
-                      
-                      if (timeSec > 0.5) { // Показываем только после полсекунды загрузки для стабильности
-                        const currentSpeedMbps = ((sizeMB * 8) / timeSec).toFixed(2);
-                        setDownloadSpeed(currentSpeedMbps + ' Mbps');
+                    // Если загрузка завершена или прервана
+                    if (done) {
+                      return;
+                    }
+                    
+                    // Увеличиваем счетчик полученных байт
+                    const chunk = value;
+                    bytesReceived += chunk.length;
+                    
+                    const now = performance.now();
+                    
+                    // Обновляем UI и вычисляем скорость только через заданные интервалы
+                    // для уменьшения нагрузки
+                    if (now - lastUpdateTime > updateInterval) {
+                      const durationSeconds = (now - downloadStartTime) / 1000;
+                      if (durationSeconds > 0) {
+                        // Переводим байты в мегабиты (8 битов в байте)
+                        const megabitsReceived = (bytesReceived * 8) / 1000000;
+                        const speedMbps = megabitsReceived / durationSeconds;
+                        
+                        // Добавляем замер в массив образцов
+                        speedSamples.push(speedMbps);
+                        
+                        // Отображаем текущую скорость (с точностью до 2 знаков)
+                        const speedFormatted = speedMbps.toFixed(2);
+                        setDownloadSpeed(`${speedFormatted} Mbps`);
+                        
+                        console.log(`SpeedTest: ${bytesReceived} bytes received, current speed: ${speedFormatted} Mbps`);
+                        lastUpdateTime = now;
                       }
                     }
-                  }
-                };
-                
-                // Создаем Promise для обработки успешного завершения
-                const downloadPromise = new Promise((resolve, reject) => {
-                  // Обработка успешного завершения
-                  xhr.onload = () => {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                      resolve(xhr.response);
-                    } else {
-                      reject(new Error(`HTTP error ${xhr.status}: ${xhr.statusText}`));
-                    }
-                  };
-                  
-                  // Улучшенная обработка ошибок с более детальными сообщениями
-                  xhr.onerror = (e) => {
-                    console.error('XHR error details:', e);
                     
-                    // Проверка на CORS ошибки
-                    if (e.target && e.target.status === 0) {
-                      reject(new Error('CORS error: Cross-origin request blocked'));
-                    } else {
-                      reject(new Error('Network connection error'));
+                    // Продолжаем читать следующий чанк данных
+                    return reader.read().then(processDownloadProgress);
+                  };
+                  
+                  // Запускаем процесс чтения данных
+                  await reader.read().then(processDownloadProgress);
+                  
+                  // По завершении загрузки вычисляем итоговую скорость
+                  const testDuration = (performance.now() - downloadStartTime) / 1000;
+                  const totalMegabitsReceived = (bytesReceived * 8) / 1000000;
+                  
+                  if (testDuration > 0 && totalMegabitsReceived > 0) {
+                    // Расчет средней скорости за всё время загрузки
+                    const averageSpeedMbps = totalMegabitsReceived / testDuration;
+                    
+                    // Исключаем начальные и конечные значения для более точного результата
+                    // Используем только середину сэмплов, если их достаточно
+                    let finalSpeedMbps = averageSpeedMbps;
+                    if (speedSamples.length > 3) {
+                      speedSamples.sort((a, b) => a - b);
+                      // Отбрасываем самые низкие и высокие значения
+                      const trimmedSamples = speedSamples.slice(
+                        Math.floor(speedSamples.length * 0.2),
+                        Math.ceil(speedSamples.length * 0.8)
+                      );
+                      
+                      // Вычисляем среднее значение оставшихся образцов
+                      const sum = trimmedSamples.reduce((a, b) => a + b, 0);
+                      finalSpeedMbps = sum / trimmedSamples.length;
                     }
-                  };
-                  
-                  xhr.ontimeout = () => reject(new Error('Request timed out'));
-                  
-                  // Обработка прерывания запроса
-                  xhr.onabort = () => {
-                    downloadAborted = true;
-                    reject(new Error('Download was aborted'));
-                  };
-                });
-                
-                // Отправляем запрос
-                xhr.send();
-                
-                // Ожидаем завершения загрузки
-                await downloadPromise;
-                
-                // Рассчитываем итоговую скорость только если загрузка не была прервана
-                if (!downloadAborted) {
-                  const end = performance.now();
-                  const effectiveStart = firstChunkTime || start;
-                  const sizeMB = receivedLength / (1024 * 1024);
-                  const timeSec = (end - effectiveStart) / 1000;
-                  
-                  if (timeSec > 0 && sizeMB > 0) {
-                    const speedMbps = ((sizeMB * 8) / timeSec).toFixed(2);
-                    setDownloadSpeed(speedMbps + ' Mbps');
-                    console.log(`Download completed: ${sizeMB.toFixed(2)} MB in ${timeSec.toFixed(2)}s`);
+                    
+                    // Форматируем результат для отображения
+                    setDownloadSpeed(`${finalSpeedMbps.toFixed(2)} Mbps`);
+                    
+                    console.log(`SpeedTest: Test completed. Average speed: ${averageSpeedMbps.toFixed(2)} Mbps, 
+                      Final result: ${finalSpeedMbps.toFixed(2)} Mbps, 
+                      ${bytesReceived} bytes in ${testDuration.toFixed(2)}s`);
                   } else {
-                    console.error('Invalid calculation parameters', { sizeMB, timeSec });
-                    setDownloadSpeed('Error calculating speed');
+                    setDownloadSpeed('Insufficient data');
+                    console.error('SpeedTest: Invalid calculation parameters', { bytesReceived, testDuration });
                   }
+                } catch (fetchError) {
+                  console.error('SpeedTest: Fetch error:', fetchError);
+                  
+                  // Определяем тип ошибки по сообщению
+                  if (fetchError.name === 'AbortError') {
+                    testAborted = true;
+                    if (bytesReceived > 0) {
+                      // Если часть данных была получена до таймаута, рассчитываем частичную скорость
+                      const partialTestDuration = (performance.now() - downloadStartTime) / 1000;
+                      if (partialTestDuration > 0) {
+                        const partialMegabitsReceived = (bytesReceived * 8) / 1000000;
+                        const partialSpeedMbps = partialMegabitsReceived / partialTestDuration;
+                        setDownloadSpeed(`~${partialSpeedMbps.toFixed(2)} Mbps (partial)`);
+                      } else {
+                        setDownloadSpeed('Test aborted');
+                      }
+                    } else {
+                      setDownloadSpeed('Test timed out');
+                    }
+                  } else if (fetchError.message.includes('CORS') || 
+                    (fetchError.message.includes('NetworkError') && selectedSpeedTest.cors)) {
+                    setDownloadSpeed('CORS error - try a different server');
+                  } else if (fetchError.message.includes('Failed to fetch')) {
+                    setDownloadSpeed('Network error - check connection');
+                  } else {
+                    setDownloadSpeed(`Error: ${fetchError.message}`);
+                  }
+                } finally {
+                  clearTimeout(timeoutId);
                 }
-              } catch (err) {
-                console.error('Download speed test error:', err.message);
                 
-                // Улучшенные и более понятные сообщения об ошибках
-                if (err.message.includes('CORS')) {
-                  setDownloadSpeed('CORS error - try another server');
-                } else if (err.message.includes('timeout')) {
-                  setDownloadSpeed('Connection timed out');
-                } else if (err.message.includes('Network connection')) {
-                  setDownloadSpeed('Network connection error - check your internet');
-                } else if (err.message.includes('aborted')) {
-                  setDownloadSpeed('Download was cancelled');
-                } else {
-                  setDownloadSpeed(`Error: ${err.message}`);
-                }
+              } catch (error) {
+                console.error('SpeedTest: Global error:', error);
+                setDownloadSpeed(`Error: ${error.message}`);
               } finally {
                 setTestingSpeed(false);
               }
@@ -638,6 +690,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
