@@ -1,5 +1,17 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import MapErrorBoundary from './MapErrorBoundary';
+
+// Исправляем проблему с маркерами Leaflet в React
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+});
 
 // Application version - updated during build process
 const VERSION = "659da4e361559c53768d37673f39477a2c6b9ce0";
@@ -21,16 +33,66 @@ function encodeNonLatinChars(text) {
 }
 
 const geoOptions = [
-  { name: { en: 'Russia', ru: encodeNonLatinChars('Россия') }, url: 'https://yandex.ru', code: 'ru' },
-  { name: { en: 'Europe', ru: encodeNonLatinChars('Европа') }, url: 'https://www.bbc.co.uk', code: 'eu' },
-  { name: { en: 'US', ru: encodeNonLatinChars('США') }, url: 'https://www.google.com', code: 'us' },
-  { name: { en: 'Singapore', ru: encodeNonLatinChars('Сингапур') }, url: 'https://www.singtel.com', code: 'sg' },
-  { name: { en: 'Brazil', ru: encodeNonLatinChars('Бразилия') }, url: 'https://www.globo.com', code: 'br' },
-  { name: { en: 'India', ru: encodeNonLatinChars('Индия') }, url: 'https://www.airtel.in', code: 'in' },
-  { name: { en: 'Australia', ru: encodeNonLatinChars('Австралия') }, url: 'https://www.telstra.com.au', code: 'au' },
-  { name: { en: 'South Africa', ru: encodeNonLatinChars('ЮАР') }, url: 'https://www.telkom.co.za', code: 'za' },
-  { name: { en: 'Japan', ru: encodeNonLatinChars('Япония') }, url: 'https://www.yahoo.co.jp', code: 'jp' },
-  { name: { en: 'Canada', ru: encodeNonLatinChars('Канада') }, url: 'https://www.cbc.ca', code: 'ca' },
+  {
+    name: { en: 'New York', ru: encodeNonLatinChars('Нью-Йорк'), es: 'Nueva York', de: 'New York' },
+    url: 'https://cloudfront-us-east-1.amazonaws.com/favicon.ico',
+    code: 'us',
+    coords: [40.7128, -74.0060]
+  },
+  {
+    name: { en: 'London', ru: encodeNonLatinChars('Лондон'), es: 'Londres', de: 'London' },
+    url: 'https://cloudfront-eu-west-2.amazonaws.com/favicon.ico',
+    code: 'gb',
+    coords: [51.5074, -0.1278]
+  },
+  {
+    name: { en: 'Sydney', ru: encodeNonLatinChars('Сидней'), es: 'Sídney', de: 'Sydney' },
+    url: 'https://cloudfront-ap-southeast-2.amazonaws.com/favicon.ico',
+    code: 'au',
+    coords: [-33.8688, 151.2093]
+  },
+  {
+    name: { en: 'Singapore', ru: encodeNonLatinChars('Сингапур'), es: 'Singapur', de: 'Singapur' },
+    url: 'https://cloudfront-ap-southeast-1.amazonaws.com/favicon.ico',
+    code: 'sg',
+    coords: [1.3521, 103.8198]
+  },
+  {
+    name: { en: 'Frankfurt', ru: encodeNonLatinChars('Франкфурт'), es: 'Fráncfort', de: 'Frankfurt' },
+    url: 'https://cloudfront-eu-central-1.amazonaws.com/favicon.ico',
+    code: 'de',
+    coords: [50.1109, 8.6821]
+  },
+  {
+    name: { en: 'Mumbai', ru: encodeNonLatinChars('Мумбаи'), es: 'Bombay', de: 'Mumbai' },
+    url: 'https://cloudfront-ap-south-1.amazonaws.com/favicon.ico',
+    code: 'in',
+    coords: [19.0760, 72.8777]
+  },
+  {
+    name: { en: 'Sao Paulo', ru: encodeNonLatinChars('Сан-Паулу'), es: 'São Paulo', de: 'São Paulo' },
+    url: 'https://cloudfront-sa-east-1.amazonaws.com/favicon.ico',
+    code: 'br',
+    coords: [-23.5505, -46.6333]
+  },
+  {
+    name: { en: 'Tokyo', ru: encodeNonLatinChars('Токио'), es: 'Tokio', de: 'Tokio' },
+    url: 'https://cloudfront-ap-northeast-1.amazonaws.com/favicon.ico',
+    code: 'jp',
+    coords: [35.6762, 139.6503]
+  },
+  {
+    name: { en: 'Johannesburg', ru: encodeNonLatinChars('Йоханнесбург'), es: 'Johannesburgo', de: 'Johannesburg' },
+    url: 'https://cloudfront-af-south-1.amazonaws.com/favicon.ico',
+    code: 'za',
+    coords: [-26.2041, 28.0473]
+  },
+  {
+    name: { en: 'Toronto', ru: encodeNonLatinChars('Торонто'), es: 'Toronto', de: 'Toronto' },
+    url: 'https://cloudfront-ca-central-1.amazonaws.com/favicon.ico',
+    code: 'ca',
+    coords: [43.6532, -79.3832]
+  }
 ];
 
 const speedTestOptions = [
@@ -105,7 +167,9 @@ function App() {
   const [selectedSpeedTest, setSelectedSpeedTest] = useState(speedTestOptions[0]);
   const [lang, setLang] = useState(getSavedLang());
   const t = translations[lang] || translations['en'];
-
+  const [showMapView, setShowMapView] = useState(true); // Для переключения между картой и обычным видом
+  const mapRef = useRef(null);
+  
   useEffect(() => {
     localStorage.setItem('lang', lang);
   }, [lang]);
@@ -163,6 +227,40 @@ function App() {
           </select>
         </div>
       </div>
+      <div style={{ display: 'flex', gap: 24, marginBottom: 16, alignItems: 'center', justifyContent: 'center', width: '100%', maxWidth: 1100 }}>
+        <button 
+          onClick={() => setShowMapView(false)}
+          style={{
+            padding: '8px 16px',
+            fontSize: 16,
+            fontWeight: 600,
+            borderRadius: 16,
+            border: 'none',
+            background: showMapView ? 'rgba(255,255,255,0.1)' : 'linear-gradient(90deg, #00c6ff 0%, #0072ff 100%)',
+            color: '#fff',
+            cursor: 'pointer',
+            transition: 'background 0.3s',
+          }}
+        >
+          {lang === 'ru' ? 'Список' : 'List View'}
+        </button>
+        <button 
+          onClick={() => setShowMapView(true)}
+          style={{
+            padding: '8px 16px',
+            fontSize: 16,
+            fontWeight: 600,
+            borderRadius: 16,
+            border: 'none',
+            background: !showMapView ? 'rgba(255,255,255,0.1)' : 'linear-gradient(90deg, #00c6ff 0%, #0072ff 100%)',
+            color: '#fff',
+            cursor: 'pointer',
+            transition: 'background 0.3s',
+          }}
+        >
+          {lang === 'ru' ? 'Карта' : 'Map View'}
+        </button>
+      </div>
       <div style={{
         display: 'flex',
         gap: 40,
@@ -172,6 +270,48 @@ function App() {
         margin: '0 auto',
         flexWrap: 'wrap',
       }}>
+        {/* Map View */}
+        {showMapView && (
+          <div className="map-container" style={{
+            width: '100%',
+            height: '400px',
+            borderRadius: '24px',
+            overflow: 'hidden',
+            marginBottom: '24px',
+            boxShadow: '0 2px 16px 0 rgba(0,198,255,0.07)',
+          }}>
+            <h2 style={{ fontWeight: 700, fontSize: 24, marginBottom: 16, letterSpacing: -1, fontFamily: 'Inter, Segoe UI, Arial, sans-serif', textAlign: 'center' }}>
+              {lang === 'ru' ? 'Карта серверов' : 'Server Locations'}
+            </h2>
+            <div style={{ width: '100%', height: '350px', borderRadius: '12px', overflow: 'hidden' }}>
+              <MapErrorBoundary>
+                <MapContainer 
+                  center={[20, 0]} 
+                  zoom={2} 
+                  style={{ width: '100%', height: '100%' }}
+                >
+                  <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  />
+                  {geoOptions.map(city => (
+                    <Marker 
+                      key={city.code} 
+                      position={city.coords}
+                    >
+                      <Popup>
+                        <b>{city.name[lang]}</b>
+                        <br />
+                        {latency[city.name.en] ? `Ping: ${latency[city.name.en]}` : 'Not tested yet'}
+                      </Popup>
+                    </Marker>
+                  ))}
+                </MapContainer>
+              </MapErrorBoundary>
+            </div>
+          </div>
+        )}
+        
         {/* IP Detection */}
         <div style={{
           background: 'rgba(255,255,255,0.05)',

@@ -66,78 +66,114 @@ $featuresToCheck = @(
     },
     @{
         ID = 7
-        Name = "Russia region"
-        Pattern = 'Russia'
-        Category = "Regions"
+        Name = "New York city"
+        Pattern = 'New\s*York'
+        Category = "Cities"
     },
     @{
         ID = 8
-        Name = "Europe region"
-        Pattern = 'Europe'
-        Category = "Regions"
+        Name = "London city"
+        Pattern = 'London'
+        Category = "Cities"
     },
     @{
         ID = 9
-        Name = "US region"
-        Pattern = 'US'
-        Category = "Regions"
+        Name = "Sydney city"
+        Pattern = 'Sydney'
+        Category = "Cities"
     },
     @{
         ID = 10
-        Name = "Singapore region"
+        Name = "Singapore city"
         Pattern = 'Singapore'
-        Category = "Regions"
+        Category = "Cities"
     },
     @{
         ID = 11
-        Name = "Brazil region"
-        Pattern = 'Brazil'
-        Category = "Regions"
+        Name = "Frankfurt city"
+        Pattern = 'Frankfurt'
+        Category = "Cities"
     },
     @{
         ID = 12
-        Name = "India region"
-        Pattern = 'India'
-        Category = "Regions"
+        Name = "Mumbai city"
+        Pattern = 'Mumbai'
+        Category = "Cities"
     },
     @{
         ID = 13
-        Name = "Australia region"
-        Pattern = 'Australia'
-        Category = "Regions"
+        Name = "Sao Paulo city"
+        Pattern = 'Sao\s*Paulo'
+        Category = "Cities"
     },
     @{
         ID = 14
-        Name = "South Africa region"
-        Pattern = 'South\s*Africa'
-        Category = "Regions"
+        Name = "Tokyo city"
+        Pattern = 'Tokyo'
+        Category = "Cities"
     },
     @{
         ID = 15
-        Name = "Japan region"
-        Pattern = 'Japan'
-        Category = "Regions"
+        Name = "Johannesburg city"
+        Pattern = 'Johannesburg'
+        Category = "Cities"
     },
     @{
         ID = 16
-        Name = "Canada region"
-        Pattern = 'Canada'
-        Category = "Regions"
+        Name = "Toronto city"
+        Pattern = 'Toronto'
+        Category = "Cities"
     },
     @{
         ID = 17
-        Name = "Spanish Canada translation (Canadá)"
-        Pattern = 'Canada.*es|es.*Canada'
-        Category = "International Support"
+        Name = "Map container"
+        Pattern = 'map-container'
+        Category = "Map Features"
     },
     @{
         ID = 18
+        Name = "Leaflet integration"
+        Pattern = 'leaflet|MapContainer'
+        Category = "Map Features"
+    },
+    @{
+        ID = 19
+        Name = "Map markers"
+        Pattern = 'Marker|position'
+        Category = "Map Features"
+    },
+    @{
+        ID = 20
+        Name = "Coordinates for cities"
+        Pattern = 'coords'
+        Category = "Map Features"
+    },
+    @{
+        ID = 21
+        Name = "Map error boundary"
+        Pattern = 'MapErrorBoundary'
+        Category = "Map Features"
+    },
+    @{
+        ID = 22
+        Name = "Map view toggle"
+        Pattern = 'Map View|showMapView'
+        Category = "Map Features"
+    },
+    @{
+        ID = 23
+        Name = "List view toggle"
+        Pattern = 'List View'
+        Category = "Map Features"
+    },
+    @{
+        ID = 24
         Name = "Cloudflare server"
         Pattern = 'Cloudflare'
         Category = "Servers"
     },
     @{
-        ID = 19
+        ID = 25
         Name = "Singapore server"
         Pattern = 'Singapore'
         Category = "Servers"
@@ -207,24 +243,19 @@ foreach ($feature in $featuresToCheck) {
 
 # Display summary
 Write-Host "`n============ TEST SUMMARY ============" -ForegroundColor Cyan
-Write-Host "Features found: $foundFeatures of $totalFeatures" -ForegroundColor $(if ($foundFeatures -gt 0) { "Green" } else { "Red" })
+Write-Host "Features found: $foundFeatures of $totalFeatures" -ForegroundColor $(if ($foundFeatures -eq $totalFeatures) { "Green" } else { "Red" })
 Write-Host "`nBy category:"
 foreach ($category in $categoryCounts.Keys) {
-    # Fix for International Support category to show correct total (1 instead of 4)
-    if ($category -eq "International Support") {
-        $categoryTotal = 1
-    } else {
-        $categoryTotal = ($featuresToCheck | Where-Object { $_.Category -eq $category }).Count
-    }
+    $categoryTotal = ($featuresToCheck | Where-Object { $_.Category -eq $category }).Count
     $categoryFound = $categoryCounts[$category]
     $color = if ($categoryFound -eq $categoryTotal) { "Green" } elseif ($categoryFound -gt 0) { "Yellow" } else { "Red" }
     Write-Host "- $category`: $categoryFound of $categoryTotal" -ForegroundColor $color
 }
 
-if ($foundFeatures -ge 3) {
-    Write-Host "`nTEST PASSED: Found at least 3 required features" -ForegroundColor Green
+if ($foundFeatures -eq $totalFeatures) {
+    Write-Host "`nTEST PASSED: All features found successfully" -ForegroundColor Green
     exit 0
 } else {
-    Write-Host "`nTEST FAILED: Didn't find enough required features" -ForegroundColor Red
+    Write-Host "`nTEST FAILED: Not all features were found" -ForegroundColor Red
     exit 1
 }
