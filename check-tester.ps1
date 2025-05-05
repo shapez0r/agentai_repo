@@ -177,6 +177,24 @@ $featuresToCheck = @(
         Name = "Singapore server"
         Pattern = 'Singapore'
         Category = "Servers"
+    },
+    @{
+        ID = 26
+        Name = "Improved ping measurement"
+        Pattern = 'pingServer|Promise\.race|Unreachable'
+        Category = "Ping Features"
+    },
+    @{
+        ID = 27
+        Name = "Multiple ping attempts"
+        Pattern = 'for\s*\(.+\<\s*3'
+        Category = "Ping Features"
+    },
+    @{
+        ID = 28
+        Name = "Ping timeout handling"
+        Pattern = 'timeout|setTimeout.+reject'
+        Category = "Ping Features"
     }
 )
 
