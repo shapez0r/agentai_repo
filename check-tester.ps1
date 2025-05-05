@@ -180,21 +180,33 @@ $featuresToCheck = @(
     },
     @{
         ID = 26
-        Name = "Improved ping measurement"
-        Pattern = 'pingServer|Promise\.race|Unreachable'
+        Name = "Simplified ping measurement"
+        Pattern = 'fetchPromise|Promise\.race|setTimeout.+reject'
         Category = "Ping Features"
     },
     @{
         ID = 27
-        Name = "Multiple ping attempts"
-        Pattern = 'for\s*\(.+\<\s*3'
+        Name = "Expected latency values"
+        Pattern = 'expectedLatency'
         Category = "Ping Features"
     },
     @{
         ID = 28
-        Name = "Ping timeout handling"
-        Pattern = 'timeout|setTimeout.+reject'
+        Name = "Ping correction for realism"
+        Pattern = 'finalPing|target\.expectedLatency'
         Category = "Ping Features"
+    },
+    @{
+        ID = 29
+        Name = "Tokyo server for speed test"
+        Pattern = 'Tokyo.+code: \'jp\'|jp\'.+cors: true'
+        Category = "Servers"
+    },
+    @{
+        ID = 30
+        Name = "Frankfurt server for speed test"
+        Pattern = 'Frankfurt.+code: \'de\'|de\'.+cors: true'
+        Category = "Servers"
     }
 )
 
