@@ -14,7 +14,7 @@ L.Icon.Default.mergeOptions({
 });
 
 // Application version - updated during build process
-const VERSION = "0825b08f3725eddf37716e66806e6bc755a5635a";
+const VERSION = "73a3022ef5fad460377a7d880201bcf386db5c65";
 
 // Added text encoding function to ensure proper character handling
 function encodeNonLatinChars(text) {
@@ -106,10 +106,30 @@ const geoOptions = [
 ];
 
 const speedTestOptions = [
-  { name: { en: 'Cloudflare', ru: 'Cloudflare', es: 'Cloudflare', de: 'Cloudflare' }, url: 'https://www.cloudflare.com', code: 'us', cors: true },
-  { name: { en: 'Frankfurt', ru: encodeNonLatinChars('Франкфурт'), es: 'Fráncfort', de: 'Frankfurt' }, url: 'https://fra1.digitaloceanspaces.com/speedtest/10mb.bin', code: 'de', cors: true },
-  { name: { en: 'Singapore', ru: encodeNonLatinChars('Сингапур'), es: 'Singapur', de: 'Singapur' }, url: 'https://sgp1.digitaloceanspaces.com/speedtest/10mb.bin', code: 'sg', cors: true },
-  { name: { en: 'Tokyo', ru: encodeNonLatinChars('Токио'), es: 'Tokio', de: 'Tokio' }, url: 'https://sin1.digitaloceanspaces.com/speedtest/10mb.bin', code: 'jp', cors: true },
+  { 
+    name: { en: 'ThinkBroadband (100MB)', ru: 'ThinkBroadband (100МБ)', es: 'ThinkBroadband (100MB)', de: 'ThinkBroadband (100MB)' }, 
+    url: 'https://download.thinkbroadband.com/100MB.zip', 
+    code: 'gb', 
+    cors: true 
+  },
+  { 
+    name: { en: 'OVH (100MB)', ru: 'OVH (100МБ)', es: 'OVH (100MB)', de: 'OVH (100MB)' }, 
+    url: 'https://proof.ovh.net/files/100Mb.dat', 
+    code: 'fr', 
+    cors: true 
+  },
+  { 
+    name: { en: 'ThinkBroadband (50MB)', ru: 'ThinkBroadband (50МБ)', es: 'ThinkBroadband (50MB)', de: 'ThinkBroadband (50MB)' }, 
+    url: 'https://download.thinkbroadband.com/50MB.zip', 
+    code: 'gb', 
+    cors: true 
+  },
+  { 
+    name: { en: 'OVH (10MB)', ru: 'OVH (10МБ)', es: 'OVH (10MB)', de: 'OVH (10MB)' }, 
+    url: 'https://proof.ovh.net/files/10Mb.dat', 
+    code: 'fr', 
+    cors: true 
+  },
 ];
 
 const translations = {
@@ -539,6 +559,7 @@ function App() {
 }
 
 export default App;
+
 
 
 

@@ -267,6 +267,30 @@ $featuresToCheck = @(
         Name = "Toronto Linode server"
         Pattern = 'speedtest\.tor1\.linode\.com'
         Category = "Ping Servers"
+    },
+    @{
+        ID = 41
+        Name = "ThinkBroadband 100MB test file"
+        Pattern = 'ThinkBroadband.+100MB|download\.thinkbroadband\.com\/100MB\.zip'
+        Category = "Speed Test"
+    },
+    @{
+        ID = 42
+        Name = "ThinkBroadband 50MB test file"
+        Pattern = 'ThinkBroadband.+50MB|download\.thinkbroadband\.com\/50MB\.zip'
+        Category = "Speed Test"
+    },
+    @{
+        ID = 43
+        Name = "OVH 100MB test file"
+        Pattern = 'OVH.+100MB|proof\.ovh\.net\/files\/100Mb\.dat'
+        Category = "Speed Test"
+    },
+    @{
+        ID = 44
+        Name = "OVH 10MB test file"
+        Pattern = 'OVH.+10MB|proof\.ovh\.net\/files\/10Mb\.dat'
+        Category = "Speed Test"
     }
 )
 
