@@ -227,7 +227,7 @@ foreach ($feature in $featuresToCheck) {
     }
     
     if ($content -match $feature.Pattern) {
-        Write-Host "[✓] Feature #$($feature.ID): $($feature.Name)" -ForegroundColor Green
+        Write-Host "[OK] Feature #$($feature.ID): $($feature.Name)" -ForegroundColor Green
         $foundFeatures++
         
         # Track category stats
@@ -237,7 +237,7 @@ foreach ($feature in $featuresToCheck) {
             $categoryCounts[$feature.Category] = 1
         }
     } else {
-        Write-Host "[✗] Feature #$($feature.ID): $($feature.Name) - NOT FOUND" -ForegroundColor Red
+        Write-Host "[FAIL] Feature #$($feature.ID): $($feature.Name) - NOT FOUND" -ForegroundColor Red
     }
 }
 
