@@ -14,7 +14,7 @@ L.Icon.Default.mergeOptions({
 });
 
 // Application version - updated during build process
-const VERSION = "cea0c1abec23c70bd2719e6a52a8ce61c37f4fb6";
+const VERSION = "0825b08f3725eddf37716e66806e6bc755a5635a";
 
 // Added text encoding function to ensure proper character handling
 function encodeNonLatinChars(text) {
@@ -35,70 +35,70 @@ function encodeNonLatinChars(text) {
 const geoOptions = [
   {
     name: { en: 'New York', ru: encodeNonLatinChars('Нью-Йорк'), es: 'Nueva York', de: 'New York' },
-    url: 'https://cloudflare-dns.com/dns-query',
+    url: 'nyc.speedtest.clouvider.net',
     code: 'us',
     coords: [40.7128, -74.0060],
     expectedLatency: 60
   },
   {
     name: { en: 'London', ru: encodeNonLatinChars('Лондон'), es: 'Londres', de: 'London' },
-    url: 'https://1.1.1.2/cdn-cgi/trace',
+    url: 'lon.speedtest.clouvider.net',
     code: 'gb',
     coords: [51.5074, -0.1278],
     expectedLatency: 40
   },
   {
     name: { en: 'Sydney', ru: encodeNonLatinChars('Сидней'), es: 'Sídney', de: 'Sydney' },
-    url: 'https://cdn-au.tstatic.net/status',
+    url: 'speedtest.syd1.linode.com',
     code: 'au',
     coords: [-33.8688, 151.2093],
     expectedLatency: 180
   },
   {
     name: { en: 'Singapore', ru: encodeNonLatinChars('Сингапур'), es: 'Singapur', de: 'Singapur' },
-    url: 'https://ap-southeast-1.console.aws.amazon.com/health/status',
+    url: 'speedtest.singapore.linode.com',
     code: 'sg',
     coords: [1.3521, 103.8198],
     expectedLatency: 150
   },
   {
     name: { en: 'Frankfurt', ru: encodeNonLatinChars('Франкфурт'), es: 'Fráncfort', de: 'Frankfurt' },
-    url: 'https://fra-ping.vultr.com/',
+    url: 'speedtest.fra1.linode.com',
     code: 'de',
     coords: [50.1109, 8.6821],
     expectedLatency: 35
   },
   {
     name: { en: 'Mumbai', ru: encodeNonLatinChars('Мумбаи'), es: 'Bombay', de: 'Mumbai' },
-    url: 'https://in-blr.api.cloudflare.com/',
+    url: 'speedtest.mumbai1.linode.com',
     code: 'in',
     coords: [19.0760, 72.8777],
     expectedLatency: 130
   },
   {
     name: { en: 'Sao Paulo', ru: encodeNonLatinChars('Сан-Паулу'), es: 'São Paulo', de: 'São Paulo' },
-    url: 'https://www.cloudflare-saopaulo.com/cdn-cgi/trace',
+    url: 'linode-sao.speedtest.org',
     code: 'br',
     coords: [-23.5505, -46.6333],
     expectedLatency: 120
   },
   {
     name: { en: 'Tokyo', ru: encodeNonLatinChars('Токио'), es: 'Tokio', de: 'Tokio' },
-    url: 'https://jp-ping.vultr.com/',
+    url: 'speedtest.tokyo2.linode.com',
     code: 'jp',
     coords: [35.6762, 139.6503],
     expectedLatency: 170
   },
   {
     name: { en: 'Johannesburg', ru: encodeNonLatinChars('Йоханнесбург'), es: 'Johannesburgo', de: 'Johannesburg' },
-    url: 'https://za-ping.vultr.com/',
+    url: 'www.gov.za',
     code: 'za',
     coords: [-26.2041, 28.0473],
     expectedLatency: 160
   },
   {
     name: { en: 'Toronto', ru: encodeNonLatinChars('Торонто'), es: 'Toronto', de: 'Toronto' },
-    url: 'https://tor01.speedtest.bell.ca/speedtest',
+    url: 'speedtest.tor1.linode.com',
     code: 'ca',
     coords: [43.6532, -79.3832],
     expectedLatency: 80
@@ -106,10 +106,10 @@ const geoOptions = [
 ];
 
 const speedTestOptions = [
-  { name: { en: 'Cloudflare', ru: 'Cloudflare', es: 'Cloudflare', de: 'Cloudflare' }, url: 'https://speed.cloudflare.com/__down?bytes=10000000', code: 'us', cors: true },
-  { name: { en: 'Frankfurt', ru: encodeNonLatinChars('Франкфурт'), es: 'Fráncfort', de: 'Frankfurt' }, url: 'https://fra-speedtest.vultr.com/download?size=25000000', code: 'de', cors: true },
-  { name: { en: 'Singapore', ru: encodeNonLatinChars('Сингапур'), es: 'Singapur', de: 'Singapur' }, url: 'https://sgp-speedtest.vultr.com/download?size=25000000', code: 'sg', cors: true },
-  { name: { en: 'Tokyo', ru: encodeNonLatinChars('Токио'), es: 'Tokio', de: 'Tokio' }, url: 'https://hnd-jp-ping.vultr.com/vultr.com.100MB.bin', code: 'jp', cors: true },
+  { name: { en: 'Cloudflare', ru: 'Cloudflare', es: 'Cloudflare', de: 'Cloudflare' }, url: 'https://www.cloudflare.com', code: 'us', cors: true },
+  { name: { en: 'Frankfurt', ru: encodeNonLatinChars('Франкфурт'), es: 'Fráncfort', de: 'Frankfurt' }, url: 'https://fra1.digitaloceanspaces.com/speedtest/10mb.bin', code: 'de', cors: true },
+  { name: { en: 'Singapore', ru: encodeNonLatinChars('Сингапур'), es: 'Singapur', de: 'Singapur' }, url: 'https://sgp1.digitaloceanspaces.com/speedtest/10mb.bin', code: 'sg', cors: true },
+  { name: { en: 'Tokyo', ru: encodeNonLatinChars('Токио'), es: 'Tokio', de: 'Tokio' }, url: 'https://sin1.digitaloceanspaces.com/speedtest/10mb.bin', code: 'jp', cors: true },
 ];
 
 const translations = {
@@ -539,6 +539,7 @@ function App() {
 }
 
 export default App;
+
 
 
 

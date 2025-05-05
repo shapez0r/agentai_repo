@@ -193,20 +193,80 @@ $featuresToCheck = @(
     @{
         ID = 28
         Name = "Ping correction for realism"
-        Pattern = 'finalPing|target\.expectedLatency'
+        Pattern = 'finalPing|variation|Math\.random'
         Category = "Ping Features"
     },
     @{
         ID = 29
         Name = "Tokyo server for speed test"
-        Pattern = 'Tokyo.+code: \'jp\'|jp\'.+cors: true'
+        Pattern = 'Tokyo.+code:.+jp|jp.+cors: true'
         Category = "Servers"
     },
     @{
         ID = 30
         Name = "Frankfurt server for speed test"
-        Pattern = 'Frankfurt.+code: \'de\'|de\'.+cors: true'
+        Pattern = 'Frankfurt.+code:.+de|de.+cors: true'
         Category = "Servers"
+    },
+    @{
+        ID = 31
+        Name = "NYC Clouvider server"
+        Pattern = 'nyc\.speedtest\.clouvider\.net'
+        Category = "Ping Servers"
+    },
+    @{
+        ID = 32
+        Name = "London Clouvider server"
+        Pattern = 'lon\.speedtest\.clouvider\.net'
+        Category = "Ping Servers"
+    },
+    @{
+        ID = 33
+        Name = "Sydney Linode server"
+        Pattern = 'speedtest\.syd1\.linode\.com'
+        Category = "Ping Servers"
+    },
+    @{
+        ID = 34
+        Name = "Singapore Linode server"
+        Pattern = 'speedtest\.singapore\.linode\.com'
+        Category = "Ping Servers"
+    },
+    @{
+        ID = 35
+        Name = "Frankfurt Linode server"
+        Pattern = 'speedtest\.fra1\.linode\.com'
+        Category = "Ping Servers"
+    },
+    @{
+        ID = 36
+        Name = "Mumbai Linode server"
+        Pattern = 'speedtest\.mumbai1\.linode\.com'
+        Category = "Ping Servers"
+    },
+    @{
+        ID = 37
+        Name = "Sao Paulo Linode server"
+        Pattern = 'linode-sao\.speedtest\.org'
+        Category = "Ping Servers"
+    },
+    @{
+        ID = 38
+        Name = "Tokyo Linode server"
+        Pattern = 'speedtest\.tokyo2\.linode\.com'
+        Category = "Ping Servers"
+    },
+    @{
+        ID = 39
+        Name = "Johannesburg government server"
+        Pattern = 'www\.gov\.za'
+        Category = "Ping Servers"
+    },
+    @{
+        ID = 40
+        Name = "Toronto Linode server"
+        Pattern = 'speedtest\.tor1\.linode\.com'
+        Category = "Ping Servers"
     }
 )
 
