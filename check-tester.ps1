@@ -168,8 +168,8 @@ $featuresToCheck = @(
     },
     @{
         ID = 24
-        Name = "Cloudflare server"
-        Pattern = 'Cloudflare'
+        Name = "Speed Test Servers"
+        Pattern = 'ThinkBroadband|OVH'
         Category = "Servers"
     },
     @{
