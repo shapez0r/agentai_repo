@@ -14,7 +14,7 @@ L.Icon.Default.mergeOptions({
 });
 
 // Application version - updated during build process
-const VERSION = "5945ec5103dcd5e42e22bd79802cd4ede7d440b9";
+const VERSION = "82755beac818769449b9b402679a6210142ce931";
 
 // Added text encoding function to ensure proper character handling
 function encodeNonLatinChars(text) {
@@ -360,16 +360,51 @@ function App() {
               } catch {
                 setIp('Error');
               }
+              
               const latencyResults = {};
+              
               for (const target of geoOptions) {
-                const start = performance.now();
-                try {
-                  await fetch(target.url, { mode: 'no-cors' });
-                  latencyResults[target.name.en] = Math.round(performance.now() - start) + ' ms';
-                } catch {
-                  latencyResults[target.name.en] = 'N/A';
+                const pingServer = async () => {
+                  const start = performance.now();
+                  try {
+                    // Используем Promise.race для ограничения по времени
+                    const timeout = new Promise((_, reject) => 
+                      setTimeout(() => reject(new Error('Timeout')), 5000)
+                    );
+                    
+                    const fetchPromise = fetch(target.url, { 
+                      mode: 'no-cors',
+                      cache: 'no-cache'
+                    });
+                    
+                    await Promise.race([fetchPromise, timeout]);
+                    return Math.round(performance.now() - start);
+                  } catch (error) {
+                    console.error(`Error pinging ${target.name.en}:`, error);
+                    return null;
+                  }
+                };
+                
+                // Делаем 3 запроса и берем лучший результат
+                const results = [];
+                for (let i = 0; i < 3; i++) {
+                  const pingTime = await pingServer();
+                  if (pingTime !== null) {
+                    results.push(pingTime);
+                  }
+                  // Небольшая пауза между запросами
+                  await new Promise(r => setTimeout(r, 200));
+                }
+                
+                if (results.length > 0) {
+                  // Берем минимальное (лучшее) значение пинга из полученных результатов
+                  const bestPing = Math.min(...results);
+                  latencyResults[target.name.en] = bestPing + ' ms';
+                } else {
+                  latencyResults[target.name.en] = 'Unreachable';
                 }
               }
+              
               setLatency(latencyResults);
               setTestingPing(false);
             }}
@@ -497,6 +532,8 @@ function App() {
 }
 
 export default App;
+
+
 
 
 
