@@ -151,7 +151,7 @@ $featuresToCheck = @(
     @{
         ID = 21
         Name = "Map error boundary"
-        Pattern = 'MapErrorBoundary'
+        Pattern = 'MapErrorBoundary|ErrorBoundary'
         Category = "Map Features"
     },
     @{
