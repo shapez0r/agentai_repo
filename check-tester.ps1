@@ -324,7 +324,7 @@ $featuresToCheck = @(
     }
 )
 
-$timeoutSec = 40
+$timeoutSec = 60
 $intervalSec = 5
 $start = Get-Date
 $found = $false

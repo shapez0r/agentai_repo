@@ -14,7 +14,7 @@ L.Icon.Default.mergeOptions({
 });
 
 // Application version - updated during build process
-const VERSION = "74fffe122999580dd6c51627ee120e6cfbe663df";
+const VERSION = "2ea108f14ebad867c9da8e277f87f0a762276a6f";
 
 // Added text encoding function to ensure proper character handling
 function encodeNonLatinChars(text) {
@@ -493,35 +493,44 @@ function App() {
                 console.log('Starting download test from:', fileUrl);
                 const start = performance.now();
                 
-                // Use XMLHttpRequest instead of fetch for better compatibility and progress tracking
+                // Улучшенная реализация с использованием XMLHttpRequest для надежной загрузки и обработки ошибок
                 const xhr = new XMLHttpRequest();
                 let receivedLength = 0;
                 let firstChunkTime = 0;
+                let downloadAborted = false;
                 
                 xhr.open('GET', fileUrl, true);
                 xhr.responseType = 'arraybuffer';
                 
-                // Handle progress events to track download
+                // Увеличенный таймаут до 60 секунд для медленных соединений
+                xhr.timeout = 60000;
+                
+                // Улучшенная обработка прогресса с защитой от ошибок
                 xhr.onprogress = (event) => {
                   if (event.loaded > 0 && firstChunkTime === 0) {
                     firstChunkTime = performance.now();
                   }
-                  receivedLength = event.loaded;
                   
-                  // Update speed in real-time (optional)
-                  if (firstChunkTime > 0) {
-                    const currentTime = performance.now();
-                    const sizeMB = receivedLength / (1024 * 1024);
-                    const timeSec = (currentTime - firstChunkTime) / 1000;
-                    if (timeSec > 0) {
-                      const currentSpeedMbps = ((sizeMB * 8) / timeSec).toFixed(2);
-                      setDownloadSpeed(currentSpeedMbps + ' Mbps');
+                  if (event.lengthComputable && event.total > 0) {
+                    receivedLength = event.loaded;
+                    
+                    // Обновление скорости в реальном времени
+                    if (firstChunkTime > 0) {
+                      const currentTime = performance.now();
+                      const sizeMB = receivedLength / (1024 * 1024);
+                      const timeSec = (currentTime - firstChunkTime) / 1000;
+                      
+                      if (timeSec > 0.5) { // Показываем только после полсекунды загрузки для стабильности
+                        const currentSpeedMbps = ((sizeMB * 8) / timeSec).toFixed(2);
+                        setDownloadSpeed(currentSpeedMbps + ' Mbps');
+                      }
                     }
                   }
                 };
                 
-                // Create a promise that resolves when the request completes
+                // Создаем Promise для обработки успешного завершения
                 const downloadPromise = new Promise((resolve, reject) => {
+                  // Обработка успешного завершения
                   xhr.onload = () => {
                     if (xhr.status >= 200 && xhr.status < 300) {
                       resolve(xhr.response);
@@ -529,37 +538,64 @@ function App() {
                       reject(new Error(`HTTP error ${xhr.status}: ${xhr.statusText}`));
                     }
                   };
-                  xhr.onerror = () => reject(new Error('Network error occurred'));
+                  
+                  // Улучшенная обработка ошибок с более детальными сообщениями
+                  xhr.onerror = (e) => {
+                    console.error('XHR error details:', e);
+                    
+                    // Проверка на CORS ошибки
+                    if (e.target && e.target.status === 0) {
+                      reject(new Error('CORS error: Cross-origin request blocked'));
+                    } else {
+                      reject(new Error('Network connection error'));
+                    }
+                  };
+                  
                   xhr.ontimeout = () => reject(new Error('Request timed out'));
+                  
+                  // Обработка прерывания запроса
+                  xhr.onabort = () => {
+                    downloadAborted = true;
+                    reject(new Error('Download was aborted'));
+                  };
                 });
                 
-                // Set a timeout to abort very slow connections
-                xhr.timeout = 30000; // 30 seconds timeout
+                // Отправляем запрос
                 xhr.send();
                 
-                // Wait for download to complete
+                // Ожидаем завершения загрузки
                 await downloadPromise;
                 
-                const end = performance.now();
-                const effectiveStart = firstChunkTime || start;
-                const sizeMB = receivedLength / (1024 * 1024);
-                const timeSec = (end - effectiveStart) / 1000;
-                
-                if (timeSec > 0 && sizeMB > 0) {
-                  const speedMbps = ((sizeMB * 8) / timeSec).toFixed(2);
-                  setDownloadSpeed(speedMbps + ' Mbps');
-                } else {
-                  setDownloadSpeed('Test failed - no data received');
+                // Рассчитываем итоговую скорость только если загрузка не была прервана
+                if (!downloadAborted) {
+                  const end = performance.now();
+                  const effectiveStart = firstChunkTime || start;
+                  const sizeMB = receivedLength / (1024 * 1024);
+                  const timeSec = (end - effectiveStart) / 1000;
+                  
+                  if (timeSec > 0 && sizeMB > 0) {
+                    const speedMbps = ((sizeMB * 8) / timeSec).toFixed(2);
+                    setDownloadSpeed(speedMbps + ' Mbps');
+                    console.log(`Download completed: ${sizeMB.toFixed(2)} MB in ${timeSec.toFixed(2)}s`);
+                  } else {
+                    console.error('Invalid calculation parameters', { sizeMB, timeSec });
+                    setDownloadSpeed('Error calculating speed');
+                  }
                 }
               } catch (err) {
                 console.error('Download speed test error:', err.message);
-                // Provide more helpful error message
-                if (err.message.includes('CORS') || err.message.includes('cross-origin')) {
+                
+                // Улучшенные и более понятные сообщения об ошибках
+                if (err.message.includes('CORS')) {
                   setDownloadSpeed('CORS error - try another server');
                 } else if (err.message.includes('timeout')) {
                   setDownloadSpeed('Connection timed out');
+                } else if (err.message.includes('Network connection')) {
+                  setDownloadSpeed('Network connection error - check your internet');
+                } else if (err.message.includes('aborted')) {
+                  setDownloadSpeed('Download was cancelled');
                 } else {
-                  setDownloadSpeed('Error: ' + err.message);
+                  setDownloadSpeed(`Error: ${err.message}`);
                 }
               } finally {
                 setTestingSpeed(false);
@@ -601,6 +637,10 @@ function App() {
 }
 
 export default App;
+
+
+
+
 
 
 
