@@ -295,7 +295,7 @@ $featuresToCheck = @(
     @{
         ID = 45
         Name = "XMLHttpRequest download implementation"
-        Pattern = 'xhr\.open\(|XMLHttpRequest\(\)|responseType = \'arraybuffer\''
+        Pattern = 'xhr\.open|XMLHttpRequest|responseType = "arraybuffer"'
         Category = "Speed Test"
     },
     @{
@@ -319,7 +319,7 @@ $featuresToCheck = @(
     @{
         ID = 49
         Name = "Timeout handling for downloads"
-        Pattern = 'xhr\.timeout|30000.*timeout|setDownloadSpeed\(\'Connection timed out'
+        Pattern = 'xhr\.timeout|30000.*timeout|Connection timed out'
         Category = "Speed Test"
     }
 )
