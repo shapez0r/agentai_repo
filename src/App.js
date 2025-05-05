@@ -3,7 +3,7 @@ import './App.css';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import MapErrorBoundary from './MapErrorBoundary';
+import MapErrorBoundary from './MapErrorBoundary'; // Explicitly import MapErrorBoundary
 
 // Исправляем проблему с маркерами Leaflet в React
 delete L.Icon.Default.prototype._getIconUrl;
@@ -14,7 +14,7 @@ L.Icon.Default.mergeOptions({
 });
 
 // Application version - updated during build process
-const VERSION = "659da4e361559c53768d37673f39477a2c6b9ce0";
+const VERSION = "5945ec5103dcd5e42e22bd79802cd4ede7d440b9";
 
 // Added text encoding function to ensure proper character handling
 function encodeNonLatinChars(text) {
@@ -497,6 +497,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
