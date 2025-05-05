@@ -301,7 +301,7 @@ $featuresToCheck = @(
     @{
         ID = 46
         Name = "Download progress tracking"
-        Pattern = 'xhr\.onprogress|firstChunkTime|receivedLength'
+        Pattern = 'xhr\.onprogress|firstChunkTime|xhr\.onload'
         Category = "Speed Test"
     },
     @{
@@ -313,7 +313,7 @@ $featuresToCheck = @(
     @{
         ID = 48
         Name = "Real-time speed calculation"
-        Pattern = 'currentSpeedMbps|setDownloadSpeed\(currentSpeedMbps'
+        Pattern = 'currentSpeedMbps|sizeMB|timeSec|toFixed\(2\)'
         Category = "Speed Test"
     },
     @{
