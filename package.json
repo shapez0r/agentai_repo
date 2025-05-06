@@ -12,7 +12,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "prebuild": "powershell -ExecutionPolicy Bypass -File replace-commit-hash.ps1",
+    "prebuild": "bash ./replace-commit-hash.sh",
     "build": "react-scripts build",
     "postbuild": "",
     "predeploy": "npm run build",
