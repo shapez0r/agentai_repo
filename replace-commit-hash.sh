@@ -18,27 +18,19 @@ fi
 # Read the entire file
 content=$(<"$appJsPath")
 
-# Check encoding of App.js before writing
-# Check for UTF-8 BOM (EF BB BF in hex)
-if head -c 3 "$appJsPath" | hexdump -ve '1/1 "%.2x"' | grep -q "efbbbf"; then
-    echo "INFO: App.js has a UTF-8 BOM."
-else
-    echo "INFO: App.js does not have a UTF-8 BOM. (This is normal for web projects)"
-fi
-
 # Look for the VERSION constant line
-if echo "$content" | grep -q 'const VERSION = ".*"'; then
+if [[ "$content" =~ const\ VERSION\ =\ \".*?\" ]]; then
     echo "Found VERSION constant in App.js"
-    
+
     # Prepare the replacement string with the commit hash
     replacement="const VERSION = \"$commitHash\""
-    
+
     # Replace the version string directly
-    newContent=$(echo "$content" | sed -E "s/const VERSION = \".*\"/const VERSION = \"$commitHash\"/g")
-    
-    # Write back to the file with UTF-8 encoding
+    newContent=$(echo "$content" | sed -E "s/const VERSION = \".*?\"/$replacement/")
+
+    # Write back to the file
     echo "$newContent" > "$appJsPath"
-    
+
     # Verify the change
     if grep -q "$replacement" "$appJsPath"; then
         echo "SUCCESS: Commit hash updated successfully!"
