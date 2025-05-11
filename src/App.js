@@ -21,21 +21,21 @@ function encodeNonLatinChars(text) {
 }
 
 const geoOptions = [
-  { name: { en: 'Russia', ru: encodeNonLatinChars('Россия') }, url: 'https://yandex.ru', code: 'ru' },
-  { name: { en: 'Europe', ru: encodeNonLatinChars('Европа') }, url: 'https://www.bbc.co.uk', code: 'eu' },
-  { name: { en: 'US', ru: encodeNonLatinChars('США') }, url: 'https://www.google.com', code: 'us' },
+  { name: { en: 'Moscow', ru: encodeNonLatinChars('Москва') }, url: 'https://yandex.ru', code: 'ru' },
+  { name: { en: 'London', ru: encodeNonLatinChars('Лондон') }, url: 'https://www.bbc.co.uk', code: 'eu' },
+  { name: { en: 'New York', ru: encodeNonLatinChars('Нью-Йорк') }, url: 'https://www.google.com', code: 'us' },
   { name: { en: 'Singapore', ru: encodeNonLatinChars('Сингапур') }, url: 'https://www.singtel.com', code: 'sg' },
-  { name: { en: 'Brazil', ru: encodeNonLatinChars('Бразилия') }, url: 'https://www.globo.com', code: 'br' },
-  { name: { en: 'India', ru: encodeNonLatinChars('Индия') }, url: 'https://www.airtel.in', code: 'in' },
-  { name: { en: 'Australia', ru: encodeNonLatinChars('Австралия') }, url: 'https://www.telstra.com.au', code: 'au' },
-  { name: { en: 'South Africa', ru: encodeNonLatinChars('ЮАР') }, url: 'https://www.telkom.co.za', code: 'za' },
-  { name: { en: 'Japan', ru: encodeNonLatinChars('Япония') }, url: 'https://www.yahoo.co.jp', code: 'jp' },
-  { name: { en: 'Canada', ru: encodeNonLatinChars('Канада') }, url: 'https://www.cbc.ca', code: 'ca' },
+  { name: { en: 'São Paulo', ru: encodeNonLatinChars('Сан-Паулу') }, url: 'https://www.globo.com', code: 'br' },
+  { name: { en: 'Mumbai', ru: encodeNonLatinChars('Мумбаи') }, url: 'https://www.airtel.in', code: 'in' },
+  { name: { en: 'Sydney', ru: encodeNonLatinChars('Сидней') }, url: 'https://www.telstra.com.au', code: 'au' },
+  { name: { en: 'Johannesburg', ru: encodeNonLatinChars('Йоханнесбург') }, url: 'https://www.telkom.co.za', code: 'za' },
+  { name: { en: 'Tokyo', ru: encodeNonLatinChars('Токио') }, url: 'https://www.yahoo.co.jp', code: 'jp' },
+  { name: { en: 'Toronto', ru: encodeNonLatinChars('Торонто') }, url: 'https://www.cbc.ca', code: 'ca' },
 ];
 
 const speedTestOptions = [
-  { name: { en: 'Cloudflare', ru: 'Cloudflare', es: 'Cloudflare', de: 'Cloudflare' }, url: 'https://speed.cloudflare.com/__down?bytes=10000000', code: 'us', cors: true },
-  { name: { en: 'Singapore', ru: 'Singapore', es: 'Singapore', de: 'Singapore' }, url: 'https://speed.cloudflare.com/__down?bytes=10000000', code: 'sg', cors: true },
+  { name: { en: 'New York', ru: 'Нью-Йорк', es: 'Nueva York', de: 'New York' }, url: 'https://speed.cloudflare.com/__down?bytes=10000000', code: 'us', cors: true },
+  { name: { en: 'Singapore', ru: 'Сингапур', es: 'Singapur', de: 'Singapur' }, url: 'https://speed.cloudflare.com/__down?bytes=10000000', code: 'sg', cors: true },
 ];
 
 const translations = {

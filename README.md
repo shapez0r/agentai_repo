@@ -5,8 +5,8 @@ A modern web app for testing your internet connection quality from anywhere in t
 ## 🚀 Features
 
 - **IP Detection** — Instantly shows your public IP address.
-- **Latency Test** — Measures ping to Russia, Europe, US, Singapore, Brazil, India, Australia, South Africa, Japan, and Canada (with flags and translations).
-- **Download Speed** — Measures download speed from Cloudflare (US) and Singapore endpoints.
+- **Latency Test** — Measures ping to Moscow, London, New York, Singapore, São Paulo, Mumbai, Sydney, Johannesburg, Tokyo, and Toronto (with flags and translations).
+- **Download Speed** — Measures download speed from New York and Singapore endpoints.
 - **Language Switch** — Interface in English 🇬🇧 or Russian 🇷🇺, with instant switching and local storage.
 - **Modern UI/UX** — Futuristic design, glassmorphism, responsive layout, and flag icons.
 - **No tracking, no ads, open source.**
