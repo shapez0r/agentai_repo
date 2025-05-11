@@ -25,7 +25,7 @@ function createMarkerIcon(pingValue) {
 }
 
 // Application version - updated during build process
-const VERSION = "2539771a673c8c9286bc0d1752124c3c7f34423c";
+const VERSION = "3f5dec16457bca8653dcbafa4ca1856cd9d8f2ce";
 
 // Added text encoding function to ensure proper character handling
 function encodeNonLatinChars(text) {
