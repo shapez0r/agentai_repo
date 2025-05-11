@@ -38,7 +38,7 @@ function createMarkerIcon(pingValue) {
 }
 
 // Application version - updated during build process
-const VERSION = "4da0a27cfb4d6acfb472e2cb968aad9c6ec4199d";
+const VERSION = "81abc5e15a5cc71f5b5f4c14b811302b74540aa1";
 
 // Added text encoding function to ensure proper character handling
 function encodeNonLatinChars(text) {
@@ -102,7 +102,7 @@ function getPingColor(pingText) {
 // These are not CDNs, but actual servers located in each region for more accurate latency measurements
 const geoOptions = [
   // Moscow - Russian government site
-  { name: { en: 'Moscow', ru: encodeNonLatinChars('Москва') }, url: 'https://www.moscow.ru/favicon.ico', code: 'ru', coords: [55.7558, 37.6173] },
+  { name: { en: 'Moscow', ru: encodeNonLatinChars('Москва') }, url: 'https://www.mos.ru/favicon.ico', code: 'ru', coords: [55.7558, 37.6173] },
   // London - UK government site
   { name: { en: 'London', ru: encodeNonLatinChars('Лондон') }, url: 'https://www.gov.uk/favicon.ico', code: 'gb', coords: [51.5074, -0.1278] },
   // New York - New York state government
@@ -452,10 +452,10 @@ function App() {
             overflowY: 'auto',
             marginTop: '16px',
             /* Компактный размер для списка пинга */
-            fontSize: 'small',
+            fontSize: 'x-small',
             compact: 'true'
           }}>
-            <h3 style={{ margin: '0 0 15px 0', fontSize: '18px', textAlign: 'center' }}>{t.latency}</h3>
+            <h3 style={{ margin: '0 0 15px 0', fontSize: '16px', textAlign: 'center' }}>{t.latency}</h3>
             {/* Легенда цветов пинга */}
             <div style={{ 
               display: 'flex', 
@@ -467,26 +467,26 @@ function App() {
               padding: '8px',
               borderRadius: '10px',
               background: 'rgba(0,0,0,0.2)',
-              fontSize: '10px'
+              fontSize: '9px'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#00ff00' }}></div>
+                <div style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#00ff00' }}></div>
                 <span>&lt;10ms</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#aaff00' }}></div>
+                <div style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#aaff00' }}></div>
                 <span>&lt;100ms</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ffff00' }}></div>
+                <div style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#ffff00' }}></div>
                 <span>&lt;250ms</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ff8800' }}></div>
+                <div style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#ff8800' }}></div>
                 <span>&lt;500ms</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ff0000' }}></div>
+                <div style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#ff0000' }}></div>
                 <span>&gt;1000ms</span>
               </div>
             </div>
@@ -494,9 +494,9 @@ function App() {
             {/* Список локаций с пингом */}
             <div style={{ width: '100%' }}>
               {geoOptions.map(target => (
-                <div key={target.code} style={{ display: 'grid', gridTemplateColumns: '30px 1fr 70px', alignItems: 'center', fontSize: 14, fontWeight: 400, margin: '8px 0', fontFamily: 'Inter, Segoe UI, Arial, sans-serif' }}>
-                  <img src={`https://flagcdn.com/32x24/${target.code}.png`} alt={target.name[lang]} style={{ width: 24, height: 18, borderRadius: 3, boxShadow: '0 1px 4px #0002', flexShrink: 0, justifySelf: 'start' }} />
-                  <span style={{ color: '#00c6ff', fontWeight: 600, minWidth: 80, textAlign: 'left', flexShrink: 0 }}>{target.name[lang]}</span>
+                <div key={target.code} style={{ display: 'grid', gridTemplateColumns: '30px 1fr 70px', alignItems: 'center', fontSize: 12, fontWeight: 400, margin: '6px 0', fontFamily: 'Inter, Segoe UI, Arial, sans-serif' }}>
+                  <img src={`https://flagcdn.com/32x24/${target.code}.png`} alt={target.name[lang]} style={{ width: 20, height: 15, borderRadius: 3, boxShadow: '0 1px 4px #0002', flexShrink: 0, justifySelf: 'start' }} />
+                  <span style={{ color: '#00c6ff', fontWeight: 600, minWidth: 80, textAlign: 'left', flexShrink: 0, fontSize: '11px' }}>{target.name[lang]}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '5px', justifyContent: 'flex-start' }}>
                     <div style={{ 
                       width: '8px', 
