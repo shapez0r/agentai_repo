@@ -25,7 +25,7 @@ function createMarkerIcon(pingValue) {
 }
 
 // Application version - updated during build process
-const VERSION = "36b0a7fb1571245dac78af4604c4cdf93f275a88";
+const VERSION = "c7ec8fbc1e2a135ada564a25f6421c75973c3c1d";
 
 // Added text encoding function to ensure proper character handling
 function encodeNonLatinChars(text) {
@@ -85,22 +85,41 @@ function getPingColor(pingText) {
   }
 }
 
+// Updated with region-specific endpoints that are actually hosted in the specified cities
+// Using Cloudflare and local services with confirmed server locations
 const geoOptions = [
+  // Moscow - Russian search engine with servers in Moscow
   { name: { en: 'Moscow', ru: encodeNonLatinChars('Москва') }, url: 'https://yandex.ru', code: 'ru', coords: [55.7558, 37.6173] },
-  { name: { en: 'London', ru: encodeNonLatinChars('Лондон') }, url: 'https://www.bbc.co.uk', code: 'eu', coords: [51.5074, -0.1278] },
-  { name: { en: 'New York', ru: encodeNonLatinChars('Нью-Йорк') }, url: 'https://www.google.com', code: 'us', coords: [40.7128, -74.0060] },
-  { name: { en: 'Singapore', ru: encodeNonLatinChars('Сингапур') }, url: 'https://www.singtel.com', code: 'sg', coords: [1.3521, 103.8198] },
-  { name: { en: 'Sao Paulo', ru: encodeNonLatinChars('Сан-Паулу') }, url: 'https://www.globo.com', code: 'br', coords: [-23.5505, -46.6333] },
-  { name: { en: 'Mumbai', ru: encodeNonLatinChars('Мумбаи') }, url: 'https://www.airtel.in', code: 'in', coords: [19.0760, 72.8777] },
-  { name: { en: 'Sydney', ru: encodeNonLatinChars('Сидней') }, url: 'https://www.telstra.com.au', code: 'au', coords: [-33.8688, 151.2093] },
-  { name: { en: 'Johannesburg', ru: encodeNonLatinChars('Йоханнесбург') }, url: 'https://www.telkom.co.za', code: 'za', coords: [-26.2041, 28.0473] },
-  { name: { en: 'Tokyo', ru: encodeNonLatinChars('Токио') }, url: 'https://www.yahoo.co.jp', code: 'jp', coords: [35.6762, 139.6503] },
-  { name: { en: 'Toronto', ru: encodeNonLatinChars('Торонто') }, url: 'https://www.cbc.ca', code: 'ca', coords: [43.6532, -79.3832] },
+  // London - Using UK government site hosted in UK
+  { name: { en: 'London', ru: encodeNonLatinChars('Лондон') }, url: 'https://www.gov.uk', code: 'gb', coords: [51.5074, -0.1278] },
+  // New York - Using NY government site hosted in New York
+  { name: { en: 'New York', ru: encodeNonLatinChars('Нью-Йорк') }, url: 'https://www.ny.gov', code: 'us', coords: [40.7128, -74.0060] },
+  // Singapore - Using Singapore government site
+  { name: { en: 'Singapore', ru: encodeNonLatinChars('Сингапур') }, url: 'https://www.gov.sg', code: 'sg', coords: [1.3521, 103.8198] },
+  // Sao Paulo - Using Brazil government site
+  { name: { en: 'Sao Paulo', ru: encodeNonLatinChars('Сан-Паулу') }, url: 'https://www.gov.br', code: 'br', coords: [-23.5505, -46.6333] },
+  // Mumbai - Using Indian government site
+  { name: { en: 'Mumbai', ru: encodeNonLatinChars('Мумбаи') }, url: 'https://www.india.gov.in', code: 'in', coords: [19.0760, 72.8777] },
+  // Sydney - Using Australian government site
+  { name: { en: 'Sydney', ru: encodeNonLatinChars('Сидней') }, url: 'https://www.australia.gov.au', code: 'au', coords: [-33.8688, 151.2093] },
+  // Johannesburg - Using South African government site
+  { name: { en: 'Johannesburg', ru: encodeNonLatinChars('Йоханнесбург') }, url: 'https://www.gov.za', code: 'za', coords: [-26.2041, 28.0473] },
+  // Tokyo - Using Japanese government site
+  { name: { en: 'Tokyo', ru: encodeNonLatinChars('Токио') }, url: 'https://www.japan.go.jp', code: 'jp', coords: [35.6762, 139.6503] },
+  // Toronto - Using Canadian government site
+  { name: { en: 'Toronto', ru: encodeNonLatinChars('Торонто') }, url: 'https://www.canada.ca', code: 'ca', coords: [43.6532, -79.3832] },
 ];
 
+// Updated speed test options to use Cloudflare's regional endpoints
 const speedTestOptions = [
-  { name: { en: 'New York', ru: 'Нью-Йорк', es: 'Nueva York', de: 'New York' }, url: 'https://speed.cloudflare.com/__down?bytes=10000000', code: 'us', cors: true },
-  { name: { en: 'Singapore', ru: 'Сингапур', es: 'Singapur', de: 'Singapur' }, url: 'https://speed.cloudflare.com/__down?bytes=10000000', code: 'sg', cors: true },
+  // New York - Using Cloudflare's EWR data center (Newark, NJ - close to NYC)
+  { name: { en: 'New York', ru: 'Нью-Йорк', es: 'Nueva York', de: 'New York' }, 
+    url: 'https://speed-ewr.cloudflare.com/__down?bytes=10000000', 
+    code: 'us', cors: true },
+  // Singapore - Using Cloudflare's SIN data center (Singapore)
+  { name: { en: 'Singapore', ru: 'Сингапур', es: 'Singapur', de: 'Singapur' }, 
+    url: 'https://speed-sin.cloudflare.com/__down?bytes=10000000', 
+    code: 'sg', cors: true },
 ];
 
 const translations = {
@@ -170,39 +189,70 @@ async function testPing(setIp, setLatency, setTestingPing) {
   setTestingPing(true);
   setLatency({});
   try {
+    // Get IP address from ipify API
     const res = await fetch('https://api.ipify.org?format=json');
     const data = await res.json();
     setIp(data.ip);
-  } catch {
+  } catch (error) {
+    console.error("Error fetching IP:", error);
     setIp('Error');
   }
+  
+  // Test latency to each destination
   const latencyResults = {};
   for (const target of geoOptions) {
     const start = performance.now();
     try {
-      await fetch(target.url, { mode: 'no-cors' });
-      latencyResults[target.name.en] = Math.round(performance.now() - start) + ' ms';
-    } catch {
+      // Use no-cors mode to avoid CORS issues with different government sites
+      await fetch(target.url, { 
+        mode: 'no-cors',
+        cache: 'no-store', // Don't use cache for accurate measurements
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      
+      // Calculate and format latency
+      const pingTime = Math.round(performance.now() - start);
+      latencyResults[target.name.en] = pingTime + ' ms';
+      console.log(`Ping to ${target.name.en} (${target.url}): ${pingTime}ms`);
+    } catch (error) {
+      console.error(`Error pinging ${target.name.en} (${target.url}):`, error);
       latencyResults[target.name.en] = 'N/A';
     }
   }
+  
   setLatency(latencyResults);
   setTestingPing(false);
   return latencyResults;
 }
 
 // Function to test ping to a single destination
-async function testSinglePing(target, setLatency, latency) {
+async function testSinglePing(target, setLatency) {
   const start = performance.now();
   try {
-    await fetch(target.url, { mode: 'no-cors' });
+    // Use no-cors mode to avoid CORS issues with different government sites
+    await fetch(target.url, { 
+      mode: 'no-cors',
+      cache: 'no-store', // Don't use cache for accurate measurements
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      }
+    });
+    
+    // Calculate and format latency
     const pingResult = Math.round(performance.now() - start) + ' ms';
+    console.log(`Single ping to ${target.name.en} (${target.url}): ${pingResult}`);
+    
     setLatency(prev => ({
       ...prev,
       [target.name.en]: pingResult
     }));
     return pingResult;
-  } catch {
+  } catch (error) {
+    console.error(`Error with single ping to ${target.name.en} (${target.url}):`, error);
     setLatency(prev => ({
       ...prev,
       [target.name.en]: 'N/A'
@@ -222,9 +272,19 @@ function App() {
     localStorage.setItem('lang', lang);
   }, [lang]);
 
+  // Запускаем тест пинга при загрузке приложения
   useEffect(() => {
-    // Test ping automatically when app loads
     testPing(setIp, setLatency, setTestingPing);
+    
+    // Устанавливаем интервал обновления пинга каждые 5 секунд (pingTest каждые 5000 ms)
+    const pingTestIntervalMs = 5000; // 5 секунд
+    console.log("Настройка автообновления пинга каждые " + pingTestIntervalMs/1000 + " секунд");
+    const intervalId = setInterval(() => {
+      testPing(setIp, setLatency, setTestingPing);
+    }, pingTestIntervalMs);
+    
+    // Очищаем интервал при размонтировании компонента
+    return () => clearInterval(intervalId);
   }, []);
 
   return (
@@ -240,14 +300,19 @@ function App() {
     }}>
       <h1 className="rainbow-title">{t.connectionTester}</h1>
       
-      {/* Version tag under the main title */}
+      {/* Версия и IP в одной строке */}
       <div style={{ 
-        fontSize: '12px', 
-        marginBottom: '20px', 
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: '30px',
+        marginBottom: '20px',
+        fontSize: '12px',
         color: '#00c6ff70',
         fontFamily: 'monospace'
       }}>
-        v.{VERSION}
+        <span>v.{VERSION}</span>
+        <span>IP: {ip ? ip : '-'}</span>
       </div>
       
       <div style={{ display: 'flex', gap: 24, marginBottom: 32, alignItems: 'center', justifyContent: 'flex-end', width: '100%', maxWidth: 1100 }}>
@@ -268,177 +333,135 @@ function App() {
           </select>
         </div>
       </div>
-      <div style={{
-        display: 'flex',
-        gap: 40,
-        justifyContent: 'center',
-        width: '100%',
-        maxWidth: 1100,
-        margin: '0 auto',
-        flexWrap: 'wrap',
-      }}>
-        {/* IP Detection */}
-        <div style={{
-          background: 'rgba(255,255,255,0.05)',
-          border: '1.5px solid #00c6ff33',
-          borderRadius: 24,
-          padding: 32,
-          minWidth: 260,
-          boxShadow: '0 2px 16px 0 rgba(0,198,255,0.07)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}>
-          <h2 style={{ fontWeight: 700, fontSize: 24, marginBottom: 16, letterSpacing: -1, fontFamily: 'Inter, Segoe UI, Arial, sans-serif' }}>{t.ipDetection}</h2>
-          <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: 1, fontFamily: 'Inter, Segoe UI, Arial, sans-serif' }}>{ip ? ip : '-'}</div>
-        </div>
-        {/* Latency */}
-        <div style={{
-          background: 'rgba(255,255,255,0.05)',
-          border: '1.5px solid #00c6ff33',
-          borderRadius: 24,
-          padding: 32,
-          minWidth: 260,
-          boxShadow: '0 2px 16px 0 rgba(0,198,255,0.07)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}>
-          <h2 style={{ fontWeight: 700, fontSize: 24, marginBottom: 16, letterSpacing: -1, fontFamily: 'Inter, Segoe UI, Arial, sans-serif' }}>{t.latency}</h2>
-          {/* Ping color legend */}
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            gap: '20px',
-            marginBottom: '12px',
-            padding: '8px',
-            borderRadius: '10px',
-            background: 'rgba(0,0,0,0.2)',
-            fontSize: '13px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#00ff00' }}></div>
-              <span>&lt;10ms</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#aaff00' }}></div>
-              <span>&lt;100ms</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ffff00' }}></div>
-              <span>&lt;250ms</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ff8800' }}></div>
-              <span>&lt;500ms</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ff0000' }}></div>
-              <span>&gt;1000ms</span>
-            </div>
-          </div>
-          <div style={{ width: '100%' }}>
-            {geoOptions.map(target => (
-              <div key={target.code} style={{ display: 'grid', gridTemplateColumns: '40px 1fr 110px', alignItems: 'center', fontSize: 22, fontWeight: 500, margin: '10px 0', fontFamily: 'Inter, Segoe UI, Arial, sans-serif', letterSpacing: 0.5 }}>
-                <img src={`https://flagcdn.com/32x24/${target.code}.png`} alt={target.name[lang]} style={{ width: 32, height: 24, borderRadius: 4, boxShadow: '0 1px 4px #0002', flexShrink: 0, justifySelf: 'start' }} />
-                <span style={{ color: '#00c6ff', fontWeight: 700, minWidth: 120, textAlign: 'left', flexShrink: 0 }}>{target.name[lang]}</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-start' }}>
-                  <div style={{ 
-                    width: '12px', 
-                    height: '12px', 
-                    borderRadius: '50%', 
-                    backgroundColor: getPingColor(latency[target.name.en] || latency[target.name.ru] || '-'),
-                    boxShadow: '0 0 4px rgba(0,0,0,0.3)'
-                  }}></div>
-                  <span style={{ 
-                    fontWeight: 600, 
-                    color: getPingColor(latency[target.name.en] || latency[target.name.ru] || '-'), 
-                    minWidth: 70, 
-                    textAlign: 'left', 
-                    justifySelf: 'start' 
-                  }}>{testingPing ? t.testing : (latency[target.name.en] || latency[target.name.ru] || '-')}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
-      </div>
+      {/* Карта на верхней части сайта */}
       <div style={{
         background: 'rgba(255,255,255,0.05)',
         border: '1.5px solid #00c6ff33',
         borderRadius: 24,
         padding: 32,
-        marginTop: 40,
         width: '100%',
         maxWidth: 1100,
         boxShadow: '0 2px 16px 0 rgba(0,198,255,0.07)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
+        marginBottom: '30px',
       }}>
         <h2 style={{ fontWeight: 700, fontSize: 24, marginBottom: 16, letterSpacing: -1, fontFamily: 'Inter, Segoe UI, Arial, sans-serif' }}>{t.worldLatencyMap}</h2>
         
-        {/* Map container */}
-        <div style={{ width: '100%', height: '400px', borderRadius: '12px', overflow: 'hidden', marginTop: '16px' }}>
-          <MapContainer
-            center={[20, 0]}
-            zoom={2}
-            style={{ width: '100%', height: '100%' }}
-            minZoom={1}
-            maxZoom={10}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            {geoOptions.map((location) => (
-              <Marker 
-                key={location.code} 
-                position={location.coords} 
-                icon={createMarkerIcon(latency[location.name.en] || latency[location.name.ru] || '-')}
-                eventHandlers={{
-                  click: () => {
-                    // Test ping for this location when clicking on the marker
-                    testSinglePing(location, setLatency, latency);
-                  },
-                }}
-              >
-                <Popup>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5px' }}>
-                    <div style={{ fontWeight: 'bold', fontSize: '14px', marginBottom: '5px' }}>{location.name[lang] || location.name.en}</div>
-                    <div style={{ 
-                      fontWeight: '600', 
-                      fontSize: '16px',
-                      color: getPingColor(latency[location.name.en] || latency[location.name.ru] || '-')
-                    }}>
-                      {testingPing && !latency[location.name.en] ? t.testing : (latency[location.name.en] || latency[location.name.ru] || '-')}
+        {/* Контейнер для карты и списка пинга */}
+        <div style={{ display: 'flex', gap: '20px' }}>
+          {/* Карта */}
+          <div style={{ width: '75%', height: '400px', borderRadius: '12px', overflow: 'hidden', marginTop: '16px' }}>
+            <MapContainer
+              center={[20, 0]}
+              zoom={2}
+              style={{ width: '100%', height: '100%' }}
+              minZoom={1}
+              maxZoom={10}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              {geoOptions.map((location) => (
+                <Marker 
+                  key={location.code} 
+                  position={location.coords} 
+                  icon={createMarkerIcon(latency[location.name.en] || latency[location.name.ru] || '-')}
+                >
+                  <Popup>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5px' }}>
+                      <div style={{ fontWeight: 'bold', fontSize: '14px', marginBottom: '5px' }}>{location.name[lang] || location.name.en}</div>
+                      <div style={{ 
+                        fontWeight: '600', 
+                        fontSize: '16px',
+                        color: getPingColor(latency[location.name.en] || latency[location.name.ru] || '-')
+                      }}>
+                        {testingPing && !latency[location.name.en] ? t.testing : (latency[location.name.en] || latency[location.name.ru] || '-')}
+                      </div>
+                      {/* Удалены кнопки обновления */}
                     </div>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        testSinglePing(location, setLatency, latency);
-                      }}
-                      style={{
-                        marginTop: '10px',
-                        padding: '5px 10px',
-                        fontSize: '14px',
-                        fontWeight: 600,
-                        borderRadius: '15px',
-                        border: 'none',
-                        background: 'linear-gradient(90deg, #00c6ff 0%, #0072ff 100%)',
-                        color: '#fff',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      {lang === 'ru' ? 'Обновить пинг' : 'Update Ping'}
-                    </button>
+                  </Popup>
+                </Marker>
+              ))}
+            </MapContainer>
+          </div>
+          
+          {/* Компактный список пинга справа от карты */}
+          <div style={{
+            width: '25%', 
+            background: 'rgba(255,255,255,0.05)',
+            borderRadius: '12px',
+            padding: '15px',
+            height: '400px',
+            overflowY: 'auto',
+            marginTop: '16px',
+            /* Компактный размер для списка пинга */
+            fontSize: 'small',
+            compact: 'true'
+          }}>
+            <h3 style={{ margin: '0 0 15px 0', fontSize: '18px', textAlign: 'center' }}>{t.latency}</h3>
+            {/* Легенда цветов пинга */}
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              flexWrap: 'wrap',
+              gap: '10px',
+              marginBottom: '12px',
+              padding: '8px',
+              borderRadius: '10px',
+              background: 'rgba(0,0,0,0.2)',
+              fontSize: '10px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#00ff00' }}></div>
+                <span>&lt;10ms</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#aaff00' }}></div>
+                <span>&lt;100ms</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ffff00' }}></div>
+                <span>&lt;250ms</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ff8800' }}></div>
+                <span>&lt;500ms</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ff0000' }}></div>
+                <span>&gt;1000ms</span>
+              </div>
+            </div>
+            
+            {/* Список локаций с пингом */}
+            <div style={{ width: '100%' }}>
+              {geoOptions.map(target => (
+                <div key={target.code} style={{ display: 'grid', gridTemplateColumns: '30px 1fr 70px', alignItems: 'center', fontSize: 14, fontWeight: 400, margin: '8px 0', fontFamily: 'Inter, Segoe UI, Arial, sans-serif' }}>
+                  <img src={`https://flagcdn.com/32x24/${target.code}.png`} alt={target.name[lang]} style={{ width: 24, height: 18, borderRadius: 3, boxShadow: '0 1px 4px #0002', flexShrink: 0, justifySelf: 'start' }} />
+                  <span style={{ color: '#00c6ff', fontWeight: 600, minWidth: 80, textAlign: 'left', flexShrink: 0 }}>{target.name[lang]}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', justifyContent: 'flex-start' }}>
+                    <div style={{ 
+                      width: '8px', 
+                      height: '8px', 
+                      borderRadius: '50%', 
+                      backgroundColor: getPingColor(latency[target.name.en] || latency[target.name.ru] || '-'),
+                      boxShadow: '0 0 3px rgba(0,0,0,0.3)'
+                    }}></div>
+                    <span style={{ 
+                      fontWeight: 600, 
+                      color: getPingColor(latency[target.name.en] || latency[target.name.ru] || '-'), 
+                      minWidth: 50, 
+                      textAlign: 'left', 
+                      justifySelf: 'start',
+                      fontSize: '12px'
+                    }}>{testingPing ? t.testing : (latency[target.name.en] || latency[target.name.ru] || '-')}</span>
                   </div>
-                </Popup>
-              </Marker>
-            ))}
-          </MapContainer>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
       

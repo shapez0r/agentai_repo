@@ -54,8 +54,11 @@ declare -A featuresToCheck=(
     ["24"]="leaflet"
     ["25"]="createMarkerIcon|custom-ping-marker"
     ["26"]="worldLatencyMap|World.*Latency.*Map|Карта.*задержек"
-    ["27"]="Test.*ping.*automatically|Test.*ping.*when.*app.*loads"
-    ["28"]="testSinglePing|update.*ping.*click"
+    ["27"]="setInterval.*testPing|pingTest.*5000"
+    ["28"]="v\..*IP|VERSION.*IP"
+    ["29"]="display.*flex.*gap.*20px.*карт|карты|map"
+    ["30"]="width.*75%.*height.*400px"
+    ["31"]="width.*25%.*compact|small"
 )
 
 # Timeout and interval settings
