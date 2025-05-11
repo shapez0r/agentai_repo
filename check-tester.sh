@@ -59,6 +59,10 @@ declare -A featuresToCheck=(
     ["29"]="display.*flex.*gap.*20px.*карт|карты|map"
     ["30"]="width.*75%.*height.*400px"
     ["31"]="width.*25%.*compact|small"
+    ["32"]="gov\\.uk|gov\\.sg|gov\\.br|india\\.gov\\.in|australia\\.gov\\.au|gov\\.za|japan\\.go\\.jp|canada\\.ca"
+    ["33"]="speed\\-ewr\\.cloudflare\\.com|speed\\-sin\\.cloudflare\\.com"
+    ["34"]="cache:.no-store|Cache-Control.*no-cache|Pragma.*no-cache"
+    ["35"]="console\\.log.*Ping.*target\\.name\\.en.*target\\.url.*pingTime"
 )
 
 # Timeout and interval settings
