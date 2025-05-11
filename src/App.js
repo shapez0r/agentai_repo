@@ -25,7 +25,7 @@ function createMarkerIcon(pingValue) {
 }
 
 // Application version - updated during build process
-const VERSION = "73bffa2d6c6a0f183990d529a8e09cee5ce4e565";
+const VERSION = "2539771a673c8c9286bc0d1752124c3c7f34423c";
 
 // Added text encoding function to ensure proper character handling
 function encodeNonLatinChars(text) {
@@ -85,29 +85,29 @@ function getPingColor(pingText) {
   }
 }
 
-// Updated with region-specific endpoints that are actually hosted in the specified cities
-// Using Cloudflare and local services with confirmed server locations
+// Updated with CDN endpoints that are actually hosted in the specified cities
+// Using Cloudflare and other global CDN networks for more accurate measurements from Ireland
 const geoOptions = [
-  // Moscow - Russian search engine with servers in Moscow
-  { name: { en: 'Moscow', ru: encodeNonLatinChars('Москва') }, url: 'https://yandex.ru', code: 'ru', coords: [55.7558, 37.6173] },
-  // London - Using UK government site hosted in UK
-  { name: { en: 'London', ru: encodeNonLatinChars('Лондон') }, url: 'https://www.gov.uk', code: 'gb', coords: [51.5074, -0.1278] },
-  // New York - Using NY government site hosted in New York
-  { name: { en: 'New York', ru: encodeNonLatinChars('Нью-Йорк') }, url: 'https://www.ny.gov', code: 'us', coords: [40.7128, -74.0060] },
-  // Singapore - Using Singapore government site
-  { name: { en: 'Singapore', ru: encodeNonLatinChars('Сингапур') }, url: 'https://www.gov.sg', code: 'sg', coords: [1.3521, 103.8198] },
-  // Sao Paulo - Using Brazil government site
-  { name: { en: 'Sao Paulo', ru: encodeNonLatinChars('Сан-Паулу') }, url: 'https://www.gov.br', code: 'br', coords: [-23.5505, -46.6333] },
-  // Mumbai - Using Indian government site
-  { name: { en: 'Mumbai', ru: encodeNonLatinChars('Мумбаи') }, url: 'https://www.india.gov.in', code: 'in', coords: [19.0760, 72.8777] },
-  // Sydney - Using a different Australian government site with higher latency
-  { name: { en: 'Sydney', ru: encodeNonLatinChars('Сидней') }, url: 'https://www.nsw.gov.au', code: 'au', coords: [-33.8688, 151.2093] },
-  // Johannesburg - Using South African government site
-  { name: { en: 'Johannesburg', ru: encodeNonLatinChars('Йоханнесбург') }, url: 'https://www.gov.za', code: 'za', coords: [-26.2041, 28.0473] },
-  // Tokyo - Using Japanese government site
-  { name: { en: 'Tokyo', ru: encodeNonLatinChars('Токио') }, url: 'https://www.japan.go.jp', code: 'jp', coords: [35.6762, 139.6503] },
-  // Toronto - Using Canadian government site
-  { name: { en: 'Toronto', ru: encodeNonLatinChars('Торонто') }, url: 'https://www.canada.ca', code: 'ca', coords: [43.6532, -79.3832] },
+  // Moscow - Using Yandex CDN
+  { name: { en: 'Moscow', ru: encodeNonLatinChars('Москва') }, url: 'https://yastatic.net/s3/home/ru/touch/ru_logo.svg', code: 'ru', coords: [55.7558, 37.6173] },
+  // London - Using UK-based Fastly CDN endpoint
+  { name: { en: 'London', ru: encodeNonLatinChars('Лондон') }, url: 'https://www.bbc.co.uk/favicon.ico', code: 'gb', coords: [51.5074, -0.1278] },
+  // New York - Using Cloudflare CDN with New York datacenter
+  { name: { en: 'New York', ru: encodeNonLatinChars('Нью-Йорк') }, url: 'https://speed-ewr.cloudflare.com/__down?bytes=1000', code: 'us', coords: [40.7128, -74.0060] },
+  // Singapore - Using Cloudflare CDN with Singapore datacenter
+  { name: { en: 'Singapore', ru: encodeNonLatinChars('Сингапур') }, url: 'https://speed-sin.cloudflare.com/__down?bytes=1000', code: 'sg', coords: [1.3521, 103.8198] },
+  // Sao Paulo - Using Cloudflare CDN with Sao Paulo datacenter
+  { name: { en: 'Sao Paulo', ru: encodeNonLatinChars('Сан-Паулу') }, url: 'https://speed-gru.cloudflare.com/__down?bytes=1000', code: 'br', coords: [-23.5505, -46.6333] },
+  // Mumbai - Using Cloudflare CDN with Mumbai datacenter
+  { name: { en: 'Mumbai', ru: encodeNonLatinChars('Мумбаи') }, url: 'https://speed-bom.cloudflare.com/__down?bytes=1000', code: 'in', coords: [19.0760, 72.8777] },
+  // Sydney - Using Cloudflare CDN with Sydney datacenter
+  { name: { en: 'Sydney', ru: encodeNonLatinChars('Сидней') }, url: 'https://speed-syd.cloudflare.com/__down?bytes=1000', code: 'au', coords: [-33.8688, 151.2093] },
+  // Johannesburg - Using Cloudflare CDN with Johannesburg datacenter
+  { name: { en: 'Johannesburg', ru: encodeNonLatinChars('Йоханнесбург') }, url: 'https://speed-jnb.cloudflare.com/__down?bytes=1000', code: 'za', coords: [-26.2041, 28.0473] },
+  // Tokyo - Using Cloudflare CDN with Tokyo datacenter
+  { name: { en: 'Tokyo', ru: encodeNonLatinChars('Токио') }, url: 'https://speed-nrt.cloudflare.com/__down?bytes=1000', code: 'jp', coords: [35.6762, 139.6503] },
+  // Toronto - Using Cloudflare CDN with Toronto datacenter  
+  { name: { en: 'Toronto', ru: encodeNonLatinChars('Торонто') }, url: 'https://speed-yyz.cloudflare.com/__down?bytes=1000', code: 'ca', coords: [43.6532, -79.3832] },
 ];
 
 // Updated speed test options to use Cloudflare's regional endpoints
@@ -128,7 +128,7 @@ const translations = {
     latencyTargets: 'Latency Targets:',
     downloadFrom: 'Download From:',
     testMyConnection: 'Test My Connection',
-    testing: 'Testing...',
+    updating: '...',
     ipDetection: 'IP Detection',
     latency: 'Latency',
     downloadSpeed: 'Download Speed',
@@ -140,7 +140,7 @@ const translations = {
     latencyTargets: 'Цели для задержки:',
     downloadFrom: 'Скачать из:',
     testMyConnection: 'Проверить моё соединение',
-    testing: 'Тестирование...',
+    updating: 'обновление...',
     ipDetection: 'Определение IP',
     latency: 'Задержка',
     downloadSpeed: 'Скорость загрузки',
@@ -152,7 +152,7 @@ const translations = {
     latencyTargets: 'Objetivos de latencia:',
     downloadFrom: 'Descargar de:',
     testMyConnection: 'Probar mi conexión',
-    testing: 'Probando...',
+    updating: '...',
     ipDetection: 'Detección de IP',
     latency: 'Latencia',
     downloadSpeed: 'Velocidad de descarga',
@@ -164,7 +164,7 @@ const translations = {
     latencyTargets: 'Latenzziele:',
     downloadFrom: 'Herunterladen von:',
     testMyConnection: 'Verbindung testen',
-    testing: 'Teste...',
+    updating: '...',
     ipDetection: 'IP-Erkennung',
     latency: 'Latenz',
     downloadSpeed: 'Download-Geschwindigkeit',
@@ -376,7 +376,7 @@ function App() {
                         fontSize: '16px',
                         color: getPingColor(latency[location.name.en] || latency[location.name.ru] || '300 ms')
                       }}>
-                        {testingPing && !latency[location.name.en] ? t.testing : (latency[location.name.en] || latency[location.name.ru] || '-')}
+                        {testingPing && !latency[location.name.en] ? t.updating : (latency[location.name.en] || latency[location.name.ru] || '-')}
                       </div>
                       {/* Удалены кнопки обновления */}
                     </div>
@@ -456,7 +456,7 @@ function App() {
                       textAlign: 'left', 
                       justifySelf: 'start',
                       fontSize: '12px'
-                    }}>{testingPing && !latency[target.name.en] ? t.testing : (latency[target.name.en] || latency[target.name.ru] || '-')}</span>
+                    }}>{testingPing && !latency[target.name.en] ? t.updating : (latency[target.name.en] || latency[target.name.ru] || '-')}</span>
                   </div>
                 </div>
               ))}
