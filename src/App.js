@@ -25,7 +25,7 @@ function createMarkerIcon(pingValue) {
 }
 
 // Application version - updated during build process
-const VERSION = "3f5dec16457bca8653dcbafa4ca1856cd9d8f2ce";
+const VERSION = "de469498e95922b6fa19e392e092715d60693410";
 
 // Added text encoding function to ensure proper character handling
 function encodeNonLatinChars(text) {
@@ -203,15 +203,21 @@ async function testPing(setIp, setLatency, setTestingPing) {
   for (const target of geoOptions) {
     const start = performance.now();
     try {
-      // Use no-cors mode to avoid CORS issues with different government sites
-      await fetch(target.url, { 
+      // Use no-cors mode to avoid CORS issues with different sites
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5-second timeout
+      
+      const response = await fetch(target.url, { 
         mode: 'no-cors',
         cache: 'no-store', // Don't use cache for accurate measurements
         headers: {
           'Cache-Control': 'no-cache',
           'Pragma': 'no-cache'
-        }
+        },
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
       
       // Calculate and format latency
       const pingTime = Math.round(performance.now() - start);
@@ -232,15 +238,21 @@ async function testPing(setIp, setLatency, setTestingPing) {
 async function testSinglePing(target, setLatency) {
   const start = performance.now();
   try {
-    // Use no-cors mode to avoid CORS issues with different government sites
-    await fetch(target.url, { 
+    // Use no-cors mode to avoid CORS issues with different sites
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5-second timeout
+    
+    const response = await fetch(target.url, { 
       mode: 'no-cors',
       cache: 'no-store', // Don't use cache for accurate measurements
       headers: {
         'Cache-Control': 'no-cache',
         'Pragma': 'no-cache'
-      }
+      },
+      signal: controller.signal
     });
+    
+    clearTimeout(timeoutId);
     
     // Calculate and format latency
     const pingResult = Math.round(performance.now() - start) + ' ms';
