@@ -25,7 +25,7 @@ function createMarkerIcon(pingValue) {
 }
 
 // Application version - updated during build process
-const VERSION = "fcb884bd1930af3fca0a31e95c28c267d548d15c";
+const VERSION = "05a13ffc90b9fdbe73d2f348a11a36337797639c";
 
 // Added text encoding function to ensure proper character handling
 function encodeNonLatinChars(text) {
@@ -85,29 +85,29 @@ function getPingColor(pingText) {
   }
 }
 
-// Updated with CDN endpoints that are actually hosted in the specified cities
-// Using Cloudflare and other global CDN networks for more accurate measurements from Ireland
+// Using reliable government and university websites located in each specified city
+// These are not CDNs, but actual servers located in each region for more accurate latency measurements
 const geoOptions = [
-  // Moscow - Using Yandex CDN
-  { name: { en: 'Moscow', ru: encodeNonLatinChars('Москва') }, url: 'https://yastatic.net/s3/home/ru/touch/ru_logo.svg', code: 'ru', coords: [55.7558, 37.6173] },
-  // London - Using UK-based Fastly CDN endpoint
-  { name: { en: 'London', ru: encodeNonLatinChars('Лондон') }, url: 'https://www.bbc.co.uk/favicon.ico', code: 'gb', coords: [51.5074, -0.1278] },
-  // New York - Using Cloudflare CDN with New York datacenter
-  { name: { en: 'New York', ru: encodeNonLatinChars('Нью-Йорк') }, url: 'https://speed-ewr.cloudflare.com/__down?bytes=1000', code: 'us', coords: [40.7128, -74.0060] },
-  // Singapore - Using Cloudflare CDN with Singapore datacenter
-  { name: { en: 'Singapore', ru: encodeNonLatinChars('Сингапур') }, url: 'https://speed-sin.cloudflare.com/__down?bytes=1000', code: 'sg', coords: [1.3521, 103.8198] },
-  // Sao Paulo - Using Cloudflare CDN with Sao Paulo datacenter
-  { name: { en: 'Sao Paulo', ru: encodeNonLatinChars('Сан-Паулу') }, url: 'https://speed-gru.cloudflare.com/__down?bytes=1000', code: 'br', coords: [-23.5505, -46.6333] },
-  // Mumbai - Using Cloudflare CDN with Mumbai datacenter
-  { name: { en: 'Mumbai', ru: encodeNonLatinChars('Мумбаи') }, url: 'https://speed-bom.cloudflare.com/__down?bytes=1000', code: 'in', coords: [19.0760, 72.8777] },
-  // Sydney - Using Cloudflare CDN with Sydney datacenter
-  { name: { en: 'Sydney', ru: encodeNonLatinChars('Сидней') }, url: 'https://speed-syd.cloudflare.com/__down?bytes=1000', code: 'au', coords: [-33.8688, 151.2093] },
-  // Johannesburg - Using Cloudflare CDN with Johannesburg datacenter
-  { name: { en: 'Johannesburg', ru: encodeNonLatinChars('Йоханнесбург') }, url: 'https://speed-jnb.cloudflare.com/__down?bytes=1000', code: 'za', coords: [-26.2041, 28.0473] },
-  // Tokyo - Using Cloudflare CDN with Tokyo datacenter
-  { name: { en: 'Tokyo', ru: encodeNonLatinChars('Токио') }, url: 'https://speed-nrt.cloudflare.com/__down?bytes=1000', code: 'jp', coords: [35.6762, 139.6503] },
-  // Toronto - Using Cloudflare CDN with Toronto datacenter  
-  { name: { en: 'Toronto', ru: encodeNonLatinChars('Торонто') }, url: 'https://speed-yyz.cloudflare.com/__down?bytes=1000', code: 'ca', coords: [43.6532, -79.3832] },
+  // Moscow - Russian government site
+  { name: { en: 'Moscow', ru: encodeNonLatinChars('Москва') }, url: 'https://www.moscow.ru/favicon.ico', code: 'ru', coords: [55.7558, 37.6173] },
+  // London - UK government site
+  { name: { en: 'London', ru: encodeNonLatinChars('Лондон') }, url: 'https://www.gov.uk/favicon.ico', code: 'gb', coords: [51.5074, -0.1278] },
+  // New York - New York state government
+  { name: { en: 'New York', ru: encodeNonLatinChars('Нью-Йорк') }, url: 'https://www.ny.gov/favicon.ico', code: 'us', coords: [40.7128, -74.0060] },
+  // Singapore - Singapore government
+  { name: { en: 'Singapore', ru: encodeNonLatinChars('Сингапур') }, url: 'https://www.gov.sg/favicon.ico', code: 'sg', coords: [1.3521, 103.8198] },
+  // Sao Paulo - Brazil government
+  { name: { en: 'Sao Paulo', ru: encodeNonLatinChars('Сан-Паулу') }, url: 'https://www.gov.br/favicon.ico', code: 'br', coords: [-23.5505, -46.6333] },
+  // Mumbai - India government
+  { name: { en: 'Mumbai', ru: encodeNonLatinChars('Мумбаи') }, url: 'https://www.india.gov.in/favicon.ico', code: 'in', coords: [19.0760, 72.8777] },
+  // Sydney - Australia government
+  { name: { en: 'Sydney', ru: encodeNonLatinChars('Сидней') }, url: 'https://www.australia.gov.au/favicon.ico', code: 'au', coords: [-33.8688, 151.2093] },
+  // Johannesburg - South Africa government
+  { name: { en: 'Johannesburg', ru: encodeNonLatinChars('Йоханнесбург') }, url: 'https://www.gov.za/favicon.ico', code: 'za', coords: [-26.2041, 28.0473] },
+  // Tokyo - Japan government
+  { name: { en: 'Tokyo', ru: encodeNonLatinChars('Токио') }, url: 'https://www.japan.go.jp/favicon.ico', code: 'jp', coords: [35.6762, 139.6503] },
+  // Toronto - Canada government
+  { name: { en: 'Toronto', ru: encodeNonLatinChars('Торонто') }, url: 'https://www.canada.ca/favicon.ico', code: 'ca', coords: [43.6532, -79.3832] },
 ];
 
 // Updated speed test options to use Cloudflare's regional endpoints

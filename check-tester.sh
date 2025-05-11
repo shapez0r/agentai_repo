@@ -59,10 +59,10 @@ declare -A featuresToCheck=(
     ["29"]="display.*flex.*gap.*20px.*карт|карты|map"
     ["30"]="width.*75%.*height.*400px"
     ["31"]="width.*25%.*compact|small"
-    ["32"]="speed\\-ewr\\.cloudflare\\.com|speed\\-sin\\.cloudflare\\.com|speed\\-gru\\.cloudflare\\.com|speed\\-bom\\.cloudflare\\.com|speed\\-syd\\.cloudflare\\.com|speed\\-jnb\\.cloudflare\\.com|speed\\-nrt\\.cloudflare\\.com|speed\\-yyz\\.cloudflare\\.com"
+    ["32"]="gov\\.uk|ny\\.gov|gov\\.sg|gov\\.br|india\\.gov\\.in|australia\\.gov\\.au|gov\\.za|japan\\.go\\.jp|canada\\.ca"
     ["33"]="updating.*:..*\\||t\\.updating"
     ["34"]="cache:.no-store|Cache-Control.*no-cache|Pragma.*no-cache"
-    ["35"]="speed\\-.*\\.cloudflare\\.com/__down\\?bytes=1000"
+    ["35"]="government|university|moscow\\.ru"
 )
 
 # Timeout and interval settings
