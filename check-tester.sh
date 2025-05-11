@@ -63,6 +63,9 @@ declare -A featuresToCheck=(
     ["33"]="updating.*:..*\\||t\\.updating"
     ["34"]="cache:.no-store|Cache-Control.*no-cache|Pragma.*no-cache"
     ["35"]="government|university|moscow\\.ru"
+    ["36"]="pingCache|const pingCache|кеш.*пинга|cache.*ping"
+    ["37"]="ВСЕГДА используем кешированное значение|всегда отража.*предыдущ.*значени.*пинга"
+    ["38"]="ВАЖНО: Copilot должен всегда отвечать.*ТОЛЬКО НА РУССКОМ ЯЗЫКЕ"
 )
 
 # Timeout and interval settings

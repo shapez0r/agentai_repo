@@ -12,9 +12,22 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
 
+// Кеш для хранения последних значений пинга
+const pingCache = {};
+
 // Create a custom marker icon function based on ping color
 function createMarkerIcon(pingValue) {
-  const color = getPingColor(pingValue || 'N/A');
+  const location = pingValue.split(' ')[2]; // Извлекаем идентификатор места из строки пинга, если он есть
+  
+  // Если текущее значение не 'N/A' и не undefined, сохраняем его в кеше
+  if (pingValue && pingValue !== 'N/A' && pingValue.includes('ms')) {
+    pingCache[location || 'default'] = pingValue;
+  }
+  
+  // ВСЕГДА используем кешированное значение, если оно есть. Это предотвратит мерцание точек на карте при обновлении
+  const valueToUse = pingCache[location || 'default'] || pingValue || 'N/A';
+  
+  const color = getPingColor(valueToUse);
   
   return L.divIcon({
     className: 'custom-ping-marker',
@@ -25,7 +38,7 @@ function createMarkerIcon(pingValue) {
 }
 
 // Application version - updated during build process
-const VERSION = "05a13ffc90b9fdbe73d2f348a11a36337797639c";
+const VERSION = "4da0a27cfb4d6acfb472e2cb968aad9c6ec4199d";
 
 // Added text encoding function to ensure proper character handling
 function encodeNonLatinChars(text) {
@@ -187,7 +200,10 @@ function getSavedLang() {
 // Function to test ping to all destinations
 async function testPing(setIp, setLatency, setTestingPing) {
   setTestingPing(true);
-  setLatency({});
+  
+  // Не очищаем предыдущие значения, чтобы сохранить их при ошибках
+  // setLatency({});
+  
   try {
     // Get IP address from ipify API
     const res = await fetch('https://api.ipify.org?format=json');
@@ -221,15 +237,29 @@ async function testPing(setIp, setLatency, setTestingPing) {
       
       // Calculate and format latency
       const pingTime = Math.round(performance.now() - start);
-      latencyResults[target.name.en] = pingTime + ' ms';
+      latencyResults[target.name.en] = pingTime + ' ms ' + target.name.en; // добавляем идентификатор локации
       console.log(`Ping to ${target.name.en} (${target.url}): ${pingTime}ms`);
     } catch (error) {
       console.error(`Error pinging ${target.name.en} (${target.url}):`, error);
-      latencyResults[target.name.en] = 'N/A';
+      // Не меняем значение на 'N/A', а оставляем предыдущее значение
+      // latencyResults[target.name.en] = 'N/A';
     }
   }
   
-  setLatency(latencyResults);
+  // Обновляем состояние, сохраняя предыдущие значения 
+  setLatency(prev => {
+    const newLatency = { ...prev };
+    
+    // Обновляем только те значения, которые успешно получены
+    Object.keys(latencyResults).forEach(key => {
+      if (latencyResults[key]) {
+        newLatency[key] = latencyResults[key];
+      }
+    });
+    
+    return newLatency;
+  });
+  
   setTestingPing(false);
   return latencyResults;
 }
@@ -255,8 +285,13 @@ async function testSinglePing(target, setLatency) {
     clearTimeout(timeoutId);
     
     // Calculate and format latency
-    const pingResult = Math.round(performance.now() - start) + ' ms';
+    const pingResult = Math.round(performance.now() - start) + ' ms ' + target.name.en; // Добавляем идентификатор для кеша
     console.log(`Single ping to ${target.name.en} (${target.url}): ${pingResult}`);
+    
+    // Сохраняем новое значение в кеш
+    if (pingResult && !pingResult.includes('N/A')) {
+      pingCache[target.name.en] = pingResult;
+    }
     
     setLatency(prev => ({
       ...prev,
@@ -265,11 +300,13 @@ async function testSinglePing(target, setLatency) {
     return pingResult;
   } catch (error) {
     console.error(`Error with single ping to ${target.name.en} (${target.url}):`, error);
+    // Не меняем значение на 'N/A', если в кеше есть предыдущее значение
+    const cachedValue = pingCache[target.name.en];
     setLatency(prev => ({
       ...prev,
-      [target.name.en]: 'N/A'
+      [target.name.en]: cachedValue || prev[target.name.en] || 'N/A'
     }));
-    return 'N/A';
+    return cachedValue || 'N/A';
   }
 }
 
@@ -379,6 +416,13 @@ function App() {
                   key={location.code} 
                   position={location.coords} 
                   icon={createMarkerIcon(latency[location.name.en] || latency[location.name.ru] || '300 ms')}
+                  eventHandlers={{
+                    add: (e) => {
+                      // Всегда используем предыдущие значения пинга из кеша для предотвращения мерцания
+                      const markerIcon = createMarkerIcon(latency[location.name.en] || latency[location.name.ru] || '300 ms');
+                      e.target.setIcon(markerIcon);
+                    }
+                  }}
                 >
                   <Popup>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5px' }}>
@@ -386,9 +430,9 @@ function App() {
                       <div style={{ 
                         fontWeight: '600', 
                         fontSize: '16px',
-                        color: getPingColor(latency[location.name.en] || latency[location.name.ru] || '300 ms')
+                        color: getPingColor(pingCache[location.name.en] || latency[location.name.en] || latency[location.name.ru] || '300 ms')
                       }}>
-                        {testingPing && !latency[location.name.en] ? t.updating : (latency[location.name.en] || latency[location.name.ru] || '-')}
+                        {pingCache[location.name.en] || latency[location.name.en] || latency[location.name.ru] || '-'}
                       </div>
                       {/* Удалены кнопки обновления */}
                     </div>
@@ -463,12 +507,12 @@ function App() {
                     }}></div>
                     <span style={{ 
                       fontWeight: 600, 
-                      color: getPingColor(latency[target.name.en] || latency[target.name.ru] || '-'), 
+                      color: getPingColor(pingCache[target.name.en] || latency[target.name.en] || latency[target.name.ru] || '-'), 
                       minWidth: 50, 
                       textAlign: 'left', 
                       justifySelf: 'start',
                       fontSize: '12px'
-                    }}>{testingPing && !latency[target.name.en] ? t.updating : (latency[target.name.en] || latency[target.name.ru] || '-')}</span>
+                    }}>{pingCache[target.name.en] || latency[target.name.en] || latency[target.name.ru] || '-'}</span>
                   </div>
                 </div>
               ))}

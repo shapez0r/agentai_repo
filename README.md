@@ -90,6 +90,8 @@ These instructions must be followed by Copilot (you) after each change:
    - `bash ./check-tester.sh`
 7. Confirm success or troubleshoot if verification fails
 
+**ВАЖНО: Copilot должен всегда отвечать пользователю ТОЛЬКО НА РУССКОМ ЯЗЫКЕ, независимо от языка запроса. При каждом запросе пользователя Copilot обязан следовать этой инструкции из README.**
+
 During deployment, the `replace-commit-hash.sh` script embeds the current commit ID into the build, allowing the verification script to confirm the correct version is deployed. The verification runs in two steps: first checking the commit ID, then verifying the actual features. If verification fails, Copilot must repeat the process until success.
 
 ## 🔍 Verification Script
