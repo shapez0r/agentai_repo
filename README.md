@@ -65,11 +65,11 @@ flowchart TD
 ```mermaid
 flowchart TD
     A[User dictates changes to Copilot] --> B[Copilot applies changes to code]
-    B --> C[Copilot updates check-tester.ps1 for new verification]
+    B --> C[Copilot updates check-tester.sh for new verification]
     C --> D[Copilot pushes all changes to GitHub]
-    D --> E[Copilot runs npm run deploy with embedded replace-commit-hash.ps1 to deploy the commit ID as version]
-    E --> F[Copilot runs check-tester.ps1: finds commit ID to prove latest repo changes are deployed]
-    F --> G[Copilot runs check-tester.ps1: finds actual changes]
+    D --> E[Copilot runs npm run deploy with embedded replace-commit-hash.sh to deploy the commit ID as version]
+    E --> F[Copilot runs check-tester.sh: finds commit ID to prove latest repo changes are deployed]
+    F --> G[Copilot runs check-tester.sh: finds actual changes]
     G --> H{FOUND?}
     H -- Yes --> I[Change is live!]
     H -- No --> B
@@ -78,7 +78,7 @@ flowchart TD
 These instructions must be followed by Copilot (you) after each change:
 
 1. Apply the requested code changes in the application
-2. Update the verification script (`check-tester.ps1`) to check for the new/changed features
+2. Update the verification script (`check-tester.sh`) to check for the new/changed features
 3. Commit and push changes:
    - `git add .`
    - `git commit -m "descriptive message about the changes"`
@@ -87,22 +87,22 @@ These instructions must be followed by Copilot (you) after each change:
    - `npm run deploy`
 5. Wait for deployment propagation
 6. Run verification:
-   - `powershell.exe -ExecutionPolicy Bypass -File .\check-tester.ps1`
+   - `bash ./check-tester.sh`
 7. Confirm success or troubleshoot if verification fails
 
-During deployment, the `replace-commit-hash.ps1` script embeds the current commit ID into the build, allowing the verification script to confirm the correct version is deployed. The verification runs in two steps: first checking the commit ID, then verifying the actual features. If verification fails, Copilot must repeat the process until success.
+During deployment, the `replace-commit-hash.sh` script embeds the current commit ID into the build, allowing the verification script to confirm the correct version is deployed. The verification runs in two steps: first checking the commit ID, then verifying the actual features. If verification fails, Copilot must repeat the process until success.
 
 ## 🔍 Verification Script
 
-The repository includes an automated PowerShell verification script: `check-tester.ps1`.
+The repository includes an automated shell verification script: `check-tester.sh`.
 
 - This script checks that the latest deployed version of the site contains the expected phrase or feature (for example, the current app name).
 - The script automatically finds the correct deployed JS file and searches for the expected value.
 - Always update this script to match the latest change you want to verify after deployment.
 - Run it after each deployment to ensure your change is live:
 
-```powershell
-powershell.exe -ExecutionPolicy Bypass -File .\check-tester.ps1
+```bash
+bash ./check-tester.sh
 ```
 
 If the script outputs `FOUND`, your change is present on the live site.
@@ -112,12 +112,12 @@ If the script outputs `FOUND`, your change is present on the live site.
 1. **Commit and Push Changes**: Stage, commit, and push the changes to the repository.
 2. **Deploy the Application**: Use `npm run deploy` to deploy the updated application.
 3. **Wait for Deployment Propagation**: Allow some time for the deployment to propagate or manually confirm the deployment is live.
-4. **Verify Deployment**: Run `check-tester.ps1` to confirm the changes are live.
+4. **Verify Deployment**: Run `check-tester.sh` to confirm the changes are live.
 
 ## Deployment & Verification Workflow
 
 1. Make the required changes in the application code (src/).
-2. Update the verification script (`check-tester.ps1`) so it checks for the new/changed feature (e.g., a new phrase or color).
+2. Update the verification script (`check-tester.sh`) so it checks for the new/changed feature (e.g., a new phrase or color).
 3. Run the following commands:
    - `git add .`
    - `git commit -m "describe your change"`
@@ -126,7 +126,7 @@ If the script outputs `FOUND`, your change is present on the live site.
    - `npm run deploy`
 5. Wait for deployment propagation or manually confirm the deployment is live.
 6. Run the verification script:
-   - `powershell.exe -ExecutionPolicy Bypass -File .\check-tester.ps1`
+   - `bash ./check-tester.sh`
 7. Make sure the script outputs `FOUND` — this means the change is live on the site.
 
 > Always keep the verification script up to date with the latest change you want to check after deployment!

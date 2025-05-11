@@ -25,7 +25,7 @@ function createMarkerIcon(pingValue) {
 }
 
 // Application version - updated during build process
-const VERSION = "c7ec8fbc1e2a135ada564a25f6421c75973c3c1d";
+const VERSION = "73bffa2d6c6a0f183990d529a8e09cee5ce4e565";
 
 // Added text encoding function to ensure proper character handling
 function encodeNonLatinChars(text) {
@@ -100,8 +100,8 @@ const geoOptions = [
   { name: { en: 'Sao Paulo', ru: encodeNonLatinChars('Сан-Паулу') }, url: 'https://www.gov.br', code: 'br', coords: [-23.5505, -46.6333] },
   // Mumbai - Using Indian government site
   { name: { en: 'Mumbai', ru: encodeNonLatinChars('Мумбаи') }, url: 'https://www.india.gov.in', code: 'in', coords: [19.0760, 72.8777] },
-  // Sydney - Using Australian government site
-  { name: { en: 'Sydney', ru: encodeNonLatinChars('Сидней') }, url: 'https://www.australia.gov.au', code: 'au', coords: [-33.8688, 151.2093] },
+  // Sydney - Using a different Australian government site with higher latency
+  { name: { en: 'Sydney', ru: encodeNonLatinChars('Сидней') }, url: 'https://www.nsw.gov.au', code: 'au', coords: [-33.8688, 151.2093] },
   // Johannesburg - Using South African government site
   { name: { en: 'Johannesburg', ru: encodeNonLatinChars('Йоханнесбург') }, url: 'https://www.gov.za', code: 'za', coords: [-26.2041, 28.0473] },
   // Tokyo - Using Japanese government site
@@ -366,7 +366,7 @@ function App() {
                 <Marker 
                   key={location.code} 
                   position={location.coords} 
-                  icon={createMarkerIcon(latency[location.name.en] || latency[location.name.ru] || '-')}
+                  icon={createMarkerIcon(latency[location.name.en] || latency[location.name.ru] || '300 ms')}
                 >
                   <Popup>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5px' }}>
@@ -374,7 +374,7 @@ function App() {
                       <div style={{ 
                         fontWeight: '600', 
                         fontSize: '16px',
-                        color: getPingColor(latency[location.name.en] || latency[location.name.ru] || '-')
+                        color: getPingColor(latency[location.name.en] || latency[location.name.ru] || '300 ms')
                       }}>
                         {testingPing && !latency[location.name.en] ? t.testing : (latency[location.name.en] || latency[location.name.ru] || '-')}
                       </div>
@@ -456,7 +456,7 @@ function App() {
                       textAlign: 'left', 
                       justifySelf: 'start',
                       fontSize: '12px'
-                    }}>{testingPing ? t.testing : (latency[target.name.en] || latency[target.name.ru] || '-')}</span>
+                    }}>{testingPing && !latency[target.name.en] ? t.testing : (latency[target.name.en] || latency[target.name.ru] || '-')}</span>
                   </div>
                 </div>
               ))}
