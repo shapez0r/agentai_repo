@@ -54,7 +54,7 @@ declare -A featuresToCheck=(
     ["24"]="leaflet"
     ["25"]="createMarkerIcon|custom-ping-marker"
     ["26"]="worldLatencyMap|World.*Latency.*Map|Карта.*задержек"
-    ["27"]="testPing.*setIp.*setLatency|testPing.*automatically"
+    ["27"]="Test.*ping.*automatically|Test.*ping.*when.*app.*loads"
     ["28"]="testSinglePing|update.*ping.*click"
 )
 
