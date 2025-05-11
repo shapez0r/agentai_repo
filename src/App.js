@@ -1,8 +1,31 @@
 ﻿import React, { useState, useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import './App.css';
 
+// Fix for Leaflet default marker icons
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+});
+
+// Create a custom marker icon function based on ping color
+function createMarkerIcon(pingValue) {
+  const color = getPingColor(pingValue || 'N/A');
+  
+  return L.divIcon({
+    className: 'custom-ping-marker',
+    html: `<div style="background-color: ${color}; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.5);"></div>`,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10]
+  });
+}
+
 // Application version - updated during build process
-const VERSION = "bff92fb2a2943788589852f9d4b54a37f880d6f4";
+const VERSION = "36b0a7fb1571245dac78af4604c4cdf93f275a88";
 
 // Added text encoding function to ensure proper character handling
 function encodeNonLatinChars(text) {
@@ -63,16 +86,16 @@ function getPingColor(pingText) {
 }
 
 const geoOptions = [
-  { name: { en: 'Moscow', ru: encodeNonLatinChars('Москва') }, url: 'https://yandex.ru', code: 'ru' },
-  { name: { en: 'London', ru: encodeNonLatinChars('Лондон') }, url: 'https://www.bbc.co.uk', code: 'eu' },
-  { name: { en: 'New York', ru: encodeNonLatinChars('Нью-Йорк') }, url: 'https://www.google.com', code: 'us' },
-  { name: { en: 'Singapore', ru: encodeNonLatinChars('Сингапур') }, url: 'https://www.singtel.com', code: 'sg' },
-  { name: { en: 'Sao Paulo', ru: encodeNonLatinChars('Сан-Паулу') }, url: 'https://www.globo.com', code: 'br' },
-  { name: { en: 'Mumbai', ru: encodeNonLatinChars('Мумбаи') }, url: 'https://www.airtel.in', code: 'in' },
-  { name: { en: 'Sydney', ru: encodeNonLatinChars('Сидней') }, url: 'https://www.telstra.com.au', code: 'au' },
-  { name: { en: 'Johannesburg', ru: encodeNonLatinChars('Йоханнесбург') }, url: 'https://www.telkom.co.za', code: 'za' },
-  { name: { en: 'Tokyo', ru: encodeNonLatinChars('Токио') }, url: 'https://www.yahoo.co.jp', code: 'jp' },
-  { name: { en: 'Toronto', ru: encodeNonLatinChars('Торонто') }, url: 'https://www.cbc.ca', code: 'ca' },
+  { name: { en: 'Moscow', ru: encodeNonLatinChars('Москва') }, url: 'https://yandex.ru', code: 'ru', coords: [55.7558, 37.6173] },
+  { name: { en: 'London', ru: encodeNonLatinChars('Лондон') }, url: 'https://www.bbc.co.uk', code: 'eu', coords: [51.5074, -0.1278] },
+  { name: { en: 'New York', ru: encodeNonLatinChars('Нью-Йорк') }, url: 'https://www.google.com', code: 'us', coords: [40.7128, -74.0060] },
+  { name: { en: 'Singapore', ru: encodeNonLatinChars('Сингапур') }, url: 'https://www.singtel.com', code: 'sg', coords: [1.3521, 103.8198] },
+  { name: { en: 'Sao Paulo', ru: encodeNonLatinChars('Сан-Паулу') }, url: 'https://www.globo.com', code: 'br', coords: [-23.5505, -46.6333] },
+  { name: { en: 'Mumbai', ru: encodeNonLatinChars('Мумбаи') }, url: 'https://www.airtel.in', code: 'in', coords: [19.0760, 72.8777] },
+  { name: { en: 'Sydney', ru: encodeNonLatinChars('Сидней') }, url: 'https://www.telstra.com.au', code: 'au', coords: [-33.8688, 151.2093] },
+  { name: { en: 'Johannesburg', ru: encodeNonLatinChars('Йоханнесбург') }, url: 'https://www.telkom.co.za', code: 'za', coords: [-26.2041, 28.0473] },
+  { name: { en: 'Tokyo', ru: encodeNonLatinChars('Токио') }, url: 'https://www.yahoo.co.jp', code: 'jp', coords: [35.6762, 139.6503] },
+  { name: { en: 'Toronto', ru: encodeNonLatinChars('Торонто') }, url: 'https://www.cbc.ca', code: 'ca', coords: [43.6532, -79.3832] },
 ];
 
 const speedTestOptions = [
@@ -91,6 +114,7 @@ const translations = {
     latency: 'Latency',
     downloadSpeed: 'Download Speed',
     designed: 'Designed for 2025',
+    worldLatencyMap: 'World Latency Map',
   },
   ru: {
     connectionTester: 'СуперТестер',
@@ -102,6 +126,7 @@ const translations = {
     latency: 'Задержка',
     downloadSpeed: 'Скорость загрузки',
     designed: 'Дизайн 2025',
+    worldLatencyMap: 'Карта задержек в мире',
   },
   es: {
     connectionTester: 'Supertester',
@@ -113,6 +138,7 @@ const translations = {
     latency: 'Latencia',
     downloadSpeed: 'Velocidad de descarga',
     designed: 'Diseñado para 2025',
+    worldLatencyMap: 'Mapa de latencia mundial',
   },
   de: {
     connectionTester: 'Supertester',
@@ -124,6 +150,7 @@ const translations = {
     latency: 'Latenz',
     downloadSpeed: 'Download-Geschwindigkeit',
     designed: 'Entworfen für 2025',
+    worldLatencyMap: 'Weltkarte der Latenzzeiten',
   }
 };
 
@@ -138,13 +165,56 @@ function getSavedLang() {
   return localStorage.getItem('lang') || 'en';
 }
 
+// Function to test ping to all destinations
+async function testPing(setIp, setLatency, setTestingPing) {
+  setTestingPing(true);
+  setLatency({});
+  try {
+    const res = await fetch('https://api.ipify.org?format=json');
+    const data = await res.json();
+    setIp(data.ip);
+  } catch {
+    setIp('Error');
+  }
+  const latencyResults = {};
+  for (const target of geoOptions) {
+    const start = performance.now();
+    try {
+      await fetch(target.url, { mode: 'no-cors' });
+      latencyResults[target.name.en] = Math.round(performance.now() - start) + ' ms';
+    } catch {
+      latencyResults[target.name.en] = 'N/A';
+    }
+  }
+  setLatency(latencyResults);
+  setTestingPing(false);
+  return latencyResults;
+}
+
+// Function to test ping to a single destination
+async function testSinglePing(target, setLatency, latency) {
+  const start = performance.now();
+  try {
+    await fetch(target.url, { mode: 'no-cors' });
+    const pingResult = Math.round(performance.now() - start) + ' ms';
+    setLatency(prev => ({
+      ...prev,
+      [target.name.en]: pingResult
+    }));
+    return pingResult;
+  } catch {
+    setLatency(prev => ({
+      ...prev,
+      [target.name.en]: 'N/A'
+    }));
+    return 'N/A';
+  }
+}
+
 function App() {
   const [ip, setIp] = useState('');
   const [latency, setLatency] = useState({});
-  const [downloadSpeed, setDownloadSpeed] = useState(null);
   const [testingPing, setTestingPing] = useState(false);
-  const [testingSpeed, setTestingSpeed] = useState(false);
-  const [selectedSpeedTest, setSelectedSpeedTest] = useState(speedTestOptions[0]);
   const [lang, setLang] = useState(getSavedLang());
   const t = translations[lang] || translations['en'];
 
@@ -153,15 +223,8 @@ function App() {
   }, [lang]);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch('https://api.ipify.org?format=json');
-        const data = await res.json();
-        setIp(data.ip);
-      } catch {
-        setIp('Error');
-      }
-    })();
+    // Test ping automatically when app loads
+    testPing(setIp, setLatency, setTestingPing);
   }, []);
 
   return (
@@ -294,143 +357,91 @@ function App() {
                     minWidth: 70, 
                     textAlign: 'left', 
                     justifySelf: 'start' 
-                  }}>{latency[target.name.en] || latency[target.name.ru] || '-'}</span>
+                  }}>{testingPing ? t.testing : (latency[target.name.en] || latency[target.name.ru] || '-')}</span>
                 </div>
               </div>
             ))}
           </div>
-          <button
-            onClick={async () => {
-              setTestingPing(true);
-              setLatency({});
-              try {
-                const res = await fetch('https://api.ipify.org?format=json');
-                const data = await res.json();
-                setIp(data.ip);
-              } catch {
-                setIp('Error');
-              }
-              const latencyResults = {};
-              for (const target of geoOptions) {
-                const start = performance.now();
-                try {
-                  await fetch(target.url, { mode: 'no-cors' });
-                  latencyResults[target.name.en] = Math.round(performance.now() - start) + ' ms';
-                } catch {
-                  latencyResults[target.name.en] = 'N/A';
-                }
-              }
-              setLatency(latencyResults);
-              setTestingPing(false);
-            }}
-            disabled={testingPing}
-            style={{
-              marginTop: 24,
-              padding: '12px 32px',
-              fontSize: 20,
-              fontWeight: 700,
-              borderRadius: 32,
-              border: 'none',
-              background: 'linear-gradient(90deg, #00c6ff 0%, #0072ff 100%)',
-              color: '#fff',
-              boxShadow: '0 4px 24px 0 rgba(0,114,255,0.15)',
-              cursor: testingPing ? 'not-allowed' : 'pointer',
-              transition: 'background 0.3s',
-              width: '100%',
-            }}
-          >
-            {testingPing ? t.testing : (lang === 'ru' ? 'Обновить пинг' : 'Refresh Ping')}
-          </button>
         </div>
-        {/* Download Speed */}
-        <div style={{
-          background: 'rgba(255,255,255,0.05)',
-          border: '1.5px solid #00c6ff33',
-          borderRadius: 24,
-          padding: 32,
-          minWidth: 260,
-          boxShadow: '0 2px 16px 0 rgba(0,198,255,0.07)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}>
-          <h2 style={{ fontWeight: 700, fontSize: 24, marginBottom: 16, letterSpacing: -1, fontFamily: 'Inter, Segoe UI, Arial, sans-serif' }}>{t.downloadSpeed}</h2>
-          <div style={{ fontSize: 22, marginBottom: 8, fontFamily: 'Inter, Segoe UI, Arial, sans-serif', display: 'flex', alignItems: 'center' }}>
-            <img src={`https://flagcdn.com/32x24/${selectedSpeedTest.code}.png`} alt={selectedSpeedTest.name[lang]} style={{ width: 32, height: 24, marginRight: 8, borderRadius: 4, boxShadow: '0 1px 4px #0002' }} />
-            <span style={{ color: '#00c6ff', fontWeight: 700 }}>{selectedSpeedTest.name[lang] || selectedSpeedTest.name.en}</span>
-          </div>
-          <select
-            value={selectedSpeedTest.name[lang]}
-            onChange={e => setSelectedSpeedTest(speedTestOptions.find(s => s.name[lang] === e.target.value))}
-            style={{ fontSize: 20, borderRadius: 8, padding: '6px 16px', fontWeight: 600, fontFamily: 'Inter, Segoe UI, Arial, sans-serif', marginRight: 16 }}
-            aria-label={t.downloadFrom}
+
+      </div>
+      <div style={{
+        background: 'rgba(255,255,255,0.05)',
+        border: '1.5px solid #00c6ff33',
+        borderRadius: 24,
+        padding: 32,
+        marginTop: 40,
+        width: '100%',
+        maxWidth: 1100,
+        boxShadow: '0 2px 16px 0 rgba(0,198,255,0.07)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}>
+        <h2 style={{ fontWeight: 700, fontSize: 24, marginBottom: 16, letterSpacing: -1, fontFamily: 'Inter, Segoe UI, Arial, sans-serif' }}>{t.worldLatencyMap}</h2>
+        
+        {/* Map container */}
+        <div style={{ width: '100%', height: '400px', borderRadius: '12px', overflow: 'hidden', marginTop: '16px' }}>
+          <MapContainer
+            center={[20, 0]}
+            zoom={2}
+            style={{ width: '100%', height: '100%' }}
+            minZoom={1}
+            maxZoom={10}
           >
-            {speedTestOptions.map(s => (
-              <option key={s.name.en} value={s.name[lang]}>{s.name[lang]}</option>
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            {geoOptions.map((location) => (
+              <Marker 
+                key={location.code} 
+                position={location.coords} 
+                icon={createMarkerIcon(latency[location.name.en] || latency[location.name.ru] || '-')}
+                eventHandlers={{
+                  click: () => {
+                    // Test ping for this location when clicking on the marker
+                    testSinglePing(location, setLatency, latency);
+                  },
+                }}
+              >
+                <Popup>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5px' }}>
+                    <div style={{ fontWeight: 'bold', fontSize: '14px', marginBottom: '5px' }}>{location.name[lang] || location.name.en}</div>
+                    <div style={{ 
+                      fontWeight: '600', 
+                      fontSize: '16px',
+                      color: getPingColor(latency[location.name.en] || latency[location.name.ru] || '-')
+                    }}>
+                      {testingPing && !latency[location.name.en] ? t.testing : (latency[location.name.en] || latency[location.name.ru] || '-')}
+                    </div>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        testSinglePing(location, setLatency, latency);
+                      }}
+                      style={{
+                        marginTop: '10px',
+                        padding: '5px 10px',
+                        fontSize: '14px',
+                        fontWeight: 600,
+                        borderRadius: '15px',
+                        border: 'none',
+                        background: 'linear-gradient(90deg, #00c6ff 0%, #0072ff 100%)',
+                        color: '#fff',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {lang === 'ru' ? 'Обновить пинг' : 'Update Ping'}
+                    </button>
+                  </div>
+                </Popup>
+              </Marker>
             ))}
-          </select>
-          <div style={{ fontSize: 32, fontWeight: 700, letterSpacing: 1, fontFamily: 'Inter, Segoe UI, Arial, sans-serif' }}>{downloadSpeed ? downloadSpeed : '-'}</div>
-          <button
-            onClick={async () => {
-              setTestingSpeed(true);
-              setDownloadSpeed(null);
-              setDownloadSpeed('-'); // reset
-              let speedError = '';
-              try {
-                if (selectedSpeedTest.cors) {
-                  const fileUrl = selectedSpeedTest.url + (selectedSpeedTest.url.includes('?') ? '&' : '?') + 'cacheBust=' + Date.now();
-                  const start = performance.now();
-                  const response = await fetch(fileUrl, { cache: 'no-store' });
-                  if (!response.ok || !response.body) throw new Error('Speed test fetch failed');
-                  const reader = response.body.getReader();
-                  let receivedLength = 0;
-                  let firstChunk = true;
-                  let firstChunkTime = 0;
-                  while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-                    if (firstChunk) {
-                      firstChunk = false;
-                      firstChunkTime = performance.now();
-                    }
-                    receivedLength += value.length;
-                  }
-                  const end = performance.now();
-                  const effectiveStart = firstChunkTime || start;
-                  const sizeMB = receivedLength / (1024 * 1024);
-                  const timeSec = (end - effectiveStart) / 1000;
-                  const speedMbps = ((sizeMB * 8) / timeSec).toFixed(2);
-                  setDownloadSpeed(speedMbps + ' Mbps');
-                } else {
-                  setDownloadSpeed('N/A: CORS not supported');
-                }
-              } catch (err) {
-                speedError = err.message;
-                setDownloadSpeed('N/A: ' + speedError);
-                console.error('Download speed test failed:', speedError);
-              }
-              setTestingSpeed(false);
-            }}
-            disabled={testingSpeed}
-            style={{
-              marginTop: 24,
-              padding: '12px 32px',
-              fontSize: 20,
-              fontWeight: 700,
-              borderRadius: 32,
-              border: 'none',
-              background: 'linear-gradient(90deg, #00c6ff 0%, #0072ff 100%)',
-              color: '#fff',
-              boxShadow: '0 4px 24px 0 rgba(0,114,255,0.15)',
-              cursor: testingSpeed ? 'not-allowed' : 'pointer',
-              transition: 'background 0.3s',
-              width: '100%',
-            }}
-          >
-            {testingSpeed ? t.testing : (lang === 'ru' ? 'Скорость загрузки' : 'Download Speed')}
-          </button>
+          </MapContainer>
         </div>
       </div>
+      
       <footer style={{
         marginTop: 64,
         color: '#00c6ff99',

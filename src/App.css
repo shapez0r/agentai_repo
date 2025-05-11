@@ -57,12 +57,76 @@ body {
   background: linear-gradient(90deg, #ff0000, #ff9900, #33cc33, #00c6ff, #0072ff, #cc00ff, #ff0066);
   background-size: 1400% 100%;
   animation: rainbow-text 8s ease infinite;
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  color: transparent;
   font-weight: 800;
   font-size: 48px;
   letter-spacing: -2px;
   margin: 48px 0 16px 0;
   font-family: 'Inter, Segoe UI, Arial, sans-serif';
   text-align: center;
+}
+
+/* Leaflet map styles */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+}
+
+.custom-ping-marker {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Custom popup and tooltip styles */
+.leaflet-tooltip {
+  background-color: rgba(0, 0, 0, 0.7);
+  border: 1px solid #00c6ff;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 198, 255, 0.3);
+  font-family: 'Inter', 'Roboto', sans-serif;
+  font-size: 14px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.leaflet-tooltip-top:before {
+  border-top-color: rgba(0, 0, 0, 0.7);
+}
+
+.leaflet-container a {
+  color: #00c6ff;
+}
+
+/* Всплывающие подсказки на карте */
+.leaflet-popup-content-wrapper {
+  background-color: rgba(0, 0, 0, 0.75);
+  color: white;
+  border-radius: 8px;
+  border: 1px solid #00c6ff;
+  box-shadow: 0 0 10px rgba(0, 198, 255, 0.3);
+}
+
+.leaflet-popup-tip {
+  background-color: rgba(0, 0, 0, 0.75);
+  border: 1px solid #00c6ff;
+}
+
+.leaflet-popup-content {
+  margin: 8px 10px;
+  text-align: center;
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+  color: #00c6ff;
+}
+
+.leaflet-container a.leaflet-popup-close-button:hover {
+  color: white;
 }

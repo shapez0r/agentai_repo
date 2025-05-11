@@ -50,6 +50,12 @@ declare -A featuresToCheck=(
     ["20"]="getPingColor|function.*ping.*color"
     ["21"]="minPing|10.*ms|\\\\&lt;10ms"
     ["22"]="maxPing|1000.*ms|\\\\&gt;1000ms" 
+    ["23"]="MapContainer|TileLayer|Marker|Popup|Tooltip" 
+    ["24"]="leaflet"
+    ["25"]="createMarkerIcon|custom-ping-marker"
+    ["26"]="worldLatencyMap|World.*Latency.*Map|Карта.*задержек"
+    ["27"]="testPing.*setIp.*setLatency|testPing.*automatically"
+    ["28"]="testSinglePing|update.*ping.*click"
 )
 
 # Timeout and interval settings
