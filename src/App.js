@@ -2,7 +2,7 @@
 import './App.css';
 
 // Application version - updated during build process
-const VERSION = "46e9d9a6bbf90817c114c0e9d69875b6d081dfbb";
+const VERSION = "5a3f0cf6caa9f05c1da0525c919a00d0c5ec9669";
 
 // Added text encoding function to ensure proper character handling
 function encodeNonLatinChars(text) {
@@ -25,7 +25,7 @@ const geoOptions = [
   { name: { en: 'London', ru: encodeNonLatinChars('Лондон') }, url: 'https://www.bbc.co.uk', code: 'eu' },
   { name: { en: 'New York', ru: encodeNonLatinChars('Нью-Йорк') }, url: 'https://www.google.com', code: 'us' },
   { name: { en: 'Singapore', ru: encodeNonLatinChars('Сингапур') }, url: 'https://www.singtel.com', code: 'sg' },
-  { name: { en: 'São Paulo', ru: encodeNonLatinChars('Сан-Паулу') }, url: 'https://www.globo.com', code: 'br' },
+  { name: { en: 'Sao Paulo', ru: encodeNonLatinChars('Сан-Паулу') }, url: 'https://www.globo.com', code: 'br' },
   { name: { en: 'Mumbai', ru: encodeNonLatinChars('Мумбаи') }, url: 'https://www.airtel.in', code: 'in' },
   { name: { en: 'Sydney', ru: encodeNonLatinChars('Сидней') }, url: 'https://www.telstra.com.au', code: 'au' },
   { name: { en: 'Johannesburg', ru: encodeNonLatinChars('Йоханнесбург') }, url: 'https://www.telkom.co.za', code: 'za' },
