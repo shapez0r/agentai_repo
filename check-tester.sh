@@ -47,6 +47,9 @@ declare -A featuresToCheck=(
     ["17"]="Toronto.*es|es.*Toronto"
     ["18"]="New York"
     ["19"]="Singapore"
+    ["20"]="getPingColor"
+    ["21"]="minPing.*10"
+    ["22"]="maxPing.*1000" 
 )
 
 # Timeout and interval settings

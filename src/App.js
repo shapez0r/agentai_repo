@@ -2,7 +2,7 @@
 import './App.css';
 
 // Application version - updated during build process
-const VERSION = "5a3f0cf6caa9f05c1da0525c919a00d0c5ec9669";
+const VERSION = "bff92fb2a2943788589852f9d4b54a37f880d6f4";
 
 // Added text encoding function to ensure proper character handling
 function encodeNonLatinChars(text) {
@@ -17,6 +17,48 @@ function encodeNonLatinChars(text) {
   } catch (e) {
     console.error('Error handling text encoding:', e);
     return text || '';
+  }
+}
+
+// Function to determine color based on ping value
+function getPingColor(pingText) {
+  // Extract ping value from the string (e.g. '120 ms' -> 120)
+  const pingValue = parseInt(pingText);
+  
+  // Return a neutral color if ping is not a valid number
+  if (isNaN(pingValue) || pingText === 'N/A') {
+    return '#999'; // Gray for invalid or N/A ping
+  }
+  
+  // Define minimum and maximum ping thresholds
+  const minPing = 10;    // Below this is excellent (green)
+  const maxPing = 1000;  // Above this is terrible (red)
+  
+  // Calculate color based on ping value
+  if (pingValue <= minPing) {
+    return '#00ff00'; // Pure green for excellent ping
+  } else if (pingValue >= maxPing) {
+    return '#ff0000'; // Pure red for terrible ping
+  } else {
+    // Create a gradient between green-yellow-red
+    // Normalize ping value between 0 and 1
+    const normalizedPing = (pingValue - minPing) / (maxPing - minPing);
+    
+    // Calculate RGB values for gradient
+    let r, g;
+    
+    if (normalizedPing < 0.5) {
+      // Green to Yellow gradient for first half (0 to 0.5)
+      r = Math.round(255 * (normalizedPing * 2));
+      g = 255;
+    } else {
+      // Yellow to Red gradient for second half (0.5 to 1)
+      r = 255;
+      g = Math.round(255 * (1 - (normalizedPing - 0.5) * 2));
+    }
+    
+    // Convert RGB to hex color code
+    return `rgb(${r}, ${g}, 0)`;
   }
 }
 
@@ -200,12 +242,60 @@ function App() {
           alignItems: 'center',
         }}>
           <h2 style={{ fontWeight: 700, fontSize: 24, marginBottom: 16, letterSpacing: -1, fontFamily: 'Inter, Segoe UI, Arial, sans-serif' }}>{t.latency}</h2>
+          {/* Ping color legend */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            gap: '20px',
+            marginBottom: '12px',
+            padding: '8px',
+            borderRadius: '10px',
+            background: 'rgba(0,0,0,0.2)',
+            fontSize: '13px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#00ff00' }}></div>
+              <span>&lt;10ms</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#aaff00' }}></div>
+              <span>&lt;100ms</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ffff00' }}></div>
+              <span>&lt;250ms</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ff8800' }}></div>
+              <span>&lt;500ms</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ff0000' }}></div>
+              <span>&gt;1000ms</span>
+            </div>
+          </div>
           <div style={{ width: '100%' }}>
             {geoOptions.map(target => (
-              <div key={target.code} style={{ display: 'grid', gridTemplateColumns: '40px 1fr 80px', alignItems: 'center', fontSize: 22, fontWeight: 500, margin: '10px 0', fontFamily: 'Inter, Segoe UI, Arial, sans-serif', letterSpacing: 0.5 }}>
+              <div key={target.code} style={{ display: 'grid', gridTemplateColumns: '40px 1fr 110px', alignItems: 'center', fontSize: 22, fontWeight: 500, margin: '10px 0', fontFamily: 'Inter, Segoe UI, Arial, sans-serif', letterSpacing: 0.5 }}>
                 <img src={`https://flagcdn.com/32x24/${target.code}.png`} alt={target.name[lang]} style={{ width: 32, height: 24, borderRadius: 4, boxShadow: '0 1px 4px #0002', flexShrink: 0, justifySelf: 'start' }} />
                 <span style={{ color: '#00c6ff', fontWeight: 700, minWidth: 120, textAlign: 'left', flexShrink: 0 }}>{target.name[lang]}</span>
-                <span style={{ fontWeight: 600, color: '#fff', minWidth: 70, textAlign: 'left', justifySelf: 'start' }}>{latency[target.name.en] || latency[target.name.ru] || '-'}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-start' }}>
+                  <div style={{ 
+                    width: '12px', 
+                    height: '12px', 
+                    borderRadius: '50%', 
+                    backgroundColor: getPingColor(latency[target.name.en] || latency[target.name.ru] || '-'),
+                    boxShadow: '0 0 4px rgba(0,0,0,0.3)'
+                  }}></div>
+                  <span style={{ 
+                    fontWeight: 600, 
+                    color: getPingColor(latency[target.name.en] || latency[target.name.ru] || '-'), 
+                    minWidth: 70, 
+                    textAlign: 'left', 
+                    justifySelf: 'start' 
+                  }}>{latency[target.name.en] || latency[target.name.ru] || '-'}</span>
+                </div>
               </div>
             ))}
           </div>
