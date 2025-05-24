@@ -12,28 +12,53 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
 });
 
+// Компонент экрана загрузки
+const LoadingScreen = () => (
+  <div className="loading-screen">
+    <div className="loading-spinner"></div>
+    <div className="loading-text">Измеряем скорость соединения...</div>
+  </div>
+);
+
 // Кеш для хранения последних значений пинга
 const pingCache = {};
 
 // Create a custom marker icon function based on ping color
 function createMarkerIcon(pingValue) {
-  const location = pingValue.split(' ')[2]; // Извлекаем идентификатор места из строки пинга, если он есть
+  const location = pingValue.split(' ')[2]; // Извлекаем идентификатор места из строки пинга
   
   // Если текущее значение не 'N/A' и не undefined, сохраняем его в кеше
   if (pingValue && pingValue !== 'N/A' && pingValue.includes('ms')) {
     pingCache[location || 'default'] = pingValue;
   }
   
-  // ВСЕГДА используем кешированное значение, если оно есть. Это предотвратит мерцание точек на карте при обновлении
+  // ВСЕГДА используем кешированное значение, если оно есть
   const valueToUse = pingCache[location || 'default'] || pingValue || 'N/A';
   
   const color = getPingColor(valueToUse);
+  const size = 24; // Увеличенный размер маркера
   
   return L.divIcon({
     className: 'custom-ping-marker',
-    html: `<div style="background-color: ${color}; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.5);"></div>`,
-    iconSize: [20, 20],
-    iconAnchor: [10, 10]
+    html: `
+      <div style="
+        background-color: ${color}; 
+        width: ${size}px; 
+        height: ${size}px; 
+        border-radius: 50%; 
+        border: 3px solid white; 
+        box-shadow: 0 0 8px rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        color: white;
+        font-weight: bold;
+      ">
+        ${parseInt(valueToUse) || '?'}
+      </div>`,
+    iconSize: [size + 6, size + 6],
+    iconAnchor: [(size + 6) / 2, (size + 6) / 2]
   });
 }
 
@@ -147,6 +172,7 @@ const translations = {
     downloadSpeed: 'Download Speed',
     designed: 'Designed for 2025',
     worldLatencyMap: 'World Latency Map',
+    clickToUpdate: 'Click to update',
   },
   ru: {
     connectionTester: 'СуперТестер',
@@ -159,6 +185,7 @@ const translations = {
     downloadSpeed: 'Скорость загрузки',
     designed: 'Дизайн 2025',
     worldLatencyMap: 'Карта задержек в мире',
+    clickToUpdate: 'Нажмите для обновления',
   },
   es: {
     connectionTester: 'Supertester',
@@ -171,6 +198,7 @@ const translations = {
     downloadSpeed: 'Velocidad de descarga',
     designed: 'Diseñado para 2025',
     worldLatencyMap: 'Mapa de latencia mundial',
+    clickToUpdate: 'Haga clic para actualizar',
   },
   de: {
     connectionTester: 'Supertester',
@@ -183,6 +211,7 @@ const translations = {
     downloadSpeed: 'Download-Geschwindigkeit',
     designed: 'Entworfen für 2025',
     worldLatencyMap: 'Weltkarte der Latenzzeiten',
+    clickToUpdate: 'Klicken Sie, um zu aktualisieren',
   }
 };
 
@@ -201,9 +230,6 @@ function getSavedLang() {
 async function testPing(setIp, setLatency, setTestingPing) {
   setTestingPing(true);
   
-  // Не очищаем предыдущие значения, чтобы сохранить их при ошибках
-  // setLatency({});
-  
   try {
     // Get IP address from ipify API
     const res = await fetch('https://api.ipify.org?format=json');
@@ -219,13 +245,12 @@ async function testPing(setIp, setLatency, setTestingPing) {
   for (const target of geoOptions) {
     const start = performance.now();
     try {
-      // Use no-cors mode to avoid CORS issues with different sites
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5-second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
       
       const response = await fetch(target.url, { 
         mode: 'no-cors',
-        cache: 'no-store', // Don't use cache for accurate measurements
+        cache: 'no-store',
         headers: {
           'Cache-Control': 'no-cache',
           'Pragma': 'no-cache'
@@ -235,28 +260,27 @@ async function testPing(setIp, setLatency, setTestingPing) {
       
       clearTimeout(timeoutId);
       
-      // Calculate and format latency
       const pingTime = Math.round(performance.now() - start);
-      latencyResults[target.name.en] = pingTime + ' ms ' + target.name.en; // добавляем идентификатор локации
+      latencyResults[target.name.en] = pingTime + ' ms ' + target.name.en;
       console.log(`Ping to ${target.name.en} (${target.url}): ${pingTime}ms`);
     } catch (error) {
       console.error(`Error pinging ${target.name.en} (${target.url}):`, error);
-      // Не меняем значение на 'N/A', а оставляем предыдущее значение
-      // latencyResults[target.name.en] = 'N/A';
+      // Сохраняем предыдущее значение из кеша
+      latencyResults[target.name.en] = pingCache[target.name.en] || 'N/A';
     }
   }
   
-  // Обновляем состояние, сохраняя предыдущие значения 
   setLatency(prev => {
     const newLatency = { ...prev };
-    
-    // Обновляем только те значения, которые успешно получены
     Object.keys(latencyResults).forEach(key => {
       if (latencyResults[key]) {
         newLatency[key] = latencyResults[key];
+        // Обновляем кеш при успешном измерении
+        if (!latencyResults[key].includes('N/A')) {
+          pingCache[key] = latencyResults[key];
+        }
       }
     });
-    
     return newLatency;
   });
   
@@ -268,13 +292,12 @@ async function testPing(setIp, setLatency, setTestingPing) {
 async function testSinglePing(target, setLatency) {
   const start = performance.now();
   try {
-    // Use no-cors mode to avoid CORS issues with different sites
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5-second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
     
     const response = await fetch(target.url, { 
       mode: 'no-cors',
-      cache: 'no-store', // Don't use cache for accurate measurements
+      cache: 'no-store',
       headers: {
         'Cache-Control': 'no-cache',
         'Pragma': 'no-cache'
@@ -284,12 +307,12 @@ async function testSinglePing(target, setLatency) {
     
     clearTimeout(timeoutId);
     
-    // Calculate and format latency
-    const pingResult = Math.round(performance.now() - start) + ' ms ' + target.name.en; // Добавляем идентификатор для кеша
+    const pingTime = Math.round(performance.now() - start);
+    const pingResult = pingTime + ' ms ' + target.name.en;
     console.log(`Single ping to ${target.name.en} (${target.url}): ${pingResult}`);
     
-    // Сохраняем новое значение в кеш
-    if (pingResult && !pingResult.includes('N/A')) {
+    // Обновляем кеш и состояние
+    if (!pingResult.includes('N/A')) {
       pingCache[target.name.en] = pingResult;
     }
     
@@ -297,10 +320,10 @@ async function testSinglePing(target, setLatency) {
       ...prev,
       [target.name.en]: pingResult
     }));
+    
     return pingResult;
   } catch (error) {
     console.error(`Error with single ping to ${target.name.en} (${target.url}):`, error);
-    // Не меняем значение на 'N/A', если в кеше есть предыдущее значение
     const cachedValue = pingCache[target.name.en];
     setLatency(prev => ({
       ...prev,
@@ -313,7 +336,7 @@ async function testSinglePing(target, setLatency) {
 function App() {
   const [ip, setIp] = useState('');
   const [latency, setLatency] = useState({});
-  const [testingPing, setTestingPing] = useState(false);
+  const [testingPing, setTestingPing] = useState(true); // Начинаем с true для показа экрана загрузки
   const [lang, setLang] = useState(getSavedLang());
   const t = translations[lang] || translations['en'];
 
@@ -324,17 +347,12 @@ function App() {
   // Запускаем тест пинга при загрузке приложения
   useEffect(() => {
     testPing(setIp, setLatency, setTestingPing);
-    
-    // Устанавливаем интервал обновления пинга каждые 5 секунд (pingTest каждые 5000 ms)
-    const pingTestIntervalMs = 5000; // 5 секунд
-    console.log("Настройка автообновления пинга каждые " + pingTestIntervalMs/1000 + " секунд");
-    const intervalId = setInterval(() => {
-      testPing(setIp, setLatency, setTestingPing);
-    }, pingTestIntervalMs);
-    
-    // Очищаем интервал при размонтировании компонента
-    return () => clearInterval(intervalId);
   }, []);
+
+  // Если идет тестирование, показываем экран загрузки
+  if (testingPing && Object.keys(latency).length === 0) {
+    return <LoadingScreen />;
+  }
 
   return (
     <div className="App" style={{
@@ -399,7 +417,7 @@ function App() {
         {/* Контейнер для карты и списка пинга */}
         <div style={{ display: 'flex', gap: '20px' }}>
           {/* Карта */}
-          <div style={{ width: '75%', height: '400px', borderRadius: '12px', overflow: 'hidden', marginTop: '16px' }}>
+          <div style={{ width: '75%', height: '500px', borderRadius: '12px', overflow: 'hidden', marginTop: '16px' }}>
             <MapContainer
               center={[20, 0]}
               zoom={2}
@@ -417,24 +435,25 @@ function App() {
                   position={location.coords} 
                   icon={createMarkerIcon(latency[location.name.en] || latency[location.name.ru] || '300 ms')}
                   eventHandlers={{
-                    add: (e) => {
-                      // Всегда используем предыдущие значения пинга из кеша для предотвращения мерцания
-                      const markerIcon = createMarkerIcon(latency[location.name.en] || latency[location.name.ru] || '300 ms');
-                      e.target.setIcon(markerIcon);
+                    click: async () => {
+                      // При клике на маркер обновляем пинг для этой локации
+                      await testSinglePing(location, setLatency);
                     }
                   }}
                 >
                   <Popup>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '5px' }}>
-                      <div style={{ fontWeight: 'bold', fontSize: '14px', marginBottom: '5px' }}>{location.name[lang] || location.name.en}</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px' }}>
+                      <div style={{ fontWeight: 'bold', fontSize: '16px', marginBottom: '8px' }}>{location.name[lang] || location.name.en}</div>
                       <div style={{ 
                         fontWeight: '600', 
-                        fontSize: '16px',
+                        fontSize: '20px',
                         color: getPingColor(pingCache[location.name.en] || latency[location.name.en] || latency[location.name.ru] || '300 ms')
                       }}>
                         {pingCache[location.name.en] || latency[location.name.en] || latency[location.name.ru] || '-'}
                       </div>
-                      {/* Удалены кнопки обновления */}
+                      <div style={{ fontSize: '12px', marginTop: '5px', opacity: 0.7 }}>
+                        {t.clickToUpdate}
+                      </div>
                     </div>
                   </Popup>
                 </Marker>

@@ -59,7 +59,7 @@ declare -A featuresToCheck=(
     ["27"]="setInterval.*testPing|pingTestIntervalMs.*5000|pingTestIntervalMs.*1000|автообновления.*пинга|interval.*ping|Настройка.*пинга|clearInterval"
     ["28"]="v\..*IP|VERSION.*IP"
     ["29"]="display.*flex.*gap.*20px.*карт|карты|map"
-    ["30"]="width.*75%.*height.*400px"
+    ["30"]="width.*75%.*height.*500px"
     ["31"]="width.*25%.*compact|small"
     ["32"]="gov\\.uk|ny\\.gov|gov\\.sg|gov\\.br|india\\.gov\\.in|australia\\.gov\\.au|gov\\.za|japan\\.go\\.jp|canada\\.ca"
     ["33"]="updating.*:..*\\||t\\.updating"
@@ -68,6 +68,13 @@ declare -A featuresToCheck=(
     ["36"]="pingCache|const pingCache|кеш.*пинга|cache.*ping"
     ["37"]="ВСЕГДА используем кешированное значение|всегда отража.*предыдущ.*значени.*пинга"
     ["38"]="ВАЖНО: Copilot должен всегда отвечать.*ТОЛЬКО НА РУССКОМ ЯЗЫКЕ"
+    ["41"]="loading-screen|Измеряем скорость соединения"
+    ["42"]="testingPing.*true.*показа экрана загрузки"
+    ["43"]="click.*async.*testSinglePing"
+    ["44"]="clickToUpdate|Нажмите для обновления"
+    ["45"]="size.*24.*Увеличенный размер маркера"
+    ["46"]="backdrop-filter.*blur"
+    ["47"]="transform.*scale.*1\\.2"
 )
 
 # Timeout and interval settings
