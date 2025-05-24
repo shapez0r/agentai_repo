@@ -4,6 +4,9 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './App.css';
 
+// Application version - updated during build process
+const VERSION = "DEVELOPMENT";
+
 // Fix for Leaflet default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -61,9 +64,6 @@ function createMarkerIcon(pingValue) {
     iconAnchor: [(size + 6) / 2, (size + 6) / 2]
   });
 }
-
-// Application version - updated during build process
-const VERSION = "81abc5e15a5cc71f5b5f4c14b811302b74540aa1";
 
 // Added text encoding function to ensure proper character handling
 function encodeNonLatinChars(text) {
