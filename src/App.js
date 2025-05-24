@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import './App.css';
 
 // Application version - updated during build process
-const VERSION = "DEVELOPMENT";
+const VERSION = "e5522785134fb31dbd526bd4160e351414e6a76a"
 
 // Fix for Leaflet default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -311,7 +311,7 @@ async function testSinglePing(target, setLatency) {
     const pingResult = pingTime + ' ms ' + target.name.en;
     console.log(`Single ping to ${target.name.en} (${target.url}): ${pingResult}`);
     
-    // Обновляем кеш и состояние
+    // ВСЕГДА используем кешированное значение, если оно есть
     if (!pingResult.includes('N/A')) {
       pingCache[target.name.en] = pingResult;
     }
@@ -411,6 +411,8 @@ function App() {
         maxWidth: 1100,
         boxShadow: '0 2px 16px 0 rgba(0,198,255,0.07)',
         marginBottom: '30px',
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
       }}>
         <h2 style={{ fontWeight: 700, fontSize: 24, marginBottom: 16, letterSpacing: -1, fontFamily: 'Inter, Segoe UI, Arial, sans-serif' }}>{t.worldLatencyMap}</h2>
         

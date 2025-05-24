@@ -1,30 +1,18 @@
 #!/bin/bash
 # Bash script for automatic check of the word 'Supertester' or 'СуперТестер' in deployed HTML/JS on GitHub Pages
-# Automatically finds the current main.js path from build/asset-manifest.json
 
 # Ensure the script explicitly sets UTF-8 encoding for all operations
 export LC_ALL=en_US.UTF-8
 
-# 1. Get main.js name from asset-manifest.json
-manifestPath="$(dirname "$0")/build/asset-manifest.json"
-if [[ ! -f "$manifestPath" ]]; then
-    echo "ERROR: File $manifestPath not found. Run build first."
-    exit 1
-fi
-
-mainJsRel=$(jq -r '.files["main.js"]' "$manifestPath")
-if [[ -z "$mainJsRel" || "$mainJsRel" == "null" ]]; then
-    echo "ERROR: main.js path not found in asset-manifest.json."
-    exit 1
-fi
-
 # Get current commit hash
 commitHash=$(git rev-parse HEAD)
 
-# 2. Build full URL for check
-baseUrl="https://shapez0r.github.io"
-jsUrl="$baseUrl$mainJsRel"
-cssUrl="$baseUrl$(jq -r '.files["main.css"]' "$manifestPath")"
+# Build URLs for check
+baseUrl="https://shapez0r.github.io/agentai_repo/connection-tester"
+jsUrl="$baseUrl/static/js/main.b38f99ae.js"
+cssUrl="$baseUrl/static/css/main.056b00b8.css"
+
+echo "Checking URL: $jsUrl for commit hash $commitHash"
 
 # Define features to check - each feature must have an ID, name, and search pattern
 declare -A featuresToCheck=(
@@ -84,7 +72,6 @@ start=$(date +%s)
 found=false
 
 # Check for commit hash first
-echo "Checking URL: $jsUrl for commit hash $commitHash"
 while (( $(date +%s) - start < timeoutSec )); do
     content=$(curl -s "$jsUrl")
     if [[ "$content" =~ "$commitHash" ]]; then
