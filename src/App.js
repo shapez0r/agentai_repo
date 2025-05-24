@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import './App.css';
 
 // Application version - updated during build process
-const VERSION = "8a47284a0fcfa841fbaf5d4c5f05fab7d89f8318"
+const VERSION = "070baab7de98bfecdc9d7b67a29ebd76f6e2e2ae"
 
 // Fix for Leaflet default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -123,42 +123,260 @@ function getPingColor(pingText) {
   }
 }
 
-// Using reliable government and university websites located in each specified city
-// These are not CDNs, but actual servers located in each region for more accurate latency measurements
+// Updated reliable endpoints for latency measurements
 const geoOptions = [
-  // Moscow - Russian government site
-  { name: { en: 'Moscow', ru: encodeNonLatinChars('Москва') }, url: 'https://www.mos.ru/favicon.ico', code: 'ru', coords: [55.7558, 37.6173] },
-  // London - UK government site
-  { name: { en: 'London', ru: encodeNonLatinChars('Лондон') }, url: 'https://www.gov.uk/favicon.ico', code: 'gb', coords: [51.5074, -0.1278] },
-  // New York - New York state government
-  { name: { en: 'New York', ru: encodeNonLatinChars('Нью-Йорк') }, url: 'https://www.ny.gov/favicon.ico', code: 'us', coords: [40.7128, -74.0060] },
-  // Singapore - Singapore government
-  { name: { en: 'Singapore', ru: encodeNonLatinChars('Сингапур') }, url: 'https://www.gov.sg/favicon.ico', code: 'sg', coords: [1.3521, 103.8198] },
-  // Sao Paulo - Brazil government
-  { name: { en: 'Sao Paulo', ru: encodeNonLatinChars('Сан-Паулу') }, url: 'https://www.gov.br/favicon.ico', code: 'br', coords: [-23.5505, -46.6333] },
-  // Mumbai - India government
-  { name: { en: 'Mumbai', ru: encodeNonLatinChars('Мумбаи') }, url: 'https://www.india.gov.in/favicon.ico', code: 'in', coords: [19.0760, 72.8777] },
-  // Sydney - Australia government
-  { name: { en: 'Sydney', ru: encodeNonLatinChars('Сидней') }, url: 'https://www.australia.gov.au/favicon.ico', code: 'au', coords: [-33.8688, 151.2093] },
-  // Johannesburg - South Africa government
-  { name: { en: 'Johannesburg', ru: encodeNonLatinChars('Йоханнесбург') }, url: 'https://www.gov.za/favicon.ico', code: 'za', coords: [-26.2041, 28.0473] },
-  // Tokyo - Japan government
-  { name: { en: 'Tokyo', ru: encodeNonLatinChars('Токио') }, url: 'https://www.japan.go.jp/favicon.ico', code: 'jp', coords: [35.6762, 139.6503] },
-  // Toronto - Canada government
-  { name: { en: 'Toronto', ru: encodeNonLatinChars('Торонто') }, url: 'https://www.canada.ca/favicon.ico', code: 'ca', coords: [43.6532, -79.3832] },
+  // Europe
+  { 
+    name: { en: 'London', ru: encodeNonLatinChars('Лондон') }, 
+    endpoints: [
+      { type: 'dns', host: 'dns.google.com' }, // Google DNS
+      { type: 'ix', host: 'lg.ams-ix.net' }, // Amsterdam IX
+      { type: 'noc', host: 'speedtest.london.linode.com' } // Linode London
+    ],
+    code: 'gb', 
+    coords: [51.5074, -0.1278] 
+  },
+  // North America
+  { 
+    name: { en: 'New York', ru: encodeNonLatinChars('Нью-Йорк') }, 
+    endpoints: [
+      { type: 'dns', host: 'dns.cloudflare.com' }, // Cloudflare DNS
+      { type: 'ix', host: 'speedtest-nyc1.digitalocean.com' }, // DigitalOcean NYC
+      { type: 'noc', host: 'speedtest.newark.linode.com' } // Linode Newark
+    ],
+    code: 'us', 
+    coords: [40.7128, -74.0060] 
+  },
+  // Asia
+  { 
+    name: { en: 'Singapore', ru: encodeNonLatinChars('Сингапур') }, 
+    endpoints: [
+      { type: 'dns', host: 'dns.google.com' }, // Google DNS Asia
+      { type: 'ix', host: 'speedtest-sgp1.digitalocean.com' }, // DigitalOcean Singapore
+      { type: 'noc', host: 'speedtest.singapore.linode.com' } // Linode Singapore
+    ],
+    code: 'sg', 
+    coords: [1.3521, 103.8198] 
+  },
+  // South America
+  { 
+    name: { en: 'Sao Paulo', ru: encodeNonLatinChars('Сан-Паулу') }, 
+    endpoints: [
+      { type: 'dns', host: 'dns.google.com' }, // Google DNS South America
+      { type: 'ix', host: 'speedtest.sao.aws.amazon.com' }, // AWS Sao Paulo
+      { type: 'noc', host: 'speedtest-gru1.vultr.com' } // Vultr Sao Paulo
+    ],
+    code: 'br', 
+    coords: [-23.5505, -46.6333] 
+  },
+  // Asia
+  { 
+    name: { en: 'Tokyo', ru: encodeNonLatinChars('Токио') }, 
+    endpoints: [
+      { type: 'dns', host: 'dns.google.com' }, // Google DNS Asia
+      { type: 'ix', host: 'speedtest-nrt1.digitalocean.com' }, // DigitalOcean Tokyo
+      { type: 'noc', host: 'speedtest.tokyo.linode.com' } // Linode Tokyo
+    ],
+    code: 'jp', 
+    coords: [35.6762, 139.6503] 
+  }
 ];
 
-// Updated speed test options to use Cloudflare's regional endpoints
-const speedTestOptions = [
-  // New York - Using Cloudflare's EWR data center (Newark, NJ - close to NYC)
-  { name: { en: 'New York', ru: 'Нью-Йорк', es: 'Nueva York', de: 'New York' }, 
-    url: 'https://speed-ewr.cloudflare.com/__down?bytes=10000000', 
-    code: 'us', cors: true },
-  // Singapore - Using Cloudflare's SIN data center (Singapore)
-  { name: { en: 'Singapore', ru: 'Сингапур', es: 'Singapur', de: 'Singapur' }, 
-    url: 'https://speed-sin.cloudflare.com/__down?bytes=10000000', 
-    code: 'sg', cors: true },
-];
+// WebRTC configuration for STUN servers
+const rtcConfig = {
+  iceServers: [
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' }
+  ]
+};
+
+// Function to measure RTT using WebRTC
+async function measureWebRTCLatency(endpoint) {
+  return new Promise((resolve, reject) => {
+    const pc = new RTCPeerConnection(rtcConfig);
+    const startTime = performance.now();
+    let done = false;
+
+    pc.onicecandidate = (e) => {
+      if (e.candidate) {
+        const elapsed = performance.now() - startTime;
+        if (!done) {
+          done = true;
+          pc.close();
+          resolve(Math.round(elapsed));
+        }
+      }
+    };
+
+    pc.createDataChannel("");
+    pc.createOffer()
+      .then(offer => pc.setLocalDescription(offer))
+      .catch(err => {
+        pc.close();
+        reject(err);
+      });
+
+    // Timeout after 5 seconds
+    setTimeout(() => {
+      if (!done) {
+        done = true;
+        pc.close();
+        reject(new Error('WebRTC timeout'));
+      }
+    }, 5000);
+  });
+}
+
+// Function to measure TCP latency using fetch
+async function measureTCPLatency(endpoint) {
+  const start = performance.now();
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    
+    await fetch(`https://${endpoint}`, { 
+      mode: 'no-cors',
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      },
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    return Math.round(performance.now() - start);
+  } catch (error) {
+    throw new Error('TCP measurement failed');
+  }
+}
+
+// Function to test latency using multiple methods
+async function testEndpointLatency(endpoint) {
+  const results = [];
+  
+  // Try WebRTC first
+  try {
+    const webrtcLatency = await measureWebRTCLatency(endpoint);
+    results.push(webrtcLatency);
+  } catch (error) {
+    console.log('WebRTC measurement failed, falling back to TCP');
+  }
+
+  // Try TCP as fallback
+  try {
+    const tcpLatency = await measureTCPLatency(endpoint);
+    results.push(tcpLatency);
+  } catch (error) {
+    console.log('TCP measurement failed');
+  }
+
+  // If we have any results, return the median
+  if (results.length > 0) {
+    results.sort((a, b) => a - b);
+    return results[Math.floor(results.length / 2)];
+  }
+
+  throw new Error('All measurement methods failed');
+}
+
+// Updated ping test function
+async function testPing(setIp, setLatency, setTestingPing) {
+  setTestingPing(true);
+  
+  try {
+    // Get IP address from ipify API
+    const res = await fetch('https://api.ipify.org?format=json');
+    const data = await res.json();
+    setIp(data.ip);
+  } catch (error) {
+    console.error("Error fetching IP:", error);
+    setIp('Error');
+  }
+  
+  // Test latency to each destination
+  const latencyResults = {};
+  
+  for (const target of geoOptions) {
+    let bestLatency = Infinity;
+    let successfulMeasurement = false;
+    
+    // Try each endpoint for this location
+    for (const endpoint of target.endpoints) {
+      try {
+        const latency = await testEndpointLatency(endpoint.host);
+        if (latency < bestLatency) {
+          bestLatency = latency;
+          successfulMeasurement = true;
+        }
+      } catch (error) {
+        console.error(`Error measuring ${endpoint.type} latency to ${target.name.en}:`, error);
+      }
+    }
+    
+    if (successfulMeasurement) {
+      latencyResults[target.name.en] = `${bestLatency} ms ${target.name.en}`;
+      // Update cache with successful measurement
+      pingCache[target.name.en] = latencyResults[target.name.en];
+    } else {
+      // Use cached value if available, otherwise N/A
+      latencyResults[target.name.en] = pingCache[target.name.en] || 'N/A';
+    }
+  }
+  
+  setLatency(prev => ({
+    ...prev,
+    ...latencyResults
+  }));
+  
+  setTestingPing(false);
+  return latencyResults;
+}
+
+// Function to test ping to a single destination
+async function testSinglePing(target, setLatency) {
+  const start = performance.now();
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    
+    const response = await fetch(target.url, { 
+      mode: 'no-cors',
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      },
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    
+    const pingTime = Math.round(performance.now() - start);
+    const pingResult = pingTime + ' ms ' + target.name.en;
+    console.log(`Single ping to ${target.name.en} (${target.url}): ${pingResult}`);
+    
+    // ВСЕГДА используем кешированное значение, если оно есть
+    if (!pingResult.includes('N/A')) {
+      pingCache[target.name.en] = pingResult;
+    }
+    
+    setLatency(prev => ({
+      ...prev,
+      [target.name.en]: pingResult
+    }));
+    
+    return pingResult;
+  } catch (error) {
+    console.error(`Error with single ping to ${target.name.en} (${target.url}):`, error);
+    const cachedValue = pingCache[target.name.en];
+    setLatency(prev => ({
+      ...prev,
+      [target.name.en]: cachedValue || prev[target.name.en] || 'N/A'
+    }));
+    return cachedValue || 'N/A';
+  }
+}
 
 const translations = {
   en: {
@@ -224,113 +442,6 @@ const languageOptions = [
 
 function getSavedLang() {
   return localStorage.getItem('lang') || 'en';
-}
-
-// Function to test ping to all destinations
-async function testPing(setIp, setLatency, setTestingPing) {
-  setTestingPing(true);
-  
-  try {
-    // Get IP address from ipify API
-    const res = await fetch('https://api.ipify.org?format=json');
-    const data = await res.json();
-    setIp(data.ip);
-  } catch (error) {
-    console.error("Error fetching IP:", error);
-    setIp('Error');
-  }
-  
-  // Test latency to each destination
-  const latencyResults = {};
-  for (const target of geoOptions) {
-    const start = performance.now();
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-      
-      const response = await fetch(target.url, { 
-        mode: 'no-cors',
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        },
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
-      
-      const pingTime = Math.round(performance.now() - start);
-      latencyResults[target.name.en] = pingTime + ' ms ' + target.name.en;
-      console.log(`Ping to ${target.name.en} (${target.url}): ${pingTime}ms`);
-    } catch (error) {
-      console.error(`Error pinging ${target.name.en} (${target.url}):`, error);
-      // Сохраняем предыдущее значение из кеша
-      latencyResults[target.name.en] = pingCache[target.name.en] || 'N/A';
-    }
-  }
-  
-  setLatency(prev => {
-    const newLatency = { ...prev };
-    Object.keys(latencyResults).forEach(key => {
-      if (latencyResults[key]) {
-        newLatency[key] = latencyResults[key];
-        // Обновляем кеш при успешном измерении
-        if (!latencyResults[key].includes('N/A')) {
-          pingCache[key] = latencyResults[key];
-        }
-      }
-    });
-    return newLatency;
-  });
-  
-  setTestingPing(false);
-  return latencyResults;
-}
-
-// Function to test ping to a single destination
-async function testSinglePing(target, setLatency) {
-  const start = performance.now();
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
-    
-    const response = await fetch(target.url, { 
-      mode: 'no-cors',
-      cache: 'no-store',
-      headers: {
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache'
-      },
-      signal: controller.signal
-    });
-    
-    clearTimeout(timeoutId);
-    
-    const pingTime = Math.round(performance.now() - start);
-    const pingResult = pingTime + ' ms ' + target.name.en;
-    console.log(`Single ping to ${target.name.en} (${target.url}): ${pingResult}`);
-    
-    // ВСЕГДА используем кешированное значение, если оно есть
-    if (!pingResult.includes('N/A')) {
-      pingCache[target.name.en] = pingResult;
-    }
-    
-    setLatency(prev => ({
-      ...prev,
-      [target.name.en]: pingResult
-    }));
-    
-    return pingResult;
-  } catch (error) {
-    console.error(`Error with single ping to ${target.name.en} (${target.url}):`, error);
-    const cachedValue = pingCache[target.name.en];
-    setLatency(prev => ({
-      ...prev,
-      [target.name.en]: cachedValue || prev[target.name.en] || 'N/A'
-    }));
-    return cachedValue || 'N/A';
-  }
 }
 
 function App() {

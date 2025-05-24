@@ -63,6 +63,11 @@ declare -A featuresToCheck=(
     ["45"]="size.*24.*Увеличенный размер маркера"
     ["46"]="backdrop-filter.*blur"
     ["47"]="transform.*scale.*1\\.2"
+    ["48"]="measureWebRTCLatency|RTCPeerConnection|createDataChannel"
+    ["49"]="speedtest\\.london\\.linode\\.com|speedtest-nyc1\\.digitalocean\\.com|speedtest\\.singapore\\.linode\\.com"
+    ["50"]="dns\\.google\\.com|dns\\.cloudflare\\.com"
+    ["51"]="testEndpointLatency|multiple.*methods|WebRTC.*TCP"
+    ["52"]="bestLatency.*Infinity|successfulMeasurement"
 )
 
 # Timeout and interval settings
