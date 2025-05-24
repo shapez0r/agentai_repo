@@ -15,32 +15,27 @@ if [[ ! -f "$appJsPath" ]]; then
     exit 1
 fi
 
-# Read the entire file
-content=$(<"$appJsPath")
+# Create a temporary file
+tempFile="$(dirname "$0")/src/App.js.tmp"
 
-# Look for the VERSION constant line
-if [[ "$content" =~ const\ VERSION\ =\ \".*?\" ]]; then
-    echo "Found VERSION constant in App.js"
-
-    # Prepare the replacement string with the commit hash
-    replacement="const VERSION = \"$commitHash\""
-
-    # Replace the version string directly
-    newContent=$(echo "$content" | sed -E "s/const VERSION = \".*?\"/$replacement/")
-
-    # Write back to the file
-    echo "$newContent" > "$appJsPath"
-
-    # Verify the change
-    if grep -q "$replacement" "$appJsPath"; then
-        echo "SUCCESS: Commit hash updated successfully!"
-        exit 0
+# Process the file line by line
+while IFS= read -r line; do
+    if [[ "$line" =~ const[[:space:]]+VERSION[[:space:]]*=[[:space:]]*\".*\" ]]; then
+        echo "Found VERSION constant in App.js"
+        echo "const VERSION = \"$commitHash\"" >> "$tempFile"
     else
-        echo "ERROR: Failed to update commit hash."
-        exit 2
+        echo "$line" >> "$tempFile"
     fi
+done < "$appJsPath"
+
+# Replace the original file
+mv "$tempFile" "$appJsPath"
+
+# Verify the change
+if grep -q "const VERSION = \"$commitHash\"" "$appJsPath"; then
+    echo "SUCCESS: Commit hash updated successfully!"
+    exit 0
 else
-    echo "ERROR: Could not find VERSION constant in App.js"
-    echo "Ensure App.js contains a line with 'const VERSION = ' text"
-    exit 3
+    echo "ERROR: Failed to update commit hash."
+    exit 2
 fi
