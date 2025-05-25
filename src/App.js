@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import './App.css';
 
 // Application version - updated during build process
-const VERSION = "1eb00175b7f16ee4d125cd9b215fd344f5539e2b"
+const VERSION = "69102de878d7ea154dbf51f100cba7ff19850575"
 
 // Fix for Leaflet default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -132,7 +132,7 @@ const geoOptions = [
   { 
     name: { en: 'London', ru: encodeNonLatinChars('Лондон') }, 
     endpoints: [
-      { type: 'noc', host: 'speedtest.london.linode.com' } // Linode London - проверено, пинг ~17мс
+      { type: 'noc', host: 'speedtest.london.linode.com' }
     ],
     code: 'gb', 
     coords: [51.5074, -0.1278] 
@@ -150,7 +150,7 @@ const geoOptions = [
   { 
     name: { en: 'New York', ru: encodeNonLatinChars('Нью-Йорк') }, 
     endpoints: [
-      { type: 'noc', host: 'speedtest.newark.linode.com' } // Linode Newark - проверено, пинг ~85мс
+      { type: 'noc', host: 'speedtest.newark.linode.com' }
     ],
     code: 'us', 
     coords: [40.7128, -74.0060] 
@@ -159,7 +159,7 @@ const geoOptions = [
   { 
     name: { en: 'Toronto', ru: encodeNonLatinChars('Торонто') }, 
     endpoints: [
-      { type: 'noc', host: 'speedtest.toronto1.linode.com' } // Linode Toronto - проверено, пинг ~96мс
+      { type: 'noc', host: 'speedtest.toronto1.linode.com' }
     ],
     code: 'ca', 
     coords: [43.6532, -79.3832] 
@@ -168,7 +168,7 @@ const geoOptions = [
   {
     name: { en: 'Mumbai', ru: encodeNonLatinChars('Мумбаи') },
     endpoints: [
-      { type: 'noc', host: 'speedtest.mumbai1.linode.com' } // Linode Mumbai - проверено, пинг ~127мс
+      { type: 'noc', host: 'speedtest.mumbai1.linode.com' }
     ],
     code: 'in',
     coords: [19.0760, 72.8777]
@@ -186,7 +186,7 @@ const geoOptions = [
   { 
     name: { en: 'Tokyo', ru: encodeNonLatinChars('Токио') }, 
     endpoints: [
-      { type: 'noc', host: 'speedtest.tokyo2.linode.com' } // Linode Tokyo - проверено, пинг ~231мс
+      { type: 'noc', host: 'speedtest.tokyo2.linode.com' }
     ],
     code: 'jp', 
     coords: [35.6762, 139.6503] 
@@ -195,8 +195,7 @@ const geoOptions = [
   { 
     name: { en: 'Sao Paulo', ru: encodeNonLatinChars('Сан-Паулу') }, 
     endpoints: [
-      { type: 'noc', host: 'speedtest.brisanet.com.br' },
-      { type: 'noc', host: 'speedtest-gru.phoenixnap.com' }
+      { type: 'noc', host: 'speedtest.brisanet.com.br' }
     ],
     code: 'br', 
     coords: [-23.5505, -46.6333] 
@@ -643,6 +642,9 @@ function App() {
                       </div>
                       <div style={{ fontSize: '12px', marginTop: '5px', opacity: 0.7 }}>
                         {t.clickToUpdate}
+                      </div>
+                      <div style={{ fontSize: '11px', marginTop: '8px', color: '#666', wordBreak: 'break-all', textAlign: 'center' }}>
+                        Server: {location.endpoints[0].host}
                       </div>
                     </div>
                   </Popup>
