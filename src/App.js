@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import './App.css';
 
 // Application version - updated during build process
-const VERSION = "bc6d7ff801311cffe6d22ca9b9b7bee84fc61484"
+const VERSION = "497d2c23e83b524b5ad09a1280ad9baa3fdc795a"
 
 // Fix for Leaflet default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -219,130 +219,8 @@ const rtcConfig = {
   ]
 };
 
-// Function to measure WebSocket latency (Speedtest-like approach)
-async function measureWebSocketLatency(endpoint) {
-  return new Promise((resolve, reject) => {
-    const ws = new WebSocket(`wss://${endpoint}`);
-    const samples = [];
-    let measurementCount = 0;
-    const requiredSamples = 10; // Take more samples for better accuracy
-    let timeoutId;
-
-    const cleanup = () => {
-      clearTimeout(timeoutId);
-      ws.close();
-    };
-
-    // Set overall timeout
-    timeoutId = setTimeout(() => {
-      cleanup();
-      if (samples.length > 0) {
-        // If we have some samples, use them
-        resolve(calculateLatency(samples));
-      } else {
-        reject(new Error('WebSocket measurement timeout'));
-      }
-    }, 5000);
-
-    ws.onopen = () => {
-      // Start sending tiny packets immediately when connected
-      sendPing();
-    };
-
-    ws.onclose = () => {
-      cleanup();
-      if (samples.length > 0) {
-        resolve(calculateLatency(samples));
-      } else {
-        reject(new Error('WebSocket closed without measurements'));
-      }
-    };
-
-    ws.onerror = (error) => {
-      cleanup();
-      reject(error);
-    };
-
-    const sendPing = () => {
-      if (ws.readyState === WebSocket.OPEN && measurementCount < requiredSamples) {
-        const start = performance.now();
-        ws.send('1'); // Send minimal payload
-        samples.push({ start, end: null });
-        measurementCount++;
-      }
-    };
-
-    ws.onmessage = (event) => {
-      const now = performance.now();
-      // Find the last sample without an end time and complete it
-      const incompleteSample = samples.findLast(s => s.end === null);
-      if (incompleteSample) {
-        incompleteSample.end = now;
-      }
-
-      // Calculate RTT for this sample
-      const rtt = incompleteSample ? incompleteSample.end - incompleteSample.start : null;
-      
-      // If the RTT is valid and reasonable
-      if (rtt && rtt > 0 && rtt < 1000) {
-        // Wait a short random time before next measurement
-        setTimeout(sendPing, Math.random() * 200);
-      } else {
-        // If RTT is invalid, retry immediately
-        sendPing();
-      }
-
-      // If we have enough valid samples, finish
-      const validSamples = samples.filter(s => s.end && (s.end - s.start) > 0);
-      if (validSamples.length >= requiredSamples) {
-        cleanup();
-        resolve(calculateLatency(validSamples));
-      }
-    };
-  });
-}
-
-// Calculate final latency from samples (Speedtest-like algorithm)
-function calculateLatency(samples) {
-  // Convert samples to RTT values
-  const rtts = samples
-    .map(s => s.end - s.start)
-    .filter(rtt => rtt > 0 && rtt < 1000); // Filter out invalid values
-
-  if (rtts.length === 0) return null;
-
-  // Sort RTTs to find quartiles
-  rtts.sort((a, b) => a - b);
-  
-  // Find Q1 and Q3
-  const q1 = rtts[Math.floor(rtts.length * 0.25)];
-  const q3 = rtts[Math.floor(rtts.length * 0.75)];
-  
-  // Calculate IQR and bounds
-  const iqr = q3 - q1;
-  const lowerBound = q1 - 1.5 * iqr;
-  const upperBound = q3 + 1.5 * iqr;
-  
-  // Filter outliers
-  const filteredRtts = rtts.filter(rtt => rtt >= lowerBound && rtt <= upperBound);
-  
-  // Calculate jitter-weighted average (like Speedtest)
-  let weightedSum = 0;
-  let weightSum = 0;
-  
-  for (let i = 1; i < filteredRtts.length; i++) {
-    const jitter = Math.abs(filteredRtts[i] - filteredRtts[i-1]);
-    const weight = 1 / (1 + jitter); // Lower weight for samples with high jitter
-    weightedSum += filteredRtts[i] * weight;
-    weightSum += weight;
-  }
-  
-  // Return weighted average, converted to one-way latency
-  return Math.round((weightedSum / weightSum) / 2);
-}
-
-// Function to measure HTTP latency
-async function measureHttpLatency(endpoint) {
+// Simple and reliable latency measurement using HTTP HEAD
+async function measureLatency(endpoint) {
   const samples = [];
   const numSamples = 4;
   
@@ -350,7 +228,7 @@ async function measureHttpLatency(endpoint) {
     const start = performance.now();
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const timeoutId = setTimeout(() => controller.abort(), 3000);
       
       await fetch(`https://${endpoint}`, { 
         method: 'HEAD',
@@ -364,59 +242,39 @@ async function measureHttpLatency(endpoint) {
       
       clearTimeout(timeoutId);
       const latency = Math.round(performance.now() - start);
+      samples.push(latency);
       
-      if (latency > 0 && latency < 2000) {
-        samples.push(latency);
-      }
-      
+      // Small delay between measurements
       await new Promise(resolve => setTimeout(resolve, 200));
     } catch (error) {
-      console.error(`HTTP sample ${i + 1} failed:`, error);
-      continue;
+      console.error(`Measurement failed for ${endpoint}:`, error);
     }
   }
   
+  // If we have any samples, return the minimum
   if (samples.length > 0) {
-    // Return minimum value with TCP overhead compensation
-    return Math.round(Math.min(...samples) * 0.8);
+    return Math.round(Math.min(...samples) * 0.8); // Compensate for HTTP overhead
   }
   
-  throw new Error('HTTP measurement failed');
+  throw new Error('All measurements failed');
 }
 
-// Function to test latency using hybrid approach
+// Simple retry wrapper
 async function testEndpointLatency(endpoint) {
-  let retries = 2;
-  
-  while (retries > 0) {
+  for (let retry = 0; retry < 2; retry++) {
     try {
-      // Try WebSocket first
-      try {
-        const wsLatency = await measureWebSocketLatency(endpoint);
-        if (wsLatency > 0 && wsLatency < 1000) {
-          return wsLatency;
-        }
-      } catch (wsError) {
-        console.log('WebSocket failed, falling back to HTTP:', wsError);
+      const latency = await measureLatency(endpoint);
+      if (latency > 0) {
+        return latency;
       }
-      
-      // If WebSocket fails, try HTTP
-      const httpLatency = await measureHttpLatency(endpoint);
-      if (httpLatency > 0 && httpLatency < 1000) {
-        return httpLatency;
-      }
-      
-      throw new Error('Both WebSocket and HTTP measurements failed');
     } catch (error) {
-      console.error(`Error measuring latency to ${endpoint}, retries left: ${retries}:`, error);
-      retries--;
-      if (retries > 0) {
+      console.error(`Attempt ${retry + 1} failed for ${endpoint}:`, error);
+      if (retry < 1) {
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
   }
-  
-  throw new Error('All measurement attempts failed');
+  throw new Error('All attempts failed');
 }
 
 // Updated ping test function
