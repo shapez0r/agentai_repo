@@ -1,5 +1,9 @@
-const WebSocket = require('ws');
-const http = require('http');
+const express = require('express');
+const { WebSocketServer } = require('ws');
+const cors = require('cors');
+
+const app = express();
+app.use(cors());
 
 // Message types (must match client)
 const MESSAGE_TYPE = {
@@ -9,14 +13,8 @@ const MESSAGE_TYPE = {
     ERROR: 0xFF
 };
 
-// Create HTTP server
-const server = http.createServer((req, res) => {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('Speedtest WebSocket Server');
-});
-
 // Create WebSocket server
-const wss = new WebSocket.Server({ server });
+const wss = new WebSocketServer({ noServer: true });
 
 // Handle WebSocket connections
 wss.on('connection', (ws) => {
@@ -47,8 +45,15 @@ wss.on('connection', (ws) => {
     });
 });
 
-// Start server
+// Create HTTP server
 const PORT = process.env.PORT || 3001;
-server.listen(PORT, () => {
-    console.log(`Speedtest server running on port ${PORT}`);
+const server = app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
+
+// Handle upgrade requests
+server.on('upgrade', (request, socket, head) => {
+    wss.handleUpgrade(request, socket, head, (ws) => {
+        wss.emit('connection', ws, request);
+    });
 }); 
