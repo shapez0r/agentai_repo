@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import './App.css';
 
 // Application version - updated during build process
-const VERSION = "869dd514817326f6660bf8408a9626c8772ea05c"
+const VERSION = "9c128c155bcf4c3243f9231f88173d72e0e28c07"
 
 // Fix for Leaflet default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -619,7 +619,40 @@ function App() {
                   eventHandlers={{
                     click: async () => {
                       // При клике на маркер обновляем пинг для этой локации
-                      await testSinglePing(location, setLatency);
+                      let bestLatency = Infinity;
+                      let successfulMeasurement = false;
+                      
+                      // Try each endpoint for this location
+                      for (const endpoint of location.endpoints) {
+                        try {
+                          const latency = await testEndpointLatency(endpoint.host);
+                          
+                          if (latency < bestLatency) {
+                            bestLatency = latency;
+                            successfulMeasurement = true;
+                            
+                            // Update immediately when we get a good measurement
+                            setLatency(prev => ({
+                              ...prev,
+                              [location.name.en]: `${bestLatency} ms ${location.name.en}`
+                            }));
+                            
+                            // Update cache
+                            pingCache[location.name.en] = `${bestLatency} ms ${location.name.en}`;
+                            break; // Exit loop if we got a good measurement
+                          }
+                        } catch (error) {
+                          console.error(`Error measuring latency to ${location.name.en}:`, error);
+                        }
+                      }
+                      
+                      if (!successfulMeasurement) {
+                        // Keep using cached value if available
+                        setLatency(prev => ({
+                          ...prev,
+                          [location.name.en]: pingCache[location.name.en] || 'N/A'
+                        }));
+                      }
                     }
                   }}
                 >

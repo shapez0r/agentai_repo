@@ -9,7 +9,7 @@ commitHash=$(git rev-parse HEAD)
 
 # Build URLs for check
 baseUrl="https://shapez0r.github.io/agentai_repo/connection-tester"
-jsUrl="$baseUrl/static/js/main.9b40044d.js"
+jsUrl="$baseUrl/static/js/main.c43de989.js"
 cssUrl="$baseUrl/static/css/main.056b00b8.css"
 
 echo "Checking URL: $jsUrl for commit hash $commitHash"
@@ -58,7 +58,7 @@ declare -A featuresToCheck=(
     ["38"]="ВАЖНО: Copilot должен всегда отвечать.*ТОЛЬКО НА РУССКОМ ЯЗЫКЕ"
     ["41"]="loading-screen|Измеряем скорость соединения"
     ["42"]="testingPing.*true.*показа экрана загрузки"
-    ["43"]="click.*async.*testSinglePing"
+    ["43"]="click.*async.*bestLatency.*Infinity.*successfulMeasurement.*testEndpointLatency"
     ["44"]="clickToUpdate|Нажмите для обновления"
     ["45"]="size.*24.*Увеличенный размер маркера"
     ["46"]="backdrop-filter.*blur"
