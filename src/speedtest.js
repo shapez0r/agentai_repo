@@ -19,7 +19,7 @@ function bytesToNumber(bytes) {
     return (bytes[0] << 8) | bytes[1];
 }
 
-class SpeedtestLatency {
+export class SpeedtestLatency {
     constructor() {
         this.samples = [];
         this.currentSequence = 0;

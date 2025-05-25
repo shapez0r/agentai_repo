@@ -6,7 +6,7 @@ import './App.css';
 import { SpeedtestLatency } from './speedtest';
 
 // Application version - updated during build process
-const VERSION = "3953a13030abe9ccb0d12c26d5974982c5a71627"
+const VERSION = "c35c6bf90a970586e78df3c1b23d5c988734d95b"
 
 // Fix for Leaflet default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
