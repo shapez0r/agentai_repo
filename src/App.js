@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import './App.css';
 
 // Application version - updated during build process
-const VERSION = "9c128c155bcf4c3243f9231f88173d72e0e28c07"
+const VERSION = "5ce574cb8c980adc349ac07f3fe2e81d0a821e6b"
 
 // Fix for Leaflet default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -138,7 +138,7 @@ const geoOptions = [
   {
     name: { en: 'Moscow', ru: encodeNonLatinChars('Москва') },
     endpoints: [
-      { type: 'noc', host: 'speedtest.msk.corbina.net' } // Corbina Moscow - проверено, пинг ~67мс
+      { type: 'noc', host: 'speedtest.msk.corbina.net' }
     ],
     code: 'ru',
     coords: [55.7558, 37.6173]
@@ -174,8 +174,8 @@ const geoOptions = [
   {
     name: { en: 'Johannesburg', ru: encodeNonLatinChars('Йоханнесбург') },
     endpoints: [
-      { type: 'noc', host: 'speedtest.afrihost.com' }, // Afrihost - крупнейший провайдер в ЮАР
-      { type: 'noc', host: 'speedtest.rain.co.za' } // Rain - второй по величине провайдер
+      { type: 'noc', host: 'speedtest.afrihost.com' },
+      { type: 'noc', host: 'speedtest.cybersmart.co.za' }
     ],
     code: 'za',
     coords: [-26.2041, 28.0473]
@@ -193,8 +193,7 @@ const geoOptions = [
   { 
     name: { en: 'Sao Paulo', ru: encodeNonLatinChars('Сан-Паулу') }, 
     endpoints: [
-      { type: 'noc', host: 'speedtest.brisanet.com.br' }, // Brisanet - крупный бразильский провайдер
-      { type: 'noc', host: 'speedtest-gru.phoenixnap.com' } // PhoenixNAP Бразилия
+      { type: 'noc', host: 'speedtest.brisanet.com.br' }
     ],
     code: 'br', 
     coords: [-23.5505, -46.6333] 
@@ -203,8 +202,7 @@ const geoOptions = [
   {
     name: { en: 'Sydney', ru: encodeNonLatinChars('Сидней') },
     endpoints: [
-      { type: 'noc', host: 'speedtest.optus.net.au' }, // Optus - крупнейший провайдер Австралии
-      { type: 'noc', host: 'speedtest.telstra.net' } // Telstra - второй по величине провайдер
+      { type: 'noc', host: 'speedtest.sydney.linode.com' }
     ],
     code: 'au',
     coords: [-33.8688, 151.2093]
