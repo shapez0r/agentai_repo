@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import './App.css';
 
 // Application version - updated during build process
-const VERSION = "a8b7b1549df2e11871a30bac1186ecff87e8cb2f"
+const VERSION = "99930ba97f3aa3175515f2f1b16442945a4d178a"
 
 // Fix for Leaflet default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -138,7 +138,8 @@ const geoOptions = [
   {
     name: { en: 'Moscow', ru: encodeNonLatinChars('Москва') },
     endpoints: [
-      { type: 'noc', host: 'speedtest.msk.corbina.net' }
+      { type: 'noc', host: 'speedtest.msk.corbina.net' },
+      { type: 'noc', host: 'speedtest.moscow.linode.com' }
     ],
     code: 'ru',
     coords: [55.7558, 37.6173]
@@ -175,7 +176,8 @@ const geoOptions = [
     name: { en: 'Johannesburg', ru: encodeNonLatinChars('Йоханнесбург') },
     endpoints: [
       { type: 'noc', host: 'speedtest.afrihost.com' },
-      { type: 'noc', host: 'speedtest.cybersmart.co.za' }
+      { type: 'noc', host: 'speedtest.cybersmart.co.za' },
+      { type: 'noc', host: 'speedtest.rain.co.za' }
     ],
     code: 'za',
     coords: [-26.2041, 28.0473]
@@ -193,7 +195,8 @@ const geoOptions = [
   { 
     name: { en: 'Sao Paulo', ru: encodeNonLatinChars('Сан-Паулу') }, 
     endpoints: [
-      { type: 'noc', host: 'speedtest.brisanet.com.br' }
+      { type: 'noc', host: 'speedtest.brisanet.com.br' },
+      { type: 'noc', host: 'speedtest-gru.phoenixnap.com' }
     ],
     code: 'br', 
     coords: [-23.5505, -46.6333] 
@@ -259,7 +262,7 @@ async function measureTCPLatency(endpoint) {
   const start = performance.now();
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // Увеличили таймаут до 10 секунд
     
     // Добавляем случайный параметр для предотвращения кэширования
     const nocache = Math.random().toString(36).substring(7);
@@ -366,7 +369,7 @@ async function testPing(setIp, setLatency, setTestingPing) {
       try {
         const latency = await Promise.race([
           testEndpointLatency(endpoint.host),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000)) // 3 second timeout
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 8000)) // Увеличили таймаут до 8 секунд
         ]);
         
         if (latency < bestLatency) {
