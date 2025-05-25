@@ -68,6 +68,7 @@ declare -A featuresToCheck=(
     ["50"]="dns\\.google\\.com|dns\\.cloudflare\\.com"
     ["51"]="testEndpointLatency|multiple.*methods|WebRTC.*TCP"
     ["52"]="bestLatency.*Infinity|successfulMeasurement"
+    ["53"]="speedtest\\.cybersmart\\.co\\.za"
 )
 
 # Timeout and interval settings

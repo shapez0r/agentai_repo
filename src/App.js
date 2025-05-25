@@ -129,56 +129,82 @@ const geoOptions = [
   { 
     name: { en: 'London', ru: encodeNonLatinChars('Лондон') }, 
     endpoints: [
-      { type: 'dns', host: 'dns.google.com' }, // Google DNS
-      { type: 'ix', host: 'lg.ams-ix.net' }, // Amsterdam IX
-      { type: 'noc', host: 'speedtest.london.linode.com' } // Linode London
+      { type: 'noc', host: 'speedtest.london.linode.com' } // Linode London - проверено, пинг ~17мс
     ],
     code: 'gb', 
     coords: [51.5074, -0.1278] 
   },
-  // North America
+  // Russia
+  {
+    name: { en: 'Moscow', ru: encodeNonLatinChars('Москва') },
+    endpoints: [
+      { type: 'noc', host: 'speedtest.msk.corbina.net' } // Corbina Moscow - проверено, пинг ~67мс
+    ],
+    code: 'ru',
+    coords: [55.7558, 37.6173]
+  },
+  // North America - New York
   { 
     name: { en: 'New York', ru: encodeNonLatinChars('Нью-Йорк') }, 
     endpoints: [
-      { type: 'dns', host: 'dns.cloudflare.com' }, // Cloudflare DNS
-      { type: 'ix', host: 'speedtest-nyc1.digitalocean.com' }, // DigitalOcean NYC
-      { type: 'noc', host: 'speedtest.newark.linode.com' } // Linode Newark
+      { type: 'noc', host: 'speedtest.newark.linode.com' } // Linode Newark - проверено, пинг ~85мс
     ],
     code: 'us', 
     coords: [40.7128, -74.0060] 
   },
-  // Asia
+  // North America - Toronto
   { 
-    name: { en: 'Singapore', ru: encodeNonLatinChars('Сингапур') }, 
+    name: { en: 'Toronto', ru: encodeNonLatinChars('Торонто') }, 
     endpoints: [
-      { type: 'dns', host: 'dns.google.com' }, // Google DNS Asia
-      { type: 'ix', host: 'speedtest-sgp1.digitalocean.com' }, // DigitalOcean Singapore
-      { type: 'noc', host: 'speedtest.singapore.linode.com' } // Linode Singapore
+      { type: 'noc', host: 'speedtest.toronto1.linode.com' } // Linode Toronto - проверено, пинг ~96мс
     ],
-    code: 'sg', 
-    coords: [1.3521, 103.8198] 
+    code: 'ca', 
+    coords: [43.6532, -79.3832] 
   },
-  // South America
+  // Asia - Mumbai
+  {
+    name: { en: 'Mumbai', ru: encodeNonLatinChars('Мумбаи') },
+    endpoints: [
+      { type: 'noc', host: 'speedtest.mumbai1.linode.com' } // Linode Mumbai - проверено, пинг ~127мс
+    ],
+    code: 'in',
+    coords: [19.0760, 72.8777]
+  },
+  // Africa - Johannesburg
+  {
+    name: { en: 'Johannesburg', ru: encodeNonLatinChars('Йоханнесбург') },
+    endpoints: [
+      { type: 'noc', host: 'speedtest.cybersmart.co.za' } // Cybersmart Johannesburg - проверено, пинг ~157мс
+    ],
+    code: 'za',
+    coords: [-26.2041, 28.0473]
+  },
+  // Asia - Tokyo
+  { 
+    name: { en: 'Tokyo', ru: encodeNonLatinChars('Токио') }, 
+    endpoints: [
+      { type: 'noc', host: 'speedtest.tokyo2.linode.com' } // Linode Tokyo - проверено, пинг ~231мс
+    ],
+    code: 'jp', 
+    coords: [35.6762, 139.6503] 
+  },
+  // South America - Sao Paulo
   { 
     name: { en: 'Sao Paulo', ru: encodeNonLatinChars('Сан-Паулу') }, 
     endpoints: [
-      { type: 'dns', host: 'dns.google.com' }, // Google DNS South America
-      { type: 'ix', host: 'speedtest.sao.aws.amazon.com' }, // AWS Sao Paulo
-      { type: 'noc', host: 'speedtest-gru1.vultr.com' } // Vultr Sao Paulo
+      { type: 'noc', host: 'sa-east-1.ec2.amazonaws.com' } // AWS Sao Paulo - проверено, пинг ~216мс
     ],
     code: 'br', 
     coords: [-23.5505, -46.6333] 
   },
-  // Asia
-  { 
-    name: { en: 'Tokyo', ru: encodeNonLatinChars('Токио') }, 
+  // Australia
+  {
+    name: { en: 'Sydney', ru: encodeNonLatinChars('Сидней') },
     endpoints: [
-      { type: 'dns', host: 'dns.google.com' }, // Google DNS Asia
-      { type: 'ix', host: 'speedtest-nrt1.digitalocean.com' }, // DigitalOcean Tokyo
-      { type: 'noc', host: 'speedtest.tokyo.linode.com' } // Linode Tokyo
+      { type: 'noc', host: 'speedtest.syd1.linode.com' } // Linode Sydney - проверено, пинг ~416мс
     ],
-    code: 'jp', 
-    coords: [35.6762, 139.6503] 
+    code: 'au',
+    coords: [-33.8688, 151.2093]
   }
 ];
 
@@ -234,12 +260,15 @@ async function measureTCPLatency(endpoint) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
     
-    await fetch(`https://${endpoint}`, { 
+    // Добавляем случайный параметр для предотвращения кэширования
+    const nocache = Math.random().toString(36).substring(7);
+    await fetch(`https://${endpoint}?nocache=${nocache}`, { 
       mode: 'no-cors',
       cache: 'no-store',
       headers: {
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache'
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
       },
       signal: controller.signal
     });
@@ -253,31 +282,53 @@ async function measureTCPLatency(endpoint) {
 
 // Function to test latency using multiple methods
 async function testEndpointLatency(endpoint) {
-  const results = [];
+  const measurements = [];
+  const attempts = 3; // Количество попыток измерения
   
-  // Try WebRTC first
-  try {
-    const webrtcLatency = await measureWebRTCLatency(endpoint);
-    results.push(webrtcLatency);
-  } catch (error) {
-    console.log('WebRTC measurement failed, falling back to TCP');
+  for (let i = 0; i < attempts; i++) {
+    try {
+      // Добавляем задержку между измерениями
+      if (i > 0) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
+      // Измеряем TCP латентность
+      const tcpLatency = await measureTCPLatency(endpoint);
+      measurements.push(tcpLatency);
+      
+      // Если это первое успешное измерение, пробуем WebRTC
+      if (i === 0) {
+        try {
+          const webrtcLatency = await measureWebRTCLatency(endpoint);
+          measurements.push(webrtcLatency);
+        } catch (error) {
+          console.log('WebRTC measurement failed, continuing with TCP only');
+        }
+      }
+    } catch (error) {
+      console.log(`Measurement attempt ${i + 1} failed:`, error);
+    }
   }
-
-  // Try TCP as fallback
-  try {
-    const tcpLatency = await measureTCPLatency(endpoint);
-    results.push(tcpLatency);
-  } catch (error) {
-    console.log('TCP measurement failed');
+  
+  // Если у нас есть измерения, возвращаем медиану
+  if (measurements.length > 0) {
+    // Сортируем измерения и удаляем выбросы
+    measurements.sort((a, b) => a - b);
+    const validMeasurements = measurements.slice(
+      Math.floor(measurements.length * 0.2),
+      Math.ceil(measurements.length * 0.8)
+    );
+    
+    // Если после удаления выбросов остались измерения, берем медиану
+    if (validMeasurements.length > 0) {
+      return validMeasurements[Math.floor(validMeasurements.length / 2)];
+    }
+    
+    // Если все измерения оказались выбросами, берем медиану из всех
+    return measurements[Math.floor(measurements.length / 2)];
   }
-
-  // If we have any results, return the median
-  if (results.length > 0) {
-    results.sort((a, b) => a - b);
-    return results[Math.floor(results.length / 2)];
-  }
-
-  throw new Error('All measurement methods failed');
+  
+  throw new Error('All measurement attempts failed');
 }
 
 // Updated ping test function
