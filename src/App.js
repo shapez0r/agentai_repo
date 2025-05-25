@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import './App.css';
 
 // Application version - updated during build process
-const VERSION = "57b6cb7a3e6d4ff806444e98f9a542c988bdc01d"
+const VERSION = "75072216b7ca842a95a0d88b4eeb20155de0b616"
 
 // Fix for Leaflet default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -19,7 +19,7 @@ L.Icon.Default.mergeOptions({
 const LoadingScreen = () => (
   <div className="loading-screen">
     <div className="loading-spinner"></div>
-    <div className="loading-text">Измеряем скорость соединения...</div>
+    <div className="loading-text">Загрузка...</div>
   </div>
 );
 
@@ -344,44 +344,59 @@ async function testPing(setIp, setLatency, setTestingPing) {
     console.error("Error fetching IP:", error);
     setIp('Error');
   }
+
+  // Set initial values from cache
+  const initialLatency = {};
+  geoOptions.forEach(target => {
+    initialLatency[target.name.en] = pingCache[target.name.en] || 'N/A';
+  });
+  setLatency(initialLatency);
   
-  // Test latency to each destination
-  const latencyResults = {};
+  // Stop showing loading screen immediately
+  setTestingPing(false);
   
-  for (const target of geoOptions) {
+  // Then test latency to each destination in background
+  geoOptions.forEach(async (target) => {
     let bestLatency = Infinity;
     let successfulMeasurement = false;
     
-    // Try each endpoint for this location
+    // Try each endpoint for this location with timeout
     for (const endpoint of target.endpoints) {
       try {
-        const latency = await testEndpointLatency(endpoint.host);
+        const latency = await Promise.race([
+          testEndpointLatency(endpoint.host),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000)) // 3 second timeout
+        ]);
+        
         if (latency < bestLatency) {
           bestLatency = latency;
           successfulMeasurement = true;
+          
+          // Update immediately when we get a good measurement
+          setLatency(prev => ({
+            ...prev,
+            [target.name.en]: `${bestLatency} ms ${target.name.en}`
+          }));
+          
+          // Update cache
+          pingCache[target.name.en] = `${bestLatency} ms ${target.name.en}`;
+          break; // Exit loop if we got a good measurement
         }
       } catch (error) {
         console.error(`Error measuring ${endpoint.type} latency to ${target.name.en}:`, error);
       }
     }
     
-    if (successfulMeasurement) {
-      latencyResults[target.name.en] = `${bestLatency} ms ${target.name.en}`;
-      // Update cache with successful measurement
-      pingCache[target.name.en] = latencyResults[target.name.en];
-    } else {
-      // Use cached value if available, otherwise N/A
-      latencyResults[target.name.en] = pingCache[target.name.en] || 'N/A';
+    if (!successfulMeasurement) {
+      // Keep using cached value if available
+      setLatency(prev => ({
+        ...prev,
+        [target.name.en]: pingCache[target.name.en] || 'N/A'
+      }));
     }
-  }
+  });
   
-  setLatency(prev => ({
-    ...prev,
-    ...latencyResults
-  }));
-  
-  setTestingPing(false);
-  return latencyResults;
+  return initialLatency;
 }
 
 // Function to test ping to a single destination

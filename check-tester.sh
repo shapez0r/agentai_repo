@@ -9,7 +9,7 @@ commitHash=$(git rev-parse HEAD)
 
 # Build URLs for check
 baseUrl="https://shapez0r.github.io/agentai_repo/connection-tester"
-jsUrl="$baseUrl/static/js/main.4424b118.js"
+jsUrl="$baseUrl/static/js/main.bfea89fd.js"
 cssUrl="$baseUrl/static/css/main.056b00b8.css"
 
 echo "Checking URL: $jsUrl for commit hash $commitHash"
@@ -69,6 +69,9 @@ declare -A featuresToCheck=(
     ["51"]="testEndpointLatency|multiple.*methods|WebRTC.*TCP"
     ["52"]="bestLatency.*Infinity|successfulMeasurement"
     ["53"]="speedtest\\.cybersmart\\.co\\.za"
+    ["54"]="Promise\\.race.*timeout.*3000"
+    ["55"]="setTestingPing.*false.*immediately"
+    ["56"]="Загрузка\\.\\.\\."
 )
 
 # Timeout and interval settings
