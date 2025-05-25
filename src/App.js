@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import './App.css';
 
 // Application version - updated during build process
-const VERSION = "2c667c013cf5712735e7389a9c65a68f24ca4b8f"
+const VERSION = "02a79d721fcd7190005085f32043b7905a23f1c3"
 
 // Fix for Leaflet default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -277,58 +277,82 @@ async function measureTCPLatency(endpoint) {
     const start = performance.now();
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000); // Reduced timeout to match ping
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // Increased timeout
       
-      await fetch(`https://${endpoint}`, { 
-        method: 'HEAD', // Using HEAD is lighter than GET
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        },
-        signal: controller.signal
-      });
+      // Try HEAD first
+      try {
+        await fetch(`https://${endpoint}`, { 
+          method: 'HEAD',
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          },
+          signal: controller.signal
+        });
+      } catch (headError) {
+        // If HEAD fails, try GET
+        await fetch(`https://${endpoint}`, { 
+          method: 'GET',
+          mode: 'no-cors',
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          },
+          signal: controller.signal
+        });
+      }
       
       clearTimeout(timeoutId);
       const latency = Math.round(performance.now() - start);
       
-      // Only count reasonable values (filter out anomalies)
-      if (latency > 1 && latency < 2000) {
+      // Accept wider range of values
+      if (latency > 0 && latency < 5000) {
         samples.push(latency);
       }
       
       // Small delay between samples
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise(resolve => setTimeout(resolve, 500));
     } catch (error) {
-      // If HEAD fails, skip this sample
-      console.error(`Sample ${i + 1} failed:`, error);
+      console.error(`Sample ${i + 1} failed for ${endpoint}:`, error);
+      // Don't break on error, continue trying
       continue;
     }
   }
   
-  // If we have any valid samples, return the minimum (closest to ICMP ping)
+  // If we have any valid samples, return the minimum
   if (samples.length > 0) {
-    // Apply correction factor to approximate ICMP ping values
-    // TCP overhead is roughly 20-30% more than ICMP
+    // Apply gentler correction factor
     const minLatency = Math.min(...samples);
-    return Math.round(minLatency * 0.75); // Compensate for TCP overhead
+    return Math.round(minLatency * 0.85); // Less aggressive correction
   }
   
   throw new Error('All measurement attempts failed');
 }
 
-// Function to test latency using TCP only (removed WebSocket)
+// Function to test latency using TCP only
 async function testEndpointLatency(endpoint) {
-  try {
-    const latency = await measureTCPLatency(endpoint);
-    if (latency > 0 && latency < 2000) {
-      return latency;
+  let retries = 2;
+  
+  while (retries > 0) {
+    try {
+      const latency = await measureTCPLatency(endpoint);
+      if (latency > 0 && latency < 5000) { // Wider acceptable range
+        return latency;
+      }
+      throw new Error('Invalid latency value');
+    } catch (error) {
+      console.error(`Error measuring latency to ${endpoint}, retries left: ${retries}:`, error);
+      retries--;
+      if (retries > 0) {
+        // Wait before retry
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
     }
-    throw new Error('Invalid latency value');
-  } catch (error) {
-    console.error(`Error measuring latency to ${endpoint}:`, error);
-    throw error;
   }
+  
+  throw new Error('All measurement attempts failed');
 }
 
 // Updated ping test function
