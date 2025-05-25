@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import './App.css';
 
 // Application version - updated during build process
-const VERSION = "75072216b7ca842a95a0d88b4eeb20155de0b616"
+const VERSION = "869dd514817326f6660bf8408a9626c8772ea05c"
 
 // Fix for Leaflet default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -174,7 +174,8 @@ const geoOptions = [
   {
     name: { en: 'Johannesburg', ru: encodeNonLatinChars('Йоханнесбург') },
     endpoints: [
-      { type: 'noc', host: 'speedtest.cybersmart.co.za' } // Cybersmart Johannesburg - проверено, пинг ~157мс
+      { type: 'noc', host: 'speedtest.afrihost.com' }, // Afrihost - крупнейший провайдер в ЮАР
+      { type: 'noc', host: 'speedtest.rain.co.za' } // Rain - второй по величине провайдер
     ],
     code: 'za',
     coords: [-26.2041, 28.0473]
@@ -192,7 +193,8 @@ const geoOptions = [
   { 
     name: { en: 'Sao Paulo', ru: encodeNonLatinChars('Сан-Паулу') }, 
     endpoints: [
-      { type: 'noc', host: 'sa-east-1.ec2.amazonaws.com' } // AWS Sao Paulo - проверено, пинг ~216мс
+      { type: 'noc', host: 'speedtest.brisanet.com.br' }, // Brisanet - крупный бразильский провайдер
+      { type: 'noc', host: 'speedtest-gru.phoenixnap.com' } // PhoenixNAP Бразилия
     ],
     code: 'br', 
     coords: [-23.5505, -46.6333] 
@@ -201,7 +203,8 @@ const geoOptions = [
   {
     name: { en: 'Sydney', ru: encodeNonLatinChars('Сидней') },
     endpoints: [
-      { type: 'noc', host: 'speedtest.syd1.linode.com' } // Linode Sydney - проверено, пинг ~416мс
+      { type: 'noc', host: 'speedtest.optus.net.au' }, // Optus - крупнейший провайдер Австралии
+      { type: 'noc', host: 'speedtest.telstra.net' } // Telstra - второй по величине провайдер
     ],
     code: 'au',
     coords: [-33.8688, 151.2093]
