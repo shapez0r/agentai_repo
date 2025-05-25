@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import './App.css';
 
 // Application version - updated during build process
-const VERSION = "0f2e7a9ace7be459b152ab0cf7c2719c993519f2"
+const VERSION = "1eb00175b7f16ee4d125cd9b215fd344f5539e2b"
 
 // Fix for Leaflet default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -141,9 +141,7 @@ const geoOptions = [
   {
     name: { en: 'Moscow', ru: encodeNonLatinChars('Москва') },
     endpoints: [
-      { type: 'noc', host: 'speedtest.mts.ru' },
-      { type: 'noc', host: 'speedtest.msk.corbina.net' },
-      { type: 'noc', host: 'speedtest.megafon.ru' }
+      { type: 'noc', host: 'speedtest.msk.corbina.net' }
     ],
     code: 'ru',
     coords: [55.7558, 37.6173]
@@ -179,9 +177,7 @@ const geoOptions = [
   {
     name: { en: 'Johannesburg', ru: encodeNonLatinChars('Йоханнесбург') },
     endpoints: [
-      { type: 'noc', host: 'speedtest.afrihost.com' },
-      { type: 'noc', host: 'speedtest.cybersmart.co.za' },
-      { type: 'noc', host: 'speedtest.rain.co.za' }
+      { type: 'noc', host: 'speedtest.afrihost.com' }
     ],
     code: 'za',
     coords: [-26.2041, 28.0473]
