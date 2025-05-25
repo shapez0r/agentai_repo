@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import './App.css';
 
 // Application version - updated during build process
-const VERSION = "5ce574cb8c980adc349ac07f3fe2e81d0a821e6b"
+const VERSION = "a8b7b1549df2e11871a30bac1186ecff87e8cb2f"
 
 // Fix for Leaflet default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -398,51 +398,6 @@ async function testPing(setIp, setLatency, setTestingPing) {
   });
   
   return initialLatency;
-}
-
-// Function to test ping to a single destination
-async function testSinglePing(target, setLatency) {
-  const start = performance.now();
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
-    
-    const response = await fetch(target.url, { 
-      mode: 'no-cors',
-      cache: 'no-store',
-      headers: {
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache'
-      },
-      signal: controller.signal
-    });
-    
-    clearTimeout(timeoutId);
-    
-    const pingTime = Math.round(performance.now() - start);
-    const pingResult = pingTime + ' ms ' + target.name.en;
-    console.log(`Single ping to ${target.name.en} (${target.url}): ${pingResult}`);
-    
-    // ВСЕГДА используем кешированное значение, если оно есть
-    if (!pingResult.includes('N/A')) {
-      pingCache[target.name.en] = pingResult;
-    }
-    
-    setLatency(prev => ({
-      ...prev,
-      [target.name.en]: pingResult
-    }));
-    
-    return pingResult;
-  } catch (error) {
-    console.error(`Error with single ping to ${target.name.en} (${target.url}):`, error);
-    const cachedValue = pingCache[target.name.en];
-    setLatency(prev => ({
-      ...prev,
-      [target.name.en]: cachedValue || prev[target.name.en] || 'N/A'
-    }));
-    return cachedValue || 'N/A';
-  }
 }
 
 const translations = {
