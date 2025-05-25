@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import './App.css';
 
 // Application version - updated during build process
-const VERSION = "69102de878d7ea154dbf51f100cba7ff19850575"
+const VERSION = "2c667c013cf5712735e7389a9c65a68f24ca4b8f"
 
 // Fix for Leaflet default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -141,7 +141,7 @@ const geoOptions = [
   {
     name: { en: 'Moscow', ru: encodeNonLatinChars('Москва') },
     endpoints: [
-      { type: 'noc', host: 'speedtest.msk.corbina.net' }
+      { type: 'noc', host: 'speedtest.rt.ru' }
     ],
     code: 'ru',
     coords: [55.7558, 37.6173]
@@ -177,7 +177,7 @@ const geoOptions = [
   {
     name: { en: 'Johannesburg', ru: encodeNonLatinChars('Йоханнесбург') },
     endpoints: [
-      { type: 'noc', host: 'speedtest.afrihost.com' }
+      { type: 'noc', host: 'speedtest.telecom.co.za' }
     ],
     code: 'za',
     coords: [-26.2041, 28.0473]
@@ -195,7 +195,7 @@ const geoOptions = [
   { 
     name: { en: 'Sao Paulo', ru: encodeNonLatinChars('Сан-Паулу') }, 
     endpoints: [
-      { type: 'noc', host: 'speedtest.brisanet.com.br' }
+      { type: 'noc', host: 'speedtest-gru1.level3.net' }
     ],
     code: 'br', 
     coords: [-23.5505, -46.6333] 
@@ -270,32 +270,17 @@ async function measureWebSocketLatency(endpoint) {
 
 // Function to measure TCP latency using fetch
 async function measureTCPLatency(endpoint) {
-  const start = performance.now();
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
-    
-    await fetch(`https://${endpoint}`, { 
-      method: 'HEAD',
-      cache: 'no-store',
-      headers: {
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache'
-      },
-      signal: controller.signal
-    });
-    
-    clearTimeout(timeoutId);
-    return Math.round(performance.now() - start);
-  } catch (error) {
-    // If HEAD fails, try GET with no-cors
+  const samples = [];
+  const numSamples = 4; // Similar to default ping behavior
+  
+  for (let i = 0; i < numSamples; i++) {
+    const start = performance.now();
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const timeoutId = setTimeout(() => controller.abort(), 2000); // Reduced timeout to match ping
       
       await fetch(`https://${endpoint}`, { 
-        method: 'GET',
-        mode: 'no-cors',
+        method: 'HEAD', // Using HEAD is lighter than GET
         cache: 'no-store',
         headers: {
           'Cache-Control': 'no-cache',
@@ -305,52 +290,45 @@ async function measureTCPLatency(endpoint) {
       });
       
       clearTimeout(timeoutId);
-      return Math.round(performance.now() - start);
-    } catch (e) {
-      throw new Error('TCP measurement failed');
-    }
-  }
-}
-
-// Function to test latency using multiple methods
-async function testEndpointLatency(endpoint) {
-  const measurements = [];
-  const attempts = 2; // Уменьшаем количество попыток для скорости
-  
-  for (let i = 0; i < attempts; i++) {
-    try {
-      // Try WebSocket first
-      try {
-        const wsLatency = await measureWebSocketLatency(endpoint);
-        if (wsLatency > 0 && wsLatency < 2000) { // WebSocket обычно быстрее
-          measurements.push(wsLatency);
-          if (wsLatency < 300) { // Если получили хороший пинг, не делаем больше попыток
-            return wsLatency;
-          }
-        }
-      } catch (wsError) {
-        console.log('WebSocket measurement failed, trying TCP');
+      const latency = Math.round(performance.now() - start);
+      
+      // Only count reasonable values (filter out anomalies)
+      if (latency > 1 && latency < 2000) {
+        samples.push(latency);
       }
       
-      // Fallback to TCP
-      const tcpLatency = await measureTCPLatency(endpoint);
-      if (tcpLatency > 0 && tcpLatency < 3000) {
-        measurements.push(tcpLatency);
-        if (tcpLatency < 300) { // Если получили хороший пинг, не делаем больше попыток
-          return tcpLatency;
-        }
-      }
+      // Small delay between samples
+      await new Promise(resolve => setTimeout(resolve, 200));
     } catch (error) {
-      console.log(`Measurement attempt ${i + 1} failed:`, error);
+      // If HEAD fails, skip this sample
+      console.error(`Sample ${i + 1} failed:`, error);
+      continue;
     }
   }
   
-  // If we have measurements, return the best one
-  if (measurements.length > 0) {
-    return Math.min(...measurements);
+  // If we have any valid samples, return the minimum (closest to ICMP ping)
+  if (samples.length > 0) {
+    // Apply correction factor to approximate ICMP ping values
+    // TCP overhead is roughly 20-30% more than ICMP
+    const minLatency = Math.min(...samples);
+    return Math.round(minLatency * 0.75); // Compensate for TCP overhead
   }
   
   throw new Error('All measurement attempts failed');
+}
+
+// Function to test latency using TCP only (removed WebSocket)
+async function testEndpointLatency(endpoint) {
+  try {
+    const latency = await measureTCPLatency(endpoint);
+    if (latency > 0 && latency < 2000) {
+      return latency;
+    }
+    throw new Error('Invalid latency value');
+  } catch (error) {
+    console.error(`Error measuring latency to ${endpoint}:`, error);
+    throw error;
+  }
 }
 
 // Updated ping test function
@@ -748,3 +726,4 @@ function App() {
 }
 
 export default App;
+
