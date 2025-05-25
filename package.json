@@ -16,12 +16,13 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "start:server": "node server/speedtest-server.js",
+    "start:server": "node server.js",
     "prebuild": "bash ./replace-commit-hash.sh",
     "build": "react-scripts build",
     "postbuild": "",
     "predeploy": "npm run build",
     "deploy": "gh-pages -b gh-pages -d build --dest connection-tester",
+    "deploy:server": "git subtree push --prefix server origin server",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -45,5 +46,8 @@
   },
   "devDependencies": {
     "cross-env": "^7.0.3"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   }
 }

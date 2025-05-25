@@ -48,7 +48,12 @@ export class SpeedtestLatency {
 
             // Connect WebSocket
             try {
-                this.ws = new WebSocket(`wss://${endpoint}`);
+                const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const wsEndpoint = process.env.NODE_ENV === 'production' 
+                    ? `${wsProtocol}//shapez0r.github.io/agentai_repo/connection-tester/ws`
+                    : `${wsProtocol}//${endpoint}`;
+                
+                this.ws = new WebSocket(wsEndpoint);
                 this.ws.binaryType = 'arraybuffer';
                 
                 // Set up event handlers
