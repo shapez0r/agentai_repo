@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import './App.css';
 
 // Application version - updated during build process
-const VERSION = "bfdcdc100e7a27ffdfbf1dfa7a4dba252d26aa31"
+const VERSION = "bc6d7ff801311cffe6d22ca9b9b7bee84fc61484"
 
 // Fix for Leaflet default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -341,88 +341,79 @@ function calculateLatency(samples) {
   return Math.round((weightedSum / weightSum) / 2);
 }
 
-// Function to test latency using WebSocket
-async function testEndpointLatency(endpoint) {
-  let retries = 2;
-  
-  while (retries > 0) {
-    try {
-      const latency = await measureWebSocketLatency(endpoint);
-      if (latency > 0 && latency < 1000) {
-        return latency;
-      }
-      throw new Error('Invalid latency value');
-    } catch (error) {
-      console.error(`Error measuring latency to ${endpoint}, retries left: ${retries}:`, error);
-      retries--;
-      if (retries > 0) {
-        // Wait before retry
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-    }
-  }
-  
-  throw new Error('All measurement attempts failed');
-}
-
-// Function to measure TCP latency using fetch
-async function measureTCPLatency(endpoint) {
+// Function to measure HTTP latency
+async function measureHttpLatency(endpoint) {
   const samples = [];
-  const numSamples = 4; // Similar to default ping behavior
+  const numSamples = 4;
   
   for (let i = 0; i < numSamples; i++) {
     const start = performance.now();
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000); // Increased timeout
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
       
-      // Try HEAD first
-      try {
-        await fetch(`https://${endpoint}`, { 
-          method: 'HEAD',
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-          },
-          signal: controller.signal
-        });
-      } catch (headError) {
-        // If HEAD fails, try GET
-        await fetch(`https://${endpoint}`, { 
-          method: 'GET',
-          mode: 'no-cors',
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-          },
-          signal: controller.signal
-        });
-      }
+      await fetch(`https://${endpoint}`, { 
+        method: 'HEAD',
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        },
+        signal: controller.signal
+      });
       
       clearTimeout(timeoutId);
       const latency = Math.round(performance.now() - start);
       
-      // Accept wider range of values
-      if (latency > 0 && latency < 5000) {
+      if (latency > 0 && latency < 2000) {
         samples.push(latency);
       }
       
-      // Small delay between samples
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise(resolve => setTimeout(resolve, 200));
     } catch (error) {
-      console.error(`Sample ${i + 1} failed for ${endpoint}:`, error);
-      // Don't break on error, continue trying
+      console.error(`HTTP sample ${i + 1} failed:`, error);
       continue;
     }
   }
   
-  // If we have any valid samples, return the minimum
   if (samples.length > 0) {
-    // Apply gentler correction factor
-    const minLatency = Math.min(...samples);
-    return Math.round(minLatency * 0.85); // Less aggressive correction
+    // Return minimum value with TCP overhead compensation
+    return Math.round(Math.min(...samples) * 0.8);
+  }
+  
+  throw new Error('HTTP measurement failed');
+}
+
+// Function to test latency using hybrid approach
+async function testEndpointLatency(endpoint) {
+  let retries = 2;
+  
+  while (retries > 0) {
+    try {
+      // Try WebSocket first
+      try {
+        const wsLatency = await measureWebSocketLatency(endpoint);
+        if (wsLatency > 0 && wsLatency < 1000) {
+          return wsLatency;
+        }
+      } catch (wsError) {
+        console.log('WebSocket failed, falling back to HTTP:', wsError);
+      }
+      
+      // If WebSocket fails, try HTTP
+      const httpLatency = await measureHttpLatency(endpoint);
+      if (httpLatency > 0 && httpLatency < 1000) {
+        return httpLatency;
+      }
+      
+      throw new Error('Both WebSocket and HTTP measurements failed');
+    } catch (error) {
+      console.error(`Error measuring latency to ${endpoint}, retries left: ${retries}:`, error);
+      retries--;
+      if (retries > 0) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
   }
   
   throw new Error('All measurement attempts failed');
