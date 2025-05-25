@@ -3,9 +3,10 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './App.css';
+import { SpeedtestLatency } from './speedtest';
 
 // Application version - updated during build process
-const VERSION = "497d2c23e83b524b5ad09a1280ad9baa3fdc795a"
+const VERSION = "3953a13030abe9ccb0d12c26d5974982c5a71627"
 
 // Fix for Leaflet default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -219,62 +220,35 @@ const rtcConfig = {
   ]
 };
 
-// Simple and reliable latency measurement using HTTP HEAD
-async function measureLatency(endpoint) {
-  const samples = [];
-  const numSamples = 4;
+// Function to test latency using Speedtest-like approach
+async function testEndpointLatency(endpoint) {
+  const speedtest = new SpeedtestLatency();
+  let retries = 2;
   
-  for (let i = 0; i < numSamples; i++) {
-    const start = performance.now();
+  while (retries > 0) {
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000);
-      
-      await fetch(`https://${endpoint}`, { 
-        method: 'HEAD',
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        },
-        signal: controller.signal
+      const result = await speedtest.measure(endpoint, {
+        sampleCount: 20,
+        timeout: 5000,
+        progressCallback: (progress) => {
+          console.log(`Measuring ${endpoint}: ${Math.round(progress * 100)}%`);
+        }
       });
       
-      clearTimeout(timeoutId);
-      const latency = Math.round(performance.now() - start);
-      samples.push(latency);
-      
-      // Small delay between measurements
-      await new Promise(resolve => setTimeout(resolve, 200));
-    } catch (error) {
-      console.error(`Measurement failed for ${endpoint}:`, error);
-    }
-  }
-  
-  // If we have any samples, return the minimum
-  if (samples.length > 0) {
-    return Math.round(Math.min(...samples) * 0.8); // Compensate for HTTP overhead
-  }
-  
-  throw new Error('All measurements failed');
-}
-
-// Simple retry wrapper
-async function testEndpointLatency(endpoint) {
-  for (let retry = 0; retry < 2; retry++) {
-    try {
-      const latency = await measureLatency(endpoint);
-      if (latency > 0) {
-        return latency;
+      if (result && result.ping > 0) {
+        return result.ping;
       }
+      throw new Error('Invalid measurement result');
     } catch (error) {
-      console.error(`Attempt ${retry + 1} failed for ${endpoint}:`, error);
-      if (retry < 1) {
+      console.error(`Error measuring latency to ${endpoint}, retries left: ${retries}:`, error);
+      retries--;
+      if (retries > 0) {
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
     }
   }
-  throw new Error('All attempts failed');
+  
+  throw new Error('All measurement attempts failed');
 }
 
 // Updated ping test function
