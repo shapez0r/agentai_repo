@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import './App.css';
 
 // Application version - updated during build process
-const VERSION = "99930ba97f3aa3175515f2f1b16442945a4d178a"
+const VERSION = "296b729846e220572638a3bae7bc535afdc73a2a"
 
 // Fix for Leaflet default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -262,73 +262,89 @@ async function measureTCPLatency(endpoint) {
   const start = performance.now();
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // Увеличили таймаут до 10 секунд
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
     
-    // Добавляем случайный параметр для предотвращения кэширования
-    const nocache = Math.random().toString(36).substring(7);
-    await fetch(`https://${endpoint}?nocache=${nocache}`, { 
-      mode: 'no-cors',
+    // Используем HEAD запрос вместо GET для меньшей нагрузки
+    const response = await fetch(`https://${endpoint}`, { 
+      method: 'HEAD',
       cache: 'no-store',
       headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
       },
       signal: controller.signal
     });
     
     clearTimeout(timeoutId);
+    
+    // Если сервер ответил с ошибкой, все равно считаем это успешным измерением
+    // так как нам важно время ответа, а не его содержимое
     return Math.round(performance.now() - start);
   } catch (error) {
-    throw new Error('TCP measurement failed');
+    // Если ошибка CORS, пробуем через no-cors
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      
+      await fetch(`https://${endpoint}`, { 
+        method: 'GET',
+        mode: 'no-cors',
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        },
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      return Math.round(performance.now() - start);
+    } catch (e) {
+      throw new Error('TCP measurement failed');
+    }
   }
 }
 
 // Function to test latency using multiple methods
 async function testEndpointLatency(endpoint) {
   const measurements = [];
-  const attempts = 3; // Количество попыток измерения
+  const attempts = 3;
   
   for (let i = 0; i < attempts; i++) {
     try {
-      // Добавляем задержку между измерениями
+      // Добавляем небольшую случайную задержку между измерениями
       if (i > 0) {
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, Math.random() * 500 + 100));
       }
       
       // Измеряем TCP латентность
       const tcpLatency = await measureTCPLatency(endpoint);
-      measurements.push(tcpLatency);
+      if (tcpLatency > 0 && tcpLatency < 5000) { // Фильтруем явно неправильные значения
+        measurements.push(tcpLatency);
+      }
       
       // Если это первое успешное измерение, пробуем WebRTC
       if (i === 0) {
         try {
           const webrtcLatency = await measureWebRTCLatency(endpoint);
-          measurements.push(webrtcLatency);
+          if (webrtcLatency > 0 && webrtcLatency < 5000) {
+            measurements.push(webrtcLatency);
+          }
         } catch (error) {
           console.log('WebRTC measurement failed, continuing with TCP only');
         }
       }
     } catch (error) {
       console.log(`Measurement attempt ${i + 1} failed:`, error);
+      // Добавляем небольшую паузу перед следующей попыткой
+      await new Promise(resolve => setTimeout(resolve, 200));
     }
   }
   
   // Если у нас есть измерения, возвращаем медиану
   if (measurements.length > 0) {
-    // Сортируем измерения и удаляем выбросы
     measurements.sort((a, b) => a - b);
-    const validMeasurements = measurements.slice(
-      Math.floor(measurements.length * 0.2),
-      Math.ceil(measurements.length * 0.8)
-    );
-    
-    // Если после удаления выбросов остались измерения, берем медиану
-    if (validMeasurements.length > 0) {
-      return validMeasurements[Math.floor(validMeasurements.length / 2)];
-    }
-    
-    // Если все измерения оказались выбросами, берем медиану из всех
+    // Берем медиану без удаления выбросов, так как мы уже отфильтровали явно неправильные значения
     return measurements[Math.floor(measurements.length / 2)];
   }
   
