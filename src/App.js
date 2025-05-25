@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import './App.css';
 
 // Application version - updated during build process
-const VERSION = "296b729846e220572638a3bae7bc535afdc73a2a"
+const VERSION = "174e916831ea12d19405673ea9b82292ff2b7458"
 
 // Fix for Leaflet default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -25,6 +25,9 @@ const LoadingScreen = () => (
 
 // Кеш для хранения последних значений пинга
 const pingCache = {};
+
+// Cache for successful WebSocket connections
+const wsConnections = new Map();
 
 // Create a custom marker icon function based on ping color
 function createMarkerIcon(pingValue) {
@@ -220,40 +223,52 @@ const rtcConfig = {
   ]
 };
 
-// Function to measure RTT using WebRTC
-async function measureWebRTCLatency(endpoint) {
-  return new Promise((resolve, reject) => {
-    const pc = new RTCPeerConnection(rtcConfig);
-    const startTime = performance.now();
-    let done = false;
+// Function to measure WebSocket latency
+async function measureWebSocketLatency(endpoint) {
+  // Try to reuse existing connection
+  if (wsConnections.has(endpoint)) {
+    const ws = wsConnections.get(endpoint);
+    if (ws.readyState === WebSocket.OPEN) {
+      const start = performance.now();
+      return new Promise((resolve, reject) => {
+        const timeoutId = setTimeout(() => {
+          reject(new Error('WebSocket ping timeout'));
+        }, 5000);
 
-    pc.onicecandidate = (e) => {
-      if (e.candidate) {
-        const elapsed = performance.now() - startTime;
-        if (!done) {
-          done = true;
-          pc.close();
-          resolve(Math.round(elapsed));
-        }
-      }
-    };
-
-    pc.createDataChannel("");
-    pc.createOffer()
-      .then(offer => pc.setLocalDescription(offer))
-      .catch(err => {
-        pc.close();
-        reject(err);
+        ws.send('ping');
+        ws.onmessage = () => {
+          clearTimeout(timeoutId);
+          resolve(Math.round(performance.now() - start));
+        };
       });
+    }
+  }
 
-    // Timeout after 5 seconds
-    setTimeout(() => {
-      if (!done) {
-        done = true;
-        pc.close();
-        reject(new Error('WebRTC timeout'));
-      }
-    }, 5000);
+  // Create new connection if needed
+  return new Promise((resolve, reject) => {
+    try {
+      const ws = new WebSocket(`wss://${endpoint}`);
+      const start = performance.now();
+      
+      const timeoutId = setTimeout(() => {
+        ws.close();
+        reject(new Error('WebSocket connection timeout'));
+      }, 5000);
+
+      ws.onopen = () => {
+        clearTimeout(timeoutId);
+        wsConnections.set(endpoint, ws);
+        resolve(Math.round(performance.now() - start));
+      };
+
+      ws.onerror = () => {
+        clearTimeout(timeoutId);
+        ws.close();
+        reject(new Error('WebSocket connection failed'));
+      };
+    } catch (error) {
+      reject(error);
+    }
   });
 }
 
@@ -262,10 +277,9 @@ async function measureTCPLatency(endpoint) {
   const start = performance.now();
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
     
-    // Используем HEAD запрос вместо GET для меньшей нагрузки
-    const response = await fetch(`https://${endpoint}`, { 
+    await fetch(`https://${endpoint}`, { 
       method: 'HEAD',
       cache: 'no-store',
       headers: {
@@ -276,15 +290,12 @@ async function measureTCPLatency(endpoint) {
     });
     
     clearTimeout(timeoutId);
-    
-    // Если сервер ответил с ошибкой, все равно считаем это успешным измерением
-    // так как нам важно время ответа, а не его содержимое
     return Math.round(performance.now() - start);
   } catch (error) {
-    // Если ошибка CORS, пробуем через no-cors
+    // If HEAD fails, try GET with no-cors
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
       
       await fetch(`https://${endpoint}`, { 
         method: 'GET',
@@ -308,44 +319,39 @@ async function measureTCPLatency(endpoint) {
 // Function to test latency using multiple methods
 async function testEndpointLatency(endpoint) {
   const measurements = [];
-  const attempts = 3;
+  const attempts = 2; // Уменьшаем количество попыток для скорости
   
   for (let i = 0; i < attempts; i++) {
     try {
-      // Добавляем небольшую случайную задержку между измерениями
-      if (i > 0) {
-        await new Promise(resolve => setTimeout(resolve, Math.random() * 500 + 100));
-      }
-      
-      // Измеряем TCP латентность
-      const tcpLatency = await measureTCPLatency(endpoint);
-      if (tcpLatency > 0 && tcpLatency < 5000) { // Фильтруем явно неправильные значения
-        measurements.push(tcpLatency);
-      }
-      
-      // Если это первое успешное измерение, пробуем WebRTC
-      if (i === 0) {
-        try {
-          const webrtcLatency = await measureWebRTCLatency(endpoint);
-          if (webrtcLatency > 0 && webrtcLatency < 5000) {
-            measurements.push(webrtcLatency);
+      // Try WebSocket first
+      try {
+        const wsLatency = await measureWebSocketLatency(endpoint);
+        if (wsLatency > 0 && wsLatency < 2000) { // WebSocket обычно быстрее
+          measurements.push(wsLatency);
+          if (wsLatency < 300) { // Если получили хороший пинг, не делаем больше попыток
+            return wsLatency;
           }
-        } catch (error) {
-          console.log('WebRTC measurement failed, continuing with TCP only');
+        }
+      } catch (wsError) {
+        console.log('WebSocket measurement failed, trying TCP');
+      }
+      
+      // Fallback to TCP
+      const tcpLatency = await measureTCPLatency(endpoint);
+      if (tcpLatency > 0 && tcpLatency < 3000) {
+        measurements.push(tcpLatency);
+        if (tcpLatency < 300) { // Если получили хороший пинг, не делаем больше попыток
+          return tcpLatency;
         }
       }
     } catch (error) {
       console.log(`Measurement attempt ${i + 1} failed:`, error);
-      // Добавляем небольшую паузу перед следующей попыткой
-      await new Promise(resolve => setTimeout(resolve, 200));
     }
   }
   
-  // Если у нас есть измерения, возвращаем медиану
+  // If we have measurements, return the best one
   if (measurements.length > 0) {
-    measurements.sort((a, b) => a - b);
-    // Берем медиану без удаления выбросов, так как мы уже отфильтровали явно неправильные значения
-    return measurements[Math.floor(measurements.length / 2)];
+    return Math.min(...measurements);
   }
   
   throw new Error('All measurement attempts failed');
