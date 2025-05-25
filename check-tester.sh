@@ -9,7 +9,7 @@ commitHash=$(git rev-parse HEAD)
 
 # Build URLs for check
 baseUrl="https://shapez0r.github.io/agentai_repo/connection-tester"
-jsUrl="$baseUrl/static/js/main.526f8349.js"
+jsUrl="$baseUrl/static/js/main.303bd033.js"
 cssUrl="$baseUrl/static/css/main.056b00b8.css"
 
 echo "Checking URL: $jsUrl for commit hash $commitHash"
