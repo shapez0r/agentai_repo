@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import './App.css';
 
 // Application version - updated during build process
-const VERSION = "070baab7de98bfecdc9d7b67a29ebd76f6e2e2ae"
+const VERSION = "106a65175a9573fcd8145c0fa27627a1d164755a"
 
 // Fix for Leaflet default marker icons
 delete L.Icon.Default.prototype._getIconUrl;

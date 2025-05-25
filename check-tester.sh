@@ -9,7 +9,7 @@ commitHash=$(git rev-parse HEAD)
 
 # Build URLs for check
 baseUrl="https://shapez0r.github.io/agentai_repo/connection-tester"
-jsUrl="$baseUrl/static/js/main.b38f99ae.js"
+jsUrl="$baseUrl/static/js/main.b3f2e6da.js"
 cssUrl="$baseUrl/static/css/main.056b00b8.css"
 
 echo "Checking URL: $jsUrl for commit hash $commitHash"
@@ -129,10 +129,10 @@ done
 echo -e "\n============ TEST SUMMARY ============"
 echo "Features found: $foundFeatures of $totalFeatures"
 
-if (( foundFeatures >= 3 )); then
-    echo -e "\nTEST PASSED: Found at least 3 required features"
+if (( foundFeatures == totalFeatures )); then
+    echo -e "\nTEST PASSED: Found all required features"
     exit 0
 else
-    echo -e "\nTEST FAILED: Didn't find enough required features"
+    echo -e "\nTEST FAILED: Missing some required features"
     exit 1
 fi
