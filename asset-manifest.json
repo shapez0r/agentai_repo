@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/agentai_repo/static/css/main.053e3bdc.css",
-    "main.js": "/agentai_repo/static/js/main.85524ef9.js",
+    "main.js": "/agentai_repo/static/js/main.0f0ff396.js",
     "static/media/roboto-latin-700-normal.woff2": "/agentai_repo/static/media/roboto-latin-700-normal.c4d6cab43bec89049809.woff2",
     "static/media/roboto-latin-500-normal.woff2": "/agentai_repo/static/media/roboto-latin-500-normal.599f66a60bdf974e578e.woff2",
     "static/media/roboto-latin-300-normal.woff2": "/agentai_repo/static/media/roboto-latin-300-normal.db56943a88e4852343ae.woff2",
@@ -76,10 +76,10 @@
     "static/media/roboto-greek-ext-300-normal.woff": "/agentai_repo/static/media/roboto-greek-ext-300-normal.60729cafbded24073dfb.woff",
     "index.html": "/agentai_repo/index.html",
     "main.053e3bdc.css.map": "/agentai_repo/static/css/main.053e3bdc.css.map",
-    "main.85524ef9.js.map": "/agentai_repo/static/js/main.85524ef9.js.map"
+    "main.0f0ff396.js.map": "/agentai_repo/static/js/main.0f0ff396.js.map"
   },
   "entrypoints": [
     "static/css/main.053e3bdc.css",
-    "static/js/main.85524ef9.js"
+    "static/js/main.0f0ff396.js"
   ]
 }
