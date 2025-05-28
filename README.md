@@ -60,39 +60,36 @@ flowchart TD
 - All logic and UI are in `src/App.js` and `src/App.css`.
 - Deployment is automated to GitHub Pages (see workflow below).
 
-## 🤖 Instructions for Copilot
+## 🤖 Инструкции для ИИ
+
+**ВАЖНО: ИИ должен всегда отвечать пользователю ТОЛЬКО НА РУССКОМ ЯЗЫКЕ, независимо от языка запроса. При каждом запросе пользователя ИИ обязан следовать этой инструкции из README.**
 
 ```mermaid
 flowchart TD
-    A[User dictates changes to Copilot] --> B[Copilot applies changes to code]
-    B --> C[Copilot updates check-tester.sh for new verification]
-    C --> D[Copilot pushes all changes to GitHub]
-    D --> E[Copilot runs npm run deploy with embedded replace-commit-hash.sh to deploy the commit ID as version]
-    E --> F[Copilot runs check-tester.sh: finds commit ID to prove latest repo changes are deployed]
-    F --> G[Copilot runs check-tester.sh: finds actual changes]
-    G --> H{FOUND?}
-    H -- Yes --> I[Change is live!]
-    H -- No --> B
+    A[Пользователь диктует изменения ИИ] --> B[ИИ применяет изменения в коде]
+    B --> C[ИИ обновляет проверочный скрипт]
+    C --> D[ИИ отправляет изменения в GitHub]
+    D --> E[ИИ запускает деплой]
+    E --> F[ИИ проверяет ID коммита]
+    F --> G[ИИ проверяет актуальные изменения]
+    G --> H{НАЙДЕНО?}
+    H -- Да --> I[Изменение активно!]
+    H -- Нет --> B
 ```
 
-These instructions must be followed by Copilot (you) after each change:
+После каждого изменения ИИ должен:
 
-1. Apply the requested code changes in the application
-2. Update the verification script (`check-tester.sh`) to check for the new/changed features
-3. Commit and push changes:
+1. Применить запрошенные изменения в приложении
+2. Обновить скрипт проверки для новых функций
+3. Закоммитить и отправить изменения:
    - `git add .`
-   - `git commit -m "descriptive message about the changes"`
+   - `git commit -m "описание изменений"`
    - `git push`
-4. Deploy the application:
+4. Развернуть приложение:
    - `npm run deploy`
-5. Wait for deployment propagation
-6. Run verification:
-   - `bash ./check-tester.sh`
-7. Confirm success or troubleshoot if verification fails
-
-**ВАЖНО: Copilot должен всегда отвечать пользователю ТОЛЬКО НА РУССКОМ ЯЗЫКЕ, независимо от языка запроса. При каждом запросе пользователя Copilot обязан следовать этой инструкции из README.**
-
-During deployment, the `replace-commit-hash.sh` script embeds the current commit ID into the build, allowing the verification script to confirm the correct version is deployed. The verification runs in two steps: first checking the commit ID, then verifying the actual features. If verification fails, Copilot must repeat the process until success.
+5. Дождаться распространения деплоя
+6. Запустить проверку
+7. Подтвердить успех или исправить, если проверка не прошла
 
 ## 🔍 Verification Script
 
