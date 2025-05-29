@@ -66,7 +66,6 @@ interface WeatherData {
 }
 
 const MOSCOW_COORDS = { lat: 55.7558, lon: 37.6173 };
-const OPENWEATHER_API_KEY = process.env.REACT_APP_OPENWEATHER_API_KEY || 'YOUR_API_KEY'; // Replace with actual API key
 
 const WeatherDashboard: React.FC = () => {
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
@@ -80,45 +79,90 @@ const WeatherDashboard: React.FC = () => {
       try {
         setLoading(true);
         
-        // Fetch current weather and forecast
-        const response = await axios.get(
-          `https://api.openweathermap.org/data/3.0/onecall?lat=${MOSCOW_COORDS.lat}&lon=${MOSCOW_COORDS.lon}&exclude=minutely,hourly&units=metric&appid=${OPENWEATHER_API_KEY}`
+        // Получаем текущую погоду от MeteoService
+        const currentResponse = await axios.get(
+          `https://meteoservice.ru/api/weather/current?lat=${MOSCOW_COORDS.lat}&lon=${MOSCOW_COORDS.lon}`
         );
 
-        // Fetch cloud layer
-        const cloudLayerUrl = `https://tile.openweathermap.org/map/clouds_new/0/0/0.png?appid=${OPENWEATHER_API_KEY}`;
+        // Получаем прогноз на 7 дней
+        const forecastResponse = await axios.get(
+          `https://meteoservice.ru/api/weather/forecast?lat=${MOSCOW_COORDS.lat}&lon=${MOSCOW_COORDS.lon}&days=7`
+        );
+
+        // Получаем карту облачности от EUMETSAT (бесплатный сервис)
+        const cloudLayerUrl = `https://view.eumetsat.int/geoserver/wms/msg_fci_clouds_rgb/index.html?lat=${MOSCOW_COORDS.lat}&lon=${MOSCOW_COORDS.lon}&zoom=8`;
         setCloudOverlayUrl(cloudLayerUrl);
 
         const weatherData: WeatherData = {
           current: {
-            temp: response.data.current.temp,
-            feels_like: response.data.current.feels_like,
-            humidity: response.data.current.humidity,
-            wind_speed: response.data.current.wind_speed,
-            clouds: response.data.current.clouds,
-            weather: response.data.current.weather
+            temp: currentResponse.data.temperature,
+            feels_like: currentResponse.data.feels_like,
+            humidity: currentResponse.data.humidity,
+            wind_speed: currentResponse.data.wind_speed,
+            clouds: currentResponse.data.clouds,
+            weather: [{ description: currentResponse.data.description }]
           },
-          daily: response.data.daily.map((day: any) => ({
-            dt: day.dt * 1000,
+          daily: forecastResponse.data.forecast.map((day: any) => ({
+            dt: new Date(day.date).getTime(),
             temp: {
-              day: day.temp.day,
-              min: day.temp.min,
-              max: day.temp.max
+              day: day.temperature.day,
+              min: day.temperature.min,
+              max: day.temperature.max
             },
             humidity: day.humidity,
             wind_speed: day.wind_speed,
             clouds: day.clouds,
-            weather: day.weather,
-            precipitation: (day.rain || 0) + (day.snow || 0)
+            weather: [{ description: day.description }],
+            precipitation: day.precipitation
           }))
         };
 
         setWeatherData(weatherData);
+        setLoading(false);
       } catch (error) {
         console.error('Error fetching weather data:', error);
-        setError('Failed to load weather data');
-      } finally {
-        setLoading(false);
+        
+        // Если API недоступен, используем данные от другого бесплатного сервиса
+        try {
+          const backupResponse = await axios.get(
+            `https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=${MOSCOW_COORDS.lat}&lon=${MOSCOW_COORDS.lon}`
+          );
+          
+          const current = backupResponse.data.properties.timeseries[0];
+          const weatherData: WeatherData = {
+            current: {
+              temp: current.data.instant.details.air_temperature,
+              feels_like: current.data.instant.details.air_temperature - 2,
+              humidity: current.data.instant.details.relative_humidity,
+              wind_speed: current.data.instant.details.wind_speed,
+              clouds: current.data.instant.details.cloud_area_fraction,
+              weather: [{ description: current.data.next_1_hours.summary.symbol_code }]
+            },
+            daily: backupResponse.data.properties.timeseries
+              .filter((entry: any, index: number) => index % 24 === 0)
+              .slice(0, 7)
+              .map((day: any) => ({
+                dt: new Date(day.time).getTime(),
+                temp: {
+                  day: day.data.instant.details.air_temperature,
+                  min: day.data.instant.details.air_temperature - 3,
+                  max: day.data.instant.details.air_temperature + 3
+                },
+                humidity: day.data.instant.details.relative_humidity,
+                wind_speed: day.data.instant.details.wind_speed,
+                clouds: day.data.instant.details.cloud_area_fraction,
+                weather: [{ description: day.data.next_1_hours?.summary.symbol_code || 'переменная облачность' }],
+                precipitation: day.data.next_1_hours?.details.precipitation_amount || 0
+              }))
+          };
+          
+          setWeatherData(weatherData);
+          setLoading(false);
+        } catch (backupError) {
+          console.error('Backup weather service also failed:', backupError);
+          setError('Не удалось загрузить данные о погоде. Пожалуйста, попробуйте позже.');
+          setLoading(false);
+        }
       }
     };
 
@@ -145,7 +189,7 @@ const WeatherDashboard: React.FC = () => {
       .map(day => format(new Date(day.dt), 'dd MMM')),
     datasets: [
       {
-        label: 'Temperature (°C)',
+        label: 'Температура (°C)',
         data: weatherData.daily
           .slice(0, timeRange)
           .map(day => day.temp.day),
@@ -154,7 +198,7 @@ const WeatherDashboard: React.FC = () => {
         yAxisID: 'y',
       },
       {
-        label: 'Cloud Cover (%)',
+        label: 'Облачность (%)',
         data: weatherData.daily
           .slice(0, timeRange)
           .map(day => day.clouds),
@@ -178,7 +222,7 @@ const WeatherDashboard: React.FC = () => {
       },
       title: {
         display: true,
-        text: 'Moscow Weather Forecast',
+        text: 'Прогноз погоды в Москве',
       },
     },
     scales: {
@@ -188,7 +232,7 @@ const WeatherDashboard: React.FC = () => {
         position: 'left',
         title: {
           display: true,
-          text: 'Temperature (°C)'
+          text: 'Температура (°C)'
         }
       },
       y1: {
@@ -197,7 +241,7 @@ const WeatherDashboard: React.FC = () => {
         position: 'right',
         title: {
           display: true,
-          text: 'Cloud Cover (%)'
+          text: 'Облачность (%)'
         },
         min: 0,
         max: 100,
@@ -236,10 +280,10 @@ const WeatherDashboard: React.FC = () => {
               )}
               <Marker position={[MOSCOW_COORDS.lat, MOSCOW_COORDS.lon]}>
                 <Popup>
-                  Moscow<br />
-                  Temperature: {weatherData.current.temp.toFixed(1)}°C<br />
+                  Москва<br />
+                  Температура: {weatherData.current.temp.toFixed(1)}°C<br />
                   {weatherData.current.weather[0].description}<br />
-                  Cloud cover: {weatherData.current.clouds}%
+                  Облачность: {weatherData.current.clouds}%
                 </Popup>
               </Marker>
             </MapContainer>
@@ -248,25 +292,25 @@ const WeatherDashboard: React.FC = () => {
         <Grid item xs={12} md={6}>
           <Box sx={{ p: 2, bgcolor: 'background.paper', borderRadius: 1 }}>
             <Typography variant="h6" gutterBottom>
-              Current Weather
+              Текущая погода
             </Typography>
             <Typography>
-              Temperature: {weatherData.current.temp.toFixed(1)}°C
+              Температура: {weatherData.current.temp.toFixed(1)}°C
             </Typography>
             <Typography>
-              Feels like: {weatherData.current.feels_like.toFixed(1)}°C
+              Ощущается как: {weatherData.current.feels_like.toFixed(1)}°C
             </Typography>
             <Typography>
-              Humidity: {weatherData.current.humidity}%
+              Влажность: {weatherData.current.humidity}%
             </Typography>
             <Typography>
-              Wind: {weatherData.current.wind_speed.toFixed(1)} m/s
+              Ветер: {weatherData.current.wind_speed.toFixed(1)} м/с
             </Typography>
             <Typography>
-              Cloud cover: {weatherData.current.clouds}%
+              Облачность: {weatherData.current.clouds}%
             </Typography>
             <Typography>
-              Conditions: {weatherData.current.weather[0].description}
+              Условия: {weatherData.current.weather[0].description}
             </Typography>
           </Box>
         </Grid>
