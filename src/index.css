@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Chakra+Petch:wght@400;500;600;700&display=swap');
+
+:root {
+  font-family: 'Chakra Petch', sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #10203c;
+  background:
+    radial-gradient(circle at top left, rgba(255, 244, 174, 0.95), transparent 24%),
+    radial-gradient(circle at top right, rgba(178, 235, 255, 0.95), transparent 22%),
+    linear-gradient(180deg, #79d5ff 0%, #5f95dc 55%, #2b456f 100%);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  color: inherit;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+canvas {
+  display: block;
+}
