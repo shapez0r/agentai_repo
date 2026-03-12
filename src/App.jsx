@@ -73,6 +73,7 @@ function App() {
   const [selectedDate, setSelectedDate] = useState(todayIso)
   const [eventForm, setEventForm] = useState(createDefaultEventForm)
   const [formError, setFormError] = useState('')
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -85,6 +86,41 @@ function App() {
       // Ignore storage errors and keep the app usable.
     }
   }, [budget])
+
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      return undefined
+    }
+
+    const { body } = document
+    const previousOverflow = body.style.overflow
+
+    if (isMenuOpen) {
+      body.style.overflow = 'hidden'
+    }
+
+    return () => {
+      body.style.overflow = previousOverflow
+    }
+  }, [isMenuOpen])
+
+  useEffect(() => {
+    if (!isMenuOpen || typeof window === 'undefined') {
+      return undefined
+    }
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setIsMenuOpen(false)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isMenuOpen])
 
   const calendar = buildCalendarModel(viewMonth, budget)
   const selectedDayIso =
@@ -113,6 +149,14 @@ function App() {
 
     return left.title.localeCompare(right.title)
   })
+
+  const openMenu = () => {
+    setIsMenuOpen(true)
+  }
+
+  const closeMenu = () => {
+    setIsMenuOpen(false)
+  }
 
   const updateBudgetValue = (field, value) => {
     setBudget((current) => ({
@@ -225,6 +269,7 @@ function App() {
     setSelectedDate(todayIso)
     setEventForm(createDefaultEventForm())
     setFormError('')
+    closeMenu()
   }
 
   const handleResetBudget = () => {
@@ -244,6 +289,7 @@ function App() {
     setSelectedDate(freshBudget.openingDate)
     setEventForm(createDefaultEventForm())
     setFormError('')
+    closeMenu()
   }
 
   const openingBalanceDisplay =
@@ -262,427 +308,466 @@ function App() {
           <p className="eyebrow">Calendar budget planner</p>
           <h1>Ledger Garden</h1>
           <p className="hero-text">
-            See the running balance on every calendar day, then layer in repeating salary,
-            rent, bills, and other recurring cash flow.
+            The calendar now stays full-width. Budget controls, balances, and recurring event
+            management live in a separate slide-out menu.
           </p>
         </div>
 
         <div className="hero-actions">
-          <button type="button" className="primary-button" onClick={handleLoadDemoBudget}>
-            Load demo budget
+          <button
+            type="button"
+            className="primary-button"
+            aria-haspopup="dialog"
+            aria-expanded={isMenuOpen}
+            onClick={openMenu}
+          >
+            Open budget menu
           </button>
-          <button type="button" className="ghost-button" onClick={handleResetBudget}>
-            Reset budget
-          </button>
+          <p className="hero-helper">
+            Opening balance, selected-day detail, and recurring events are all inside the menu.
+          </p>
         </div>
       </section>
 
-      <section className="summary-grid" aria-label="Month summary">
-        <SummaryCard
-          label="Opening balance"
-          value={openingBalanceDisplay}
-          detail="Balance before this month's scheduled transactions."
-        />
-        <SummaryCard
-          label="Inflow this month"
-          value={formatSignedCurrency(calendar.summary.income)}
-          detail="Recurring income scheduled inside the visible month."
-          tone="positive"
-        />
-        <SummaryCard
-          label="Outflow this month"
-          value={formatSignedCurrency(calendar.summary.expenses)}
-          detail="Recurring costs scheduled inside the visible month."
-          tone="negative"
-        />
-        <SummaryCard
-          label="Closing balance"
-          value={closingBalanceDisplay}
-          detail={
-            calendar.summary.hasActiveDays
-              ? `Net change ${formatSignedCurrency(calendar.summary.net)}`
-              : `Budget starts ${formatShortDate(budget.openingDate)}`
-          }
-          tone="accent"
-        />
-      </section>
+      <section className="panel calendar-panel">
+        <div className="panel-heading">
+          <div>
+            <p className="section-kicker">Monthly view</p>
+            <h2>{calendar.monthLabel}</h2>
+          </div>
 
-      <section className="workspace">
-        <div className="calendar-column">
-          <section className="panel calendar-panel">
-            <div className="panel-heading">
-              <div>
-                <p className="section-kicker">Monthly view</p>
-                <h2>{calendar.monthLabel}</h2>
-              </div>
+          <div className="calendar-actions">
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => handleShiftMonth(-1)}
+            >
+              Previous
+            </button>
+            <button type="button" className="secondary-button" onClick={handleJumpToToday}>
+              Today
+            </button>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => handleShiftMonth(1)}
+            >
+              Next
+            </button>
+            <button
+              type="button"
+              className="primary-button"
+              aria-haspopup="dialog"
+              aria-expanded={isMenuOpen}
+              onClick={openMenu}
+            >
+              Budget menu
+            </button>
+          </div>
+        </div>
 
-              <div className="calendar-actions">
+        <div className="weekday-row" aria-hidden="true">
+          {WEEKDAY_LABELS.map((label) => (
+            <span key={label} className="weekday-pill">
+              {label}
+            </span>
+          ))}
+        </div>
+
+        <div className="calendar-scroll">
+          <div className="calendar-grid">
+            {calendar.days.map((day) => {
+              const classNames = ['day-card']
+
+              if (!day.inCurrentMonth) {
+                classNames.push('is-outside')
+              }
+
+              if (day.iso === selectedDayIso) {
+                classNames.push('is-selected')
+              }
+
+              if (day.iso === todayIso) {
+                classNames.push('is-today')
+              }
+
+              if (day.balance === null) {
+                classNames.push('is-empty')
+              }
+
+              return (
                 <button
+                  key={day.iso}
                   type="button"
-                  className="secondary-button"
-                  onClick={() => handleShiftMonth(-1)}
+                  className={classNames.join(' ')}
+                  aria-pressed={day.iso === selectedDayIso}
+                  title={formatLongDate(day.iso)}
+                  onClick={() => handleDaySelect(day)}
                 >
-                  Previous
-                </button>
-                <button type="button" className="secondary-button" onClick={handleJumpToToday}>
-                  Today
-                </button>
-                <button
-                  type="button"
-                  className="secondary-button"
-                  onClick={() => handleShiftMonth(1)}
-                >
-                  Next
-                </button>
-              </div>
-            </div>
+                  <div className="day-card-top">
+                    <span className="day-number">{day.dayNumber}</span>
+                    <span className="day-stamp">
+                      {day.iso === todayIso
+                        ? 'Today'
+                        : day.inCurrentMonth
+                          ? formatShortDate(day.iso)
+                          : 'Carry-over'}
+                    </span>
+                  </div>
 
-            <div className="weekday-row" aria-hidden="true">
-              {WEEKDAY_LABELS.map((label) => (
-                <span key={label} className="weekday-pill">
-                  {label}
-                </span>
-              ))}
-            </div>
+                  <div className="day-balance-group">
+                    <span className="day-balance-label">Closing balance</span>
+                    <p className="day-balance">
+                      {day.balance === null
+                        ? `Starts ${formatShortDate(budget.openingDate)}`
+                        : formatCurrency(day.balance)}
+                    </p>
+                  </div>
 
-            <div className="calendar-scroll">
-              <div className="calendar-grid">
-                {calendar.days.map((day) => {
-                  const classNames = ['day-card']
+                  <p
+                    className={`day-change ${
+                      day.dayChange > 0 ? 'is-positive' : day.dayChange < 0 ? 'is-negative' : ''
+                    }`}
+                  >
+                    {day.balance === null
+                      ? 'No balance yet'
+                      : day.dayChange === 0
+                        ? 'No scheduled change'
+                        : formatSignedCurrency(day.dayChange)}
+                  </p>
 
-                  if (!day.inCurrentMonth) {
-                    classNames.push('is-outside')
-                  }
-
-                  if (day.iso === selectedDayIso) {
-                    classNames.push('is-selected')
-                  }
-
-                  if (day.iso === todayIso) {
-                    classNames.push('is-today')
-                  }
-
-                  if (day.balance === null) {
-                    classNames.push('is-empty')
-                  }
-
-                  return (
-                    <button
-                      key={day.iso}
-                      type="button"
-                      className={classNames.join(' ')}
-                      aria-pressed={day.iso === selectedDayIso}
-                      title={formatLongDate(day.iso)}
-                      onClick={() => handleDaySelect(day)}
-                    >
-                      <div className="day-card-top">
-                        <span className="day-number">{day.dayNumber}</span>
-                        <span className="day-stamp">
-                          {day.iso === todayIso
-                            ? 'Today'
-                            : day.inCurrentMonth
-                              ? formatShortDate(day.iso)
-                              : 'Carry-over'}
-                        </span>
-                      </div>
-
-                      <div className="day-balance-group">
-                        <span className="day-balance-label">Closing balance</span>
-                        <p className="day-balance">
-                          {day.balance === null
-                            ? `Starts ${formatShortDate(budget.openingDate)}`
-                            : formatCurrency(day.balance)}
-                        </p>
-                      </div>
-
-                      <p
-                        className={`day-change ${
-                          day.dayChange > 0
-                            ? 'is-positive'
-                            : day.dayChange < 0
-                              ? 'is-negative'
-                              : ''
-                        }`}
-                      >
-                        {day.balance === null
-                          ? 'No balance yet'
-                          : day.dayChange === 0
-                            ? 'No scheduled change'
-                            : formatSignedCurrency(day.dayChange)}
-                      </p>
-
-                      <div className="day-events">
-                        {day.events.length === 0 ? (
-                          <span className="empty-copy">
-                            {day.balance === null ? 'Budget not active yet' : 'No recurring items'}
+                  <div className="day-events">
+                    {day.events.length === 0 ? (
+                      <span className="empty-copy">
+                        {day.balance === null ? 'Budget not active yet' : 'No recurring items'}
+                      </span>
+                    ) : (
+                      day.events.slice(0, 3).map((occurrence) => (
+                        <span
+                          key={`${day.iso}-${occurrence.id}`}
+                          className={`transaction-chip ${
+                            occurrence.amount > 0 ? 'is-positive' : 'is-negative'
+                          }`}
+                        >
+                          <span className="transaction-title">{occurrence.title}</span>
+                          <span className="transaction-amount">
+                            {formatSignedCurrency(occurrence.amount)}
                           </span>
-                        ) : (
-                          day.events.slice(0, 3).map((occurrence) => (
-                            <span
-                              key={`${day.iso}-${occurrence.id}`}
-                              className={`transaction-chip ${
-                                occurrence.amount > 0 ? 'is-positive' : 'is-negative'
-                              }`}
-                            >
-                              <span className="transaction-title">{occurrence.title}</span>
-                              <span className="transaction-amount">
-                                {formatSignedCurrency(occurrence.amount)}
-                              </span>
-                            </span>
-                          ))
-                        )}
+                        </span>
+                      ))
+                    )}
 
-                        {day.events.length > 3 ? (
-                          <span className="more-events">+{day.events.length - 3} more</span>
-                        ) : null}
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          </section>
+                    {day.events.length > 3 ? (
+                      <span className="more-events">+{day.events.length - 3} more</span>
+                    ) : null}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
         </div>
+      </section>
 
-        <aside className="sidebar">
-          <section className="panel settings-panel">
-            <div className="panel-heading panel-heading-compact">
-              <div>
-                <p className="section-kicker">Budget baseline</p>
-                <h3>Opening settings</h3>
+      <div className={`menu-shell ${isMenuOpen ? 'is-open' : ''}`} aria-hidden={!isMenuOpen}>
+        <button
+          type="button"
+          className="menu-backdrop"
+          aria-label="Close budget menu"
+          tabIndex={isMenuOpen ? 0 : -1}
+          onClick={closeMenu}
+        />
+
+        <aside className="menu-drawer" role="dialog" aria-modal="true" aria-label="Budget menu">
+          <div className="menu-header">
+            <div>
+              <p className="section-kicker">Budget menu</p>
+              <h2>Controls and details</h2>
+            </div>
+
+            <button type="button" className="ghost-button ghost-button-small" onClick={closeMenu}>
+              Close
+            </button>
+          </div>
+
+          <div className="menu-body">
+            <div className="drawer-summary" aria-label="Month summary">
+              <SummaryCard
+                label="Opening balance"
+                value={openingBalanceDisplay}
+                detail="Balance before this month's scheduled transactions."
+              />
+              <SummaryCard
+                label="Inflow this month"
+                value={formatSignedCurrency(calendar.summary.income)}
+                detail="Recurring income scheduled inside the visible month."
+                tone="positive"
+              />
+              <SummaryCard
+                label="Outflow this month"
+                value={formatSignedCurrency(calendar.summary.expenses)}
+                detail="Recurring costs scheduled inside the visible month."
+                tone="negative"
+              />
+              <SummaryCard
+                label="Closing balance"
+                value={closingBalanceDisplay}
+                detail={
+                  calendar.summary.hasActiveDays
+                    ? `Net change ${formatSignedCurrency(calendar.summary.net)}`
+                    : `Budget starts ${formatShortDate(budget.openingDate)}`
+                }
+                tone="accent"
+              />
+            </div>
+
+            <div className="menu-quick-actions">
+              <button type="button" className="primary-button" onClick={handleLoadDemoBudget}>
+                Load demo budget
+              </button>
+              <button type="button" className="ghost-button" onClick={handleResetBudget}>
+                Reset budget
+              </button>
+            </div>
+
+            <section className="drawer-card">
+              <div className="panel-heading panel-heading-compact">
+                <div>
+                  <p className="section-kicker">Budget baseline</p>
+                  <h3>Opening settings</h3>
+                </div>
               </div>
-            </div>
-
-            <div className="field-grid">
-              <label className="field">
-                <span className="field-label">Opening balance</span>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={budget.openingBalance}
-                  onChange={(event) =>
-                    updateBudgetValue(
-                      'openingBalance',
-                      event.target.value === '' ? 0 : Number(event.target.value),
-                    )
-                  }
-                />
-              </label>
-
-              <label className="field">
-                <span className="field-label">Opening date</span>
-                <input
-                  type="date"
-                  value={budget.openingDate}
-                  onChange={(event) => updateBudgetValue('openingDate', event.target.value)}
-                />
-              </label>
-            </div>
-
-            <p className="helper-copy">
-              Days before the opening date stay empty. Every later day shows the projected
-              closing balance after recurring transactions land.
-            </p>
-          </section>
-
-          <section className="panel form-panel">
-            <div className="panel-heading panel-heading-compact">
-              <div>
-                <p className="section-kicker">Add recurring event</p>
-                <h3>Schedule cash flow</h3>
-              </div>
-            </div>
-
-            <form className="event-form" onSubmit={handleAddEvent}>
-              <label className="field">
-                <span className="field-label">Label</span>
-                <input
-                  type="text"
-                  value={eventForm.title}
-                  placeholder="Salary, rent, internal bill..."
-                  onChange={(event) => updateEventForm('title', event.target.value)}
-                />
-              </label>
 
               <div className="field-grid">
                 <label className="field">
-                  <span className="field-label">Type</span>
-                  <select
-                    value={eventForm.direction}
-                    onChange={(event) => updateEventForm('direction', event.target.value)}
-                  >
-                    <option value="expense">Expense</option>
-                    <option value="income">Income</option>
-                  </select>
-                </label>
-
-                <label className="field">
-                  <span className="field-label">Amount</span>
+                  <span className="field-label">Opening balance</span>
                   <input
                     type="number"
-                    min="0"
                     step="0.01"
-                    value={eventForm.amount}
-                    placeholder="45"
-                    onChange={(event) => updateEventForm('amount', event.target.value)}
+                    value={budget.openingBalance}
+                    onChange={(event) =>
+                      updateBudgetValue(
+                        'openingBalance',
+                        event.target.value === '' ? 0 : Number(event.target.value),
+                      )
+                    }
                   />
                 </label>
-              </div>
-
-              <div className="field-grid">
-                <label className="field">
-                  <span className="field-label">Repeat</span>
-                  <select
-                    value={eventForm.frequency}
-                    onChange={(event) => updateEventForm('frequency', event.target.value)}
-                  >
-                    {FREQUENCY_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
 
                 <label className="field">
-                  <span className="field-label">Start date</span>
+                  <span className="field-label">Opening date</span>
                   <input
                     type="date"
-                    value={eventForm.startDate}
-                    onChange={(event) => updateEventForm('startDate', event.target.value)}
+                    value={budget.openingDate}
+                    onChange={(event) => updateBudgetValue('openingDate', event.target.value)}
                   />
                 </label>
               </div>
 
-              <label className="field">
-                <span className="field-label">End date (optional)</span>
-                <input
-                  type="date"
-                  value={eventForm.endDate}
-                  disabled={eventForm.frequency === 'once'}
-                  onChange={(event) => updateEventForm('endDate', event.target.value)}
-                />
-              </label>
+              <p className="helper-copy">
+                Days before the opening date stay empty. Every later day shows the projected
+                closing balance after recurring transactions land.
+              </p>
+            </section>
 
-              {formError ? (
-                <p className="form-error" role="alert">
-                  {formError}
-                </p>
-              ) : null}
-
-              <button type="submit" className="primary-button">
-                Add to calendar
-              </button>
-            </form>
-          </section>
-
-          <section className="panel detail-panel">
-            <div className="panel-heading panel-heading-compact">
-              <div>
-                <p className="section-kicker">Selected day</p>
-                <h3>{selectedDay ? formatLongDate(selectedDay.iso) : 'Pick a day'}</h3>
+            <section className="drawer-card">
+              <div className="panel-heading panel-heading-compact">
+                <div>
+                  <p className="section-kicker">Add recurring event</p>
+                  <h3>Schedule cash flow</h3>
+                </div>
               </div>
-              {selectedDay ? <AmountBadge amount={selectedDay.dayChange} /> : null}
-            </div>
 
-            {selectedDay ? (
-              <>
-                <div className="detail-balance-row">
-                  <article className="detail-stat">
-                    <span className="detail-label">Closing balance</span>
-                    <p className="detail-value">
-                      {selectedDay.balance === null
-                        ? 'Budget not active'
-                        : formatCurrency(selectedDay.balance)}
-                    </p>
-                  </article>
+              <form className="event-form" onSubmit={handleAddEvent}>
+                <label className="field">
+                  <span className="field-label">Label</span>
+                  <input
+                    type="text"
+                    value={eventForm.title}
+                    placeholder="Salary, rent, internal bill..."
+                    onChange={(event) => updateEventForm('title', event.target.value)}
+                  />
+                </label>
 
-                  <article className="detail-stat">
-                    <span className="detail-label">Day change</span>
-                    <p className="detail-value">{formatSignedCurrency(selectedDay.dayChange)}</p>
-                  </article>
+                <div className="field-grid">
+                  <label className="field">
+                    <span className="field-label">Type</span>
+                    <select
+                      value={eventForm.direction}
+                      onChange={(event) => updateEventForm('direction', event.target.value)}
+                    >
+                      <option value="expense">Expense</option>
+                      <option value="income">Income</option>
+                    </select>
+                  </label>
+
+                  <label className="field">
+                    <span className="field-label">Amount</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={eventForm.amount}
+                      placeholder="45"
+                      onChange={(event) => updateEventForm('amount', event.target.value)}
+                    />
+                  </label>
                 </div>
 
-                {selectedDay.events.length === 0 ? (
-                  <p className="empty-copy empty-copy-block">
-                    {selectedDay.balance === null
-                      ? `Balances start on ${formatLongDate(budget.openingDate)}.`
-                      : 'No recurring transactions are scheduled for this day.'}
+                <div className="field-grid">
+                  <label className="field">
+                    <span className="field-label">Repeat</span>
+                    <select
+                      value={eventForm.frequency}
+                      onChange={(event) => updateEventForm('frequency', event.target.value)}
+                    >
+                      {FREQUENCY_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="field">
+                    <span className="field-label">Start date</span>
+                    <input
+                      type="date"
+                      value={eventForm.startDate}
+                      onChange={(event) => updateEventForm('startDate', event.target.value)}
+                    />
+                  </label>
+                </div>
+
+                <label className="field">
+                  <span className="field-label">End date (optional)</span>
+                  <input
+                    type="date"
+                    value={eventForm.endDate}
+                    disabled={eventForm.frequency === 'once'}
+                    onChange={(event) => updateEventForm('endDate', event.target.value)}
+                  />
+                </label>
+
+                {formError ? (
+                  <p className="form-error" role="alert">
+                    {formError}
                   </p>
-                ) : (
-                  <ul className="detail-list">
-                    {selectedDay.events.map((occurrence) => (
-                      <li key={`${selectedDay.iso}-${occurrence.id}`} className="detail-item">
-                        <div>
-                          <p className="detail-item-title">{occurrence.title}</p>
-                          <p className="detail-item-meta">
-                            {describeFrequency(occurrence)} · lands on this date
+                ) : null}
+
+                <button type="submit" className="primary-button">
+                  Add to calendar
+                </button>
+              </form>
+            </section>
+
+            <section className="drawer-card">
+              <div className="panel-heading panel-heading-compact">
+                <div>
+                  <p className="section-kicker">Selected day</p>
+                  <h3>{selectedDay ? formatLongDate(selectedDay.iso) : 'Pick a day'}</h3>
+                </div>
+                {selectedDay ? <AmountBadge amount={selectedDay.dayChange} /> : null}
+              </div>
+
+              {selectedDay ? (
+                <>
+                  <div className="detail-balance-row">
+                    <article className="detail-stat">
+                      <span className="detail-label">Closing balance</span>
+                      <p className="detail-value">
+                        {selectedDay.balance === null
+                          ? 'Budget not active'
+                          : formatCurrency(selectedDay.balance)}
+                      </p>
+                    </article>
+
+                    <article className="detail-stat">
+                      <span className="detail-label">Day change</span>
+                      <p className="detail-value">{formatSignedCurrency(selectedDay.dayChange)}</p>
+                    </article>
+                  </div>
+
+                  {selectedDay.events.length === 0 ? (
+                    <p className="empty-copy empty-copy-block">
+                      {selectedDay.balance === null
+                        ? `Balances start on ${formatLongDate(budget.openingDate)}.`
+                        : 'No recurring transactions are scheduled for this day.'}
+                    </p>
+                  ) : (
+                    <ul className="detail-list">
+                      {selectedDay.events.map((occurrence) => (
+                        <li key={`${selectedDay.iso}-${occurrence.id}`} className="detail-item">
+                          <div>
+                            <p className="detail-item-title">{occurrence.title}</p>
+                            <p className="detail-item-meta">
+                              {describeFrequency(occurrence)} - lands on this date
+                            </p>
+                          </div>
+                          <AmountBadge amount={occurrence.amount} />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </>
+              ) : (
+                <p className="empty-copy empty-copy-block">Select a day to inspect it.</p>
+              )}
+            </section>
+
+            <section className="drawer-card">
+              <div className="panel-heading panel-heading-compact">
+                <div>
+                  <p className="section-kicker">Recurring events</p>
+                  <h3>
+                    {budget.events.length} active {budget.events.length === 1 ? 'item' : 'items'}
+                  </h3>
+                </div>
+              </div>
+
+              {recurringEvents.length === 0 ? (
+                <p className="empty-copy empty-copy-block">
+                  Add a bill, salary, or one-time entry to start projecting the calendar.
+                </p>
+              ) : (
+                <div className="event-list">
+                  {recurringEvents.map((event) => {
+                    const nextOccurrence = getNextOccurrence(event, todayIso)
+
+                    return (
+                      <article key={event.id} className="event-row">
+                        <div className="event-row-main">
+                          <div className="event-row-top">
+                            <p className="event-title">{event.title}</p>
+                            <AmountBadge amount={event.amount} />
+                          </div>
+
+                          <p className="event-meta">
+                            {describeFrequency(event)} - starts {formatShortDate(event.startDate)}
+                            {event.endDate ? ` - ends ${formatShortDate(event.endDate)}` : ''}
+                          </p>
+                          <p className="event-meta">
+                            {nextOccurrence
+                              ? `Next occurrence: ${formatLongDate(nextOccurrence)}`
+                              : 'No future occurrence remains.'}
                           </p>
                         </div>
-                        <AmountBadge amount={occurrence.amount} />
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </>
-            ) : (
-              <p className="empty-copy empty-copy-block">Select a day to inspect it.</p>
-            )}
-          </section>
 
-          <section className="panel events-panel">
-            <div className="panel-heading panel-heading-compact">
-              <div>
-                <p className="section-kicker">Recurring events</p>
-                <h3>
-                  {budget.events.length} active {budget.events.length === 1 ? 'item' : 'items'}
-                </h3>
-              </div>
-            </div>
-
-            {recurringEvents.length === 0 ? (
-              <p className="empty-copy empty-copy-block">
-                Add a bill, salary, or one-time entry to start projecting the calendar.
-              </p>
-            ) : (
-              <div className="event-list">
-                {recurringEvents.map((event) => {
-                  const nextOccurrence = getNextOccurrence(event, todayIso)
-
-                  return (
-                    <article key={event.id} className="event-row">
-                      <div className="event-row-main">
-                        <div className="event-row-top">
-                          <p className="event-title">{event.title}</p>
-                          <AmountBadge amount={event.amount} />
-                        </div>
-
-                        <p className="event-meta">
-                          {describeFrequency(event)} · starts {formatShortDate(event.startDate)}
-                          {event.endDate ? ` · ends ${formatShortDate(event.endDate)}` : ''}
-                        </p>
-                        <p className="event-meta">
-                          {nextOccurrence
-                            ? `Next occurrence: ${formatLongDate(nextOccurrence)}`
-                            : 'No future occurrence remains.'}
-                        </p>
-                      </div>
-
-                      <button
-                        type="button"
-                        className="ghost-button ghost-button-small"
-                        onClick={() => handleDeleteEvent(event.id)}
-                      >
-                        Delete
-                      </button>
-                    </article>
-                  )
-                })}
-              </div>
-            )}
-          </section>
+                        <button
+                          type="button"
+                          className="ghost-button ghost-button-small"
+                          onClick={() => handleDeleteEvent(event.id)}
+                        >
+                          Delete
+                        </button>
+                      </article>
+                    )
+                  })}
+                </div>
+              )}
+            </section>
+          </div>
         </aside>
-      </section>
+      </div>
     </main>
   )
 }
