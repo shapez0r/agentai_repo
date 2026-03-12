@@ -1,109 +1,49 @@
-# Pipe Sprint
+# Ledger Garden
 
-Pipe Sprint is a Mario-inspired 2D platformer built with React, Vite, and the HTML canvas API. The game runs as a single-screen web app with side-scrolling movement, coins, patrolling enemies, pits, respawns, and a finish flag.
+Ledger Garden is a React and Vite budget planner that shows the projected running balance on every day of a calendar. Users can store an opening balance, add recurring income and expense events, and inspect the balance impact day by day.
 
-## Gameplay
+## Features
 
-You start on the left side of the level and need to reach the flag on the far right.
-
-- Jump across pits and elevated platforms.
-- Collect coins placed throughout the course.
-- Stomp enemies from above to remove them.
-- Avoid walking into enemies or falling into hazards, or you will respawn at the start.
-
-## Controls
-
-### Desktop
-
-- `A` / `Left Arrow`: move left
-- `D` / `Right Arrow`: move right
-- `W` / `Up Arrow` / `Space`: jump
-
-### Mobile / Touch
-
-- Use the on-screen `Left`, `Jump`, and `Right` buttons below the canvas.
+- Monthly calendar with a balance shown on every active day
+- Recurring schedules for one-time, daily, weekly, biweekly, monthly, and yearly events
+- Positive and negative cash flow tracking in euro
+- Local persistence with `localStorage`
+- GitHub Pages deployment through GitHub Actions
 
 ## Local Development
 
-### Prerequisites
-
-- Node.js 25+
-- npm 11+
-
-### Install
+Install dependencies if needed:
 
 ```bash
 npm install
 ```
 
-### Run the game
+Run the app locally:
 
 ```bash
 npm run dev
 ```
 
-The Vite dev server is configured to run on:
-
-- `http://localhost:3000`
-
-### Production build
+Build a production bundle:
 
 ```bash
 npm run build
 ```
 
-### Preview the production build
-
-```bash
-npm run preview
-```
-
-## Available Scripts
-
-- `npm run dev`: start the local development server on port `3000`
-- `npm run build`: create an optimized production build in `dist/`
-- `npm run preview`: serve the production build locally on port `3000`
-- `npm run lint`: run ESLint across the project
-
-## Project Structure
-
-```text
-.
-|-- index.html
-|-- package.json
-|-- public/
-|   `-- vite.svg
-|-- src/
-|   |-- App.css
-|   |-- App.jsx
-|   |-- index.css
-|   |-- main.jsx
-|   `-- assets/
-|       `-- react.svg
-`-- vite.config.js
-```
-
-## Implementation Notes
-
-- The game loop is implemented with `requestAnimationFrame`.
-- Level data, enemy routes, coin placement, and collision solids are defined directly in `src/App.jsx`.
-- Rendering is done with canvas drawing primitives instead of sprite assets.
-- The HUD and control shell are rendered with React, while gameplay state is updated in the canvas loop.
-- Vite is pinned to port `3000` in `vite.config.js` for both `dev` and `preview`.
-
-## Verification
-
-The current project has been checked with:
+Lint the project:
 
 ```bash
 npm run lint
-npm run build
 ```
 
-## Future Improvements
+## GitHub Pages Deployment
 
-- Add sprite sheets and animation states for the player and enemies
-- Add checkpoints instead of full-start respawns
-- Add sound effects and music
-- Split level data and renderer logic into separate modules
+This repo includes `.github/workflows/deploy-pages.yml`, which builds the app and deploys `dist/` to GitHub Pages whenever `main` is pushed.
 
+If Pages is not already configured in the repository settings, set the Pages source to `GitHub Actions`.
+
+## Main Files
+
+- `src/App.jsx`: UI, local state, and interaction flow
+- `src/lib/budget.js`: recurrence engine and calendar calculations
+- `src/index.css`: visual system and responsive layout

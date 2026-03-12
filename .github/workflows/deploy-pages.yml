@@ -1,4 +1,4 @@
-name: Deploy GitHub Pages
+name: Deploy Ledger Garden
 
 on:
   push:
@@ -12,7 +12,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: github-pages
+  group: pages
   cancel-in-progress: true
 
 jobs:

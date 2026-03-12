@@ -2,6 +2,7 @@
   "name": "agentai_repo",
   "private": true,
   "version": "0.0.0",
+  "description": "Recurring budget calendar deployed on GitHub Pages.",
   "type": "module",
   "scripts": {
     "dev": "vite",
