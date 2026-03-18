@@ -34,6 +34,15 @@ function ChevronRightIcon() {
   )
 }
 
+function PlusIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+      <path d="M12 5v14" />
+      <path d="M5 12h14" />
+    </svg>
+  )
+}
+
 function handleDayCardKeyDown(event, onActivate) {
   if (event.key === 'Enter' || event.key === ' ') {
     event.preventDefault()
@@ -49,6 +58,7 @@ export default function CalendarPanel({
   selectedDayIso,
   closingBalanceDisplay,
   onDaySelect,
+  onDayAdd,
   onDayEventSelect,
   onShiftMonth,
   onJumpToToday,
@@ -159,17 +169,31 @@ export default function CalendarPanel({
                   role="button"
                   tabIndex={0}
                   title={formatLongDate(day.iso)}
-                  aria-label={`Edit ${formatLongDate(day.iso)}`}
+                  aria-label={`Select ${formatLongDate(day.iso)}`}
                   onClick={() => onDaySelect(day)}
                   onKeyDown={(event) => handleDayCardKeyDown(event, () => onDaySelect(day))}
                 >
                   <div className="day-card-top">
                     <span className="day-number">{day.dayNumber}</span>
-                    <span className="day-balance">
-                      {day.balance === null
-                        ? `Starts ${formatShortDate(budget.openingDate)}`
-                        : formatCurrency(day.balance)}
-                    </span>
+                    <div className="day-card-actions">
+                      <span className="day-balance">
+                        {day.balance === null
+                          ? `Starts ${formatShortDate(budget.openingDate)}`
+                          : formatCurrency(day.balance)}
+                      </span>
+                      <button
+                        type="button"
+                        className="day-add-button"
+                        aria-label={`Add event on ${formatLongDate(day.iso)}`}
+                        title={`Add event on ${formatLongDate(day.iso)}`}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          onDayAdd(day)
+                        }}
+                      >
+                        <PlusIcon />
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -195,13 +219,7 @@ export default function CalendarPanel({
                   ))}
 
                   {day.events.length === 0 ? (
-                    <button
-                      type="button"
-                      className="day-empty-action"
-                      onClick={() => onDaySelect(day)}
-                    >
-                      Add one-time event
-                    </button>
+                    <span className="day-empty-copy">No scheduled events</span>
                   ) : null}
 
                   {day.events.length > 3 ? (

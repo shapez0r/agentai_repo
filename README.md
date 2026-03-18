@@ -9,6 +9,7 @@ The canonical local app URL is `http://127.0.0.1:8787`.
 ## Features
 
 - Minimal month grid with running daily balances
+- Per-day add button plus click-to-edit scheduled items
 - Compact workspace drawer for month summary, selected-day details, and recurring rules
 - Start-date-first recurrence flow
 - Monthly rules that repeat on the same calendar date

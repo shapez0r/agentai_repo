@@ -452,6 +452,11 @@ button:disabled {
   box-shadow: 0 0 0 3px rgba(31, 147, 230, 0.12);
 }
 
+.day-card:hover .day-card-top,
+.day-card-surface:focus-visible .day-card-top {
+  background: #eef6fd;
+}
+
 .day-card-top {
   display: flex;
   align-items: center;
@@ -485,8 +490,52 @@ button:disabled {
   white-space: nowrap;
 }
 
+.day-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.day-add-button {
+  display: inline-grid;
+  place-items: center;
+  width: 1.95rem;
+  height: 1.95rem;
+  border: 1px solid rgba(31, 147, 230, 0.16);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--accent);
+  box-shadow: 0 8px 18px rgba(31, 147, 230, 0.12);
+  transition:
+    transform 0.14s ease,
+    border-color 0.14s ease,
+    box-shadow 0.14s ease,
+    background-color 0.14s ease;
+}
+
+.day-add-button svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.day-add-button:hover,
+.day-add-button:focus-visible {
+  outline: none;
+  transform: translateY(-1px) scale(1.03);
+  border-color: rgba(31, 147, 230, 0.34);
+  background: var(--accent-soft);
+  box-shadow: 0 12px 24px rgba(31, 147, 230, 0.18);
+}
+
 .day-card.is-selected .day-balance {
   color: #ffffff;
+}
+
+.day-card.is-selected .day-add-button {
+  border-color: rgba(255, 255, 255, 0.34);
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  box-shadow: none;
 }
 
 .day-events {
@@ -504,7 +553,6 @@ button:disabled {
 }
 
 .day-event-button,
-.day-empty-action,
 .more-events-button {
   width: 100%;
   border: 0;
@@ -515,18 +563,25 @@ button:disabled {
 }
 
 .day-event-button {
-  padding: 0.14rem 0;
-  border-radius: 0.55rem;
+  padding: 0.38rem 0.45rem;
+  border-radius: 0.7rem;
+  border: 1px solid transparent;
+  transition:
+    transform 0.14s ease,
+    border-color 0.14s ease,
+    background-color 0.14s ease,
+    box-shadow 0.14s ease;
 }
 
 .day-event-button:hover,
 .day-event-button:focus-visible,
-.day-empty-action:hover,
-.day-empty-action:focus-visible,
 .more-events-button:hover,
 .more-events-button:focus-visible {
   outline: none;
+  transform: translateX(2px);
+  border-color: rgba(31, 147, 230, 0.2);
   background: rgba(31, 147, 230, 0.06);
+  box-shadow: 0 10px 18px rgba(45, 63, 82, 0.08);
 }
 
 .day-event-main,
@@ -569,7 +624,7 @@ button:disabled {
   font-weight: 700;
 }
 
-.day-empty-action,
+.day-empty-copy,
 .more-events-button {
   display: inline-flex;
   align-items: center;
@@ -579,6 +634,11 @@ button:disabled {
   color: var(--muted);
   font-size: 0.8rem;
   font-weight: 700;
+}
+
+.day-empty-copy {
+  border: 1px dashed rgba(123, 136, 150, 0.26);
+  background: rgba(123, 136, 150, 0.05);
 }
 
 .menu-shell {
@@ -798,12 +858,6 @@ button:disabled {
   box-shadow: 0 0 0 3px rgba(31, 147, 230, 0.08);
 }
 
-.selected-day-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-
 .event-row-main {
   min-width: 0;
 }
@@ -811,6 +865,11 @@ button:disabled {
 .event-row.is-editing {
   border-color: rgba(31, 147, 230, 0.4);
   box-shadow: 0 0 0 3px rgba(31, 147, 230, 0.08);
+}
+
+.event-row:hover {
+  border-color: rgba(31, 147, 230, 0.22);
+  box-shadow: 0 12px 24px rgba(45, 63, 82, 0.08);
 }
 
 .event-row-top {

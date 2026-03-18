@@ -175,6 +175,7 @@ function App() {
   const [editingEventId, setEditingEventId] = useState('')
   const [formError, setFormError] = useState('')
   const [eventMutationId, setEventMutationId] = useState('')
+  const [eventFormFocusKey, setEventFormFocusKey] = useState(0)
 
   useEffect(() => {
     const pendingAuthState = readAuthStateFromUrl()
@@ -616,6 +617,7 @@ function App() {
     setIsMenuOpen(true)
     setEditingEventId(event.id)
     setEventForm(createEventFormFromEvent(event))
+    setEventFormFocusKey((current) => current + 1)
   }
 
   const handleCancelEventEdit = () => {
@@ -646,13 +648,8 @@ function App() {
     }
   }
 
-  const handleEditDay = (day) => {
+  const handleSelectDay = (day) => {
     setSelectedDate(day.iso)
-    setIsMenuOpen(true)
-    setEditingEventId('')
-    setFormError('')
-    setBudgetMessage('')
-    setEventForm(createDayEventForm(day.iso))
 
     if (!day.inCurrentMonth) {
       const dayDate = parseISODate(day.iso)
@@ -663,17 +660,18 @@ function App() {
     }
   }
 
+  const handleAddEventForDay = (day) => {
+    handleSelectDay(day)
+    setIsMenuOpen(true)
+    setEditingEventId('')
+    setFormError('')
+    setBudgetMessage('')
+    setEventForm(createDayEventForm(day.iso))
+    setEventFormFocusKey((current) => current + 1)
+  }
+
   const handleEditDayEvent = (day, event) => {
-    setSelectedDate(day.iso)
-
-    if (!day.inCurrentMonth) {
-      const dayDate = parseISODate(day.iso)
-
-      if (dayDate) {
-        setViewMonth(startOfMonth(dayDate))
-      }
-    }
-
+    handleSelectDay(day)
     handleEditEvent(event)
   }
 
@@ -779,7 +777,8 @@ function App() {
         todayIso={todayIso}
         selectedDayIso={selectedDayIso}
         closingBalanceDisplay={closingBalanceDisplay}
-        onDaySelect={handleEditDay}
+        onDaySelect={handleSelectDay}
+        onDayAdd={handleAddEventForDay}
         onDayEventSelect={handleEditDayEvent}
         onShiftMonth={(direction) =>
           setViewMonth((current) => startOfMonth(addMonths(current, direction)))
@@ -816,10 +815,10 @@ function App() {
         editingEventId={editingEventId}
         formError={formError}
         eventMutationId={eventMutationId}
+        eventFormFocusKey={eventFormFocusKey}
         onUpdateEventForm={updateEventForm}
         onSubmitEvent={handleSubmitEvent}
         onEditEvent={handleEditEvent}
-        onEditDay={handleEditDay}
         onCancelEventEdit={handleCancelEventEdit}
         selectedDay={selectedDay}
         recurringEvents={recurringEvents}

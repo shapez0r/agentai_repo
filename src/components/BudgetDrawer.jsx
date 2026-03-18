@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import EventIcon from './EventIcon.jsx'
 import {
   EVENT_ICON_OPTIONS,
@@ -284,10 +285,10 @@ export default function BudgetDrawer({
   editingEventId,
   formError,
   eventMutationId,
+  eventFormFocusKey,
   onUpdateEventForm,
   onSubmitEvent,
   onEditEvent,
-  onEditDay,
   onCancelEventEdit,
   selectedDay,
   recurringEvents,
@@ -300,12 +301,33 @@ export default function BudgetDrawer({
   const isEditingEvent = Boolean(editingEventId)
   const isSavingEvent = eventMutationId === (editingEventId || 'create')
   const schedulePreview = buildSchedulePreview(eventForm)
+  const eventCardRef = useRef(null)
+  const eventTitleInputRef = useRef(null)
   const scheduleWindow = [
     eventForm.startDate ? `Starts ${formatShortDate(eventForm.startDate)}` : '',
     eventForm.endDate ? `Ends ${formatShortDate(eventForm.endDate)}` : '',
   ]
     .filter(Boolean)
     .join(' | ')
+
+  useEffect(() => {
+    if (!isOpen || eventFormFocusKey === 0 || typeof window === 'undefined') {
+      return undefined
+    }
+
+    const frameId = window.requestAnimationFrame(() => {
+      eventCardRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      })
+      eventTitleInputRef.current?.focus()
+      eventTitleInputRef.current?.select?.()
+    })
+
+    return () => {
+      window.cancelAnimationFrame(frameId)
+    }
+  }, [isOpen, eventFormFocusKey])
 
   return (
     <div className={`menu-shell ${isOpen ? 'is-open' : ''}`} aria-hidden={!isOpen}>
@@ -373,7 +395,7 @@ export default function BudgetDrawer({
             </div>
           </section>
 
-          <section className="drawer-card">
+          <section ref={eventCardRef} className="drawer-card">
             <div className="panel-heading panel-heading-compact">
               <div>
                 <p className="section-kicker">
@@ -397,6 +419,7 @@ export default function BudgetDrawer({
               <label className="field">
                 <span className="field-label">Label</span>
                 <input
+                  ref={eventTitleInputRef}
                   type="text"
                   value={eventForm.title}
                   placeholder="Salary, rent, subscriptions"
@@ -462,18 +485,7 @@ export default function BudgetDrawer({
                 <p className="section-kicker">Selected day</p>
                 <h3>{selectedDay ? formatLongDate(selectedDay.iso) : 'Pick a day'}</h3>
               </div>
-              <div className="selected-day-actions">
-                {selectedDay ? (
-                  <button
-                    type="button"
-                    className="ghost-button ghost-button-small"
-                    onClick={() => onEditDay(selectedDay)}
-                  >
-                    Edit day
-                  </button>
-                ) : null}
-                {selectedDay ? <AmountBadge amount={selectedDay.dayChange} /> : null}
-              </div>
+              {selectedDay ? <AmountBadge amount={selectedDay.dayChange} /> : null}
             </div>
 
             {selectedDay ? (
