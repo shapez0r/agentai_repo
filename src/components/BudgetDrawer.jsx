@@ -24,10 +24,19 @@ function AmountBadge({ amount }) {
   return <span className={`amount-badge amount-badge-${tone}`}>{formatSignedCurrency(amount)}</span>
 }
 
+function formatVerificationDate(value) {
+  if (!value) {
+    return 'Pending'
+  }
+
+  return new Date(value).toLocaleDateString('en-IE')
+}
+
 export default function BudgetDrawer({
   isOpen,
-  cloudMode,
   sessionEmail,
+  sessionVerifiedAt,
+  mailboxUrl,
   budget,
   budgetBusy,
   budgetError,
@@ -48,18 +57,6 @@ export default function BudgetDrawer({
   recurringEvents,
   todayIso,
   onDeleteEvent,
-  securityState,
-  verifiedTotpFactors,
-  mfaPending,
-  mfaBusy,
-  mfaEnrollment,
-  onMfaEnrollmentCodeChange,
-  onEnrollTotp,
-  onVerifyEnrollment,
-  mfaChallengeCode,
-  onMfaChallengeCodeChange,
-  onVerifyExistingFactor,
-  onRemoveTotp,
   openingBalanceDisplay,
   closingBalanceDisplay,
   calendarSummary,
@@ -78,7 +75,7 @@ export default function BudgetDrawer({
         <div className="menu-header">
           <div>
             <p className="section-kicker">Budget menu</p>
-            <h2>{cloudMode ? 'Account, security, and data' : 'Controls and details'}</h2>
+            <h2>Account and data</h2>
           </div>
 
           <button type="button" className="ghost-button ghost-button-small" onClick={onClose}>
@@ -87,175 +84,50 @@ export default function BudgetDrawer({
         </div>
 
         <div className="menu-body">
-          {cloudMode ? (
-            <section className="drawer-card">
-              <div className="panel-heading panel-heading-compact">
-                <div>
-                  <p className="section-kicker">Account</p>
-                  <h3>{sessionEmail}</h3>
-                </div>
-                <button
-                  type="button"
-                  className="ghost-button ghost-button-small"
-                  disabled={budgetBusy}
-                  onClick={onSignOut}
-                >
-                  Sign out
-                </button>
+          <section className="drawer-card">
+            <div className="panel-heading panel-heading-compact">
+              <div>
+                <p className="section-kicker">Account</p>
+                <h3>{sessionEmail}</h3>
               </div>
+              <button
+                type="button"
+                className="ghost-button ghost-button-small"
+                disabled={budgetBusy}
+                onClick={onSignOut}
+              >
+                Sign out
+              </button>
+            </div>
 
-              <div className="detail-balance-row">
-                <article className="detail-stat">
-                  <span className="detail-label">Current assurance</span>
-                  <p className="detail-value">{securityState.currentLevel ?? 'none'}</p>
-                </article>
+            <div className="detail-balance-row">
+              <article className="detail-stat">
+                <span className="detail-label">Storage</span>
+                <p className="detail-value">SQLite on localhost</p>
+              </article>
 
-                <article className="detail-stat">
-                  <span className="detail-label">Next assurance</span>
-                  <p className="detail-value">{securityState.nextLevel ?? 'none'}</p>
-                </article>
-              </div>
+              <article className="detail-stat">
+                <span className="detail-label">Email verified</span>
+                <p className="detail-value">{formatVerificationDate(sessionVerifiedAt)}</p>
+              </article>
+            </div>
 
-              {securityState.error ? (
-                <p className="status-banner status-banner-error">{securityState.error}</p>
-              ) : null}
-              {securityState.message ? (
-                <p className="status-banner status-banner-success">{securityState.message}</p>
-              ) : null}
+            <p className="helper-copy">
+              Verification and password reset links stay on this machine. Open the mailbox any
+              time to inspect recent messages for this account.
+            </p>
 
-              <div className="security-stack">
-                <div className="security-row">
-                  <div>
-                    <p className="detail-item-title">Authenticator app 2FA</p>
-                    <p className="detail-item-meta">
-                      Verified factors: {verifiedTotpFactors.length}. Session status:{' '}
-                      {securityState.currentLevel === 'aal2'
-                        ? '2FA complete'
-                        : 'primary sign-in only'}
-                      .
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    className="primary-button"
-                    disabled={mfaBusy || securityState.loading || verifiedTotpFactors.length > 0}
-                    onClick={onEnrollTotp}
-                  >
-                    {verifiedTotpFactors.length > 0 ? '2FA enabled' : 'Set up 2FA'}
-                  </button>
-                </div>
-
-                {mfaEnrollment.factorId ? (
-                  <div className="mfa-enrollment-card">
-                    <div className="mfa-qr-block">
-                      <img
-                        src={mfaEnrollment.qrCode}
-                        alt="TOTP QR code"
-                        className="mfa-qr-image"
-                      />
-                    </div>
-                    <div className="mfa-copy">
-                      <p className="detail-item-title">Finish authenticator setup</p>
-                      <p className="detail-item-meta">
-                        Scan the QR code, or enter this secret manually in your authenticator app.
-                      </p>
-                      <code className="secret-code">{mfaEnrollment.secret}</code>
-                      <label className="field">
-                        <span className="field-label">Authenticator code</span>
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          value={mfaEnrollment.code}
-                          onChange={(event) => onMfaEnrollmentCodeChange(event.target.value)}
-                        />
-                      </label>
-                      <button
-                        type="button"
-                        className="primary-button"
-                        disabled={mfaBusy}
-                        onClick={onVerifyEnrollment}
-                      >
-                        {mfaBusy ? 'Verifying...' : 'Verify and enable 2FA'}
-                      </button>
-                    </div>
-                  </div>
-                ) : null}
-
-                {mfaPending ? (
-                  <div className="security-verify-card">
-                    <p className="detail-item-title">Complete the 2FA challenge for this session</p>
-                    <p className="detail-item-meta">
-                      Your password sign-in succeeded, but this session still needs the current
-                      authenticator code.
-                    </p>
-                    <div className="security-verify-row">
-                      <label className="field security-inline-field">
-                        <span className="field-label">Authenticator code</span>
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          value={mfaChallengeCode}
-                          onChange={(event) => onMfaChallengeCodeChange(event.target.value)}
-                        />
-                      </label>
-                      <button
-                        type="button"
-                        className="primary-button"
-                        disabled={mfaBusy}
-                        onClick={onVerifyExistingFactor}
-                      >
-                        {mfaBusy ? 'Checking...' : 'Verify session'}
-                      </button>
-                    </div>
-                  </div>
-                ) : null}
-
-                {verifiedTotpFactors.length > 0 ? (
-                  <div className="event-list">
-                    {verifiedTotpFactors.map((factor) => (
-                      <article key={factor.id} className="event-row">
-                        <div className="event-row-main">
-                          <div className="event-row-top">
-                            <p className="event-title">
-                              {factor.friendly_name || 'Authenticator app'}
-                            </p>
-                            <span className="more-events">{factor.status}</span>
-                          </div>
-                          <p className="event-meta">
-                            Added {new Date(factor.created_at).toLocaleDateString('en-IE')}
-                          </p>
-                        </div>
-
-                        <button
-                          type="button"
-                          className="ghost-button ghost-button-small"
-                          disabled={mfaBusy || securityState.currentLevel !== 'aal2'}
-                          onClick={() => onRemoveTotp(factor.id)}
-                        >
-                          Remove
-                        </button>
-                      </article>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-            </section>
-          ) : (
-            <section className="drawer-card">
-              <div className="panel-heading panel-heading-compact">
-                <div>
-                  <p className="section-kicker">Cloud upgrade</p>
-                  <h3>Local browser storage is active</h3>
-                </div>
-              </div>
-
-              <p className="helper-copy">
-                This build still works locally, but registration, database sync, and 2FA only
-                appear after Supabase environment variables are provided to the app.
-              </p>
-            </section>
-          )}
+            <div className="section-actions">
+              <a
+                href={mailboxUrl}
+                className="ghost-button button-link"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Open local mailbox
+              </a>
+            </div>
+          </section>
 
           {budgetError ? <p className="status-banner status-banner-error">{budgetError}</p> : null}
           {budgetMessage ? <p className="status-banner status-banner-success">{budgetMessage}</p> : null}
@@ -305,7 +177,7 @@ export default function BudgetDrawer({
               disabled={budgetBusy}
               onClick={onResetBudget}
             >
-              {cloudMode ? 'Reset cloud budget' : 'Reset local budget'}
+              Reset saved budget
             </button>
           </div>
 
@@ -344,30 +216,25 @@ export default function BudgetDrawer({
             </div>
 
             <p className="helper-copy">
-              {cloudMode
-                ? 'Opening settings update the calendar instantly in the browser, and the Save button writes them back to Supabase.'
-                : 'Opening settings update the calendar instantly and are stored in this browser automatically.'}
+              Opening settings update the calendar instantly in the browser, and the Save button
+              writes them back to the local SQLite database.
             </p>
 
-            {cloudMode ? (
-              <div className="section-actions">
-                <button
-                  type="button"
-                  className="primary-button"
-                  disabled={budgetBusy || !openingSettingsDirty}
-                  onClick={onSaveOpeningSettings}
-                >
-                  {budgetBusy ? 'Saving...' : 'Save opening settings'}
-                </button>
-                {openingSettingsDirty ? (
-                  <span className="detail-item-meta">Unsaved opening settings</span>
-                ) : (
-                  <span className="detail-item-meta">Opening settings are synced</span>
-                )}
-              </div>
-            ) : (
-              <p className="detail-item-meta">Opening settings are already saved locally.</p>
-            )}
+            <div className="section-actions">
+              <button
+                type="button"
+                className="primary-button"
+                disabled={budgetBusy || !openingSettingsDirty}
+                onClick={onSaveOpeningSettings}
+              >
+                {budgetBusy ? 'Saving...' : 'Save opening settings'}
+              </button>
+              {openingSettingsDirty ? (
+                <span className="detail-item-meta">Unsaved opening settings</span>
+              ) : (
+                <span className="detail-item-meta">Opening settings are synced</span>
+              )}
+            </div>
           </section>
 
           <section className="drawer-card">

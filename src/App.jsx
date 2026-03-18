@@ -22,32 +22,21 @@ import {
   createRecurringEvent,
   deleteRecurringEvent,
   fetchBudgetState,
+  fetchSession,
+  getLocalMailboxUrl,
+  registerUser,
   replaceBudgetState,
+  requestPasswordReset,
+  resetPassword,
   saveOpeningSettings,
-} from './lib/cloudBudget.js'
-import { loadStoredBudget, saveStoredBudget } from './lib/localBudget.js'
-import { getAuthRedirectUrl, isSupabaseConfigured, supabase } from './lib/supabase.js'
+  signInWithPassword,
+  signOut,
+} from './lib/localApi.js'
 
 const DEFAULT_AUTH_FORM = {
   email: '',
   password: '',
   confirmPassword: '',
-}
-
-const DEFAULT_SECURITY_STATE = {
-  loading: false,
-  currentLevel: null,
-  nextLevel: null,
-  factors: [],
-  error: '',
-  message: '',
-}
-
-const DEFAULT_MFA_ENROLLMENT = {
-  factorId: '',
-  qrCode: '',
-  secret: '',
-  code: '',
 }
 
 function createDefaultEventForm() {
@@ -61,18 +50,35 @@ function createDefaultEventForm() {
   }
 }
 
-function createLocalEventId() {
-  return globalThis.crypto?.randomUUID?.() ?? `evt-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-}
-
-function getInitialBudgetState(cloudMode) {
-  return cloudMode ? createDefaultBudgetState() : loadStoredBudget()
-}
-
 function getOpeningSettings(budget) {
   return {
     openingBalance: budget.openingBalance,
     openingDate: budget.openingDate,
+  }
+}
+
+function readAuthStateFromUrl() {
+  if (typeof window === 'undefined') {
+    return null
+  }
+
+  const url = new URL(window.location.href)
+  const auth = url.searchParams.get('auth')
+  const message = url.searchParams.get('message')
+  const mode = url.searchParams.get('mode')
+  const token = url.searchParams.get('token')
+
+  if (!auth && !mode) {
+    return null
+  }
+
+  window.history.replaceState({}, document.title, window.location.pathname)
+
+  return {
+    auth,
+    message,
+    mode,
+    token,
   }
 }
 
@@ -93,23 +99,23 @@ function LoadingScreen({ title, body }) {
 function App() {
   const today = startOfToday()
   const todayIso = toISODate(today)
-  const cloudMode = isSupabaseConfigured && Boolean(supabase)
 
-  const [authReady, setAuthReady] = useState(!cloudMode)
+  const [authReady, setAuthReady] = useState(false)
   const [session, setSession] = useState(null)
   const [authMode, setAuthMode] = useState('sign-in')
   const [authForm, setAuthForm] = useState(DEFAULT_AUTH_FORM)
   const [authBusy, setAuthBusy] = useState(false)
   const [authError, setAuthError] = useState('')
   const [authMessage, setAuthMessage] = useState('')
+  const [passwordResetToken, setPasswordResetToken] = useState('')
 
-  const [budget, setBudget] = useState(() => getInitialBudgetState(cloudMode))
-  const [budgetStatus, setBudgetStatus] = useState(cloudMode ? 'idle' : 'ready')
+  const [budget, setBudget] = useState(createDefaultBudgetState)
+  const [budgetStatus, setBudgetStatus] = useState('idle')
   const [budgetBusy, setBudgetBusy] = useState(false)
   const [budgetError, setBudgetError] = useState('')
   const [budgetMessage, setBudgetMessage] = useState('')
   const [savedOpeningSettings, setSavedOpeningSettings] = useState(() =>
-    getOpeningSettings(getInitialBudgetState(cloudMode)),
+    getOpeningSettings(createDefaultBudgetState()),
   )
 
   const [viewMonth, setViewMonth] = useState(() => startOfMonth(today))
@@ -120,42 +126,45 @@ function App() {
   const [formError, setFormError] = useState('')
   const [eventMutationId, setEventMutationId] = useState('')
 
-  const [securityState, setSecurityState] = useState(DEFAULT_SECURITY_STATE)
-  const [securityRefreshNonce, setSecurityRefreshNonce] = useState(0)
-  const [mfaEnrollment, setMfaEnrollment] = useState(DEFAULT_MFA_ENROLLMENT)
-  const [mfaChallengeCode, setMfaChallengeCode] = useState('')
-  const [mfaBusy, setMfaBusy] = useState(false)
-
   useEffect(() => {
-    if (cloudMode) {
-      return
+    const pendingAuthState = readAuthStateFromUrl()
+
+    if (pendingAuthState) {
+      if (pendingAuthState.auth === 'verified') {
+        setAuthMode('sign-in')
+        setAuthMessage(pendingAuthState.message || 'Email verified. You can sign in now.')
+        setAuthError('')
+      }
+
+      if (pendingAuthState.auth === 'error') {
+        setAuthMode('sign-in')
+        setAuthError(pendingAuthState.message || 'That link is invalid or has expired.')
+        setAuthMessage('')
+      }
+
+      if (pendingAuthState.mode === 'reset-password' && pendingAuthState.token) {
+        setAuthMode('update-password')
+        setPasswordResetToken(pendingAuthState.token)
+        setAuthMessage('Recovery link accepted. Choose a new password.')
+        setAuthError('')
+      }
     }
 
-    saveStoredBudget(budget)
-  }, [budget, cloudMode])
-
-  useEffect(() => {
-    if (!cloudMode || !supabase) {
-      return undefined
-    }
-
-    let mounted = true
+    let ignore = false
 
     const initializeSession = async () => {
       try {
-        const { data, error } = await supabase.auth.getSession()
+        const data = await fetchSession()
 
-        if (!mounted) {
-          return
+        if (!ignore) {
+          setSession(data.session ?? null)
         }
-
-        if (error) {
+      } catch (error) {
+        if (!ignore) {
           setAuthError(error.message)
         }
-
-        setSession(data.session ?? null)
       } finally {
-        if (mounted) {
+        if (!ignore) {
           setAuthReady(true)
         }
       }
@@ -163,63 +172,24 @@ function App() {
 
     initializeSession()
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, nextSession) => {
-      setSession(nextSession ?? null)
-
-      if (event === 'PASSWORD_RECOVERY') {
-        setAuthMode('update-password')
-        setAuthMessage('Recovery link accepted. Choose a new password.')
-        setAuthError('')
-      }
-
-      if (event === 'SIGNED_IN') {
-        setAuthMode('sign-in')
-        setAuthError('')
-        setAuthMessage('')
-      }
-
-      if (event === 'SIGNED_OUT') {
-        const freshBudget = createDefaultBudgetState()
-        setAuthMode('sign-in')
-        setAuthForm(DEFAULT_AUTH_FORM)
-        setBudget(freshBudget)
-        setBudgetStatus('idle')
-        setBudgetBusy(false)
-        setBudgetError('')
-        setBudgetMessage('')
-        setSavedOpeningSettings(getOpeningSettings(freshBudget))
-        setSecurityState(DEFAULT_SECURITY_STATE)
-        setMfaEnrollment(DEFAULT_MFA_ENROLLMENT)
-        setMfaChallengeCode('')
-        setIsMenuOpen(false)
-      }
-
-      if (event === 'MFA_CHALLENGE_VERIFIED') {
-        setSecurityRefreshNonce((current) => current + 1)
-      }
-    })
-
     return () => {
-      mounted = false
-      subscription.unsubscribe()
+      ignore = true
     }
-  }, [cloudMode])
+  }, [])
 
   useEffect(() => {
-    if (!cloudMode || !session?.user?.id || !supabase) {
+    if (!session?.user?.id) {
       return undefined
     }
 
     let ignore = false
 
-    const loadCloudBudget = async () => {
+    const loadBudget = async () => {
       setBudgetStatus('loading')
       setBudgetError('')
 
       try {
-        const loadedBudget = await fetchBudgetState(supabase, session.user.id)
+        const loadedBudget = await fetchBudgetState()
 
         if (ignore) {
           return
@@ -240,72 +210,12 @@ function App() {
       }
     }
 
-    loadCloudBudget()
+    loadBudget()
 
     return () => {
       ignore = true
     }
-  }, [cloudMode, session?.user?.id, todayIso])
-
-  useEffect(() => {
-    if (!cloudMode || !session?.user?.id || !supabase) {
-      return undefined
-    }
-
-    let ignore = false
-
-    const loadSecurityState = async () => {
-      setSecurityState((current) => ({
-        ...current,
-        loading: true,
-        error: '',
-      }))
-
-      try {
-        const [aalResult, factorsResult] = await Promise.all([
-          supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
-          supabase.auth.mfa.listFactors(),
-        ])
-
-        if (ignore) {
-          return
-        }
-
-        if (aalResult.error) {
-          throw aalResult.error
-        }
-
-        if (factorsResult.error) {
-          throw factorsResult.error
-        }
-
-        setSecurityState((current) => ({
-          ...current,
-          loading: false,
-          currentLevel: aalResult.data.currentLevel,
-          nextLevel: aalResult.data.nextLevel,
-          factors: factorsResult.data.all,
-          error: '',
-        }))
-      } catch (error) {
-        if (ignore) {
-          return
-        }
-
-        setSecurityState((current) => ({
-          ...current,
-          loading: false,
-          error: error.message,
-        }))
-      }
-    }
-
-    loadSecurityState()
-
-    return () => {
-      ignore = true
-    }
-  }, [cloudMode, session?.user?.id, securityRefreshNonce])
+  }, [session?.user?.id, todayIso])
 
   useEffect(() => {
     if (typeof document === 'undefined') {
@@ -358,9 +268,8 @@ function App() {
       ? 'Budget not active'
       : formatCurrency(calendar.summary.closingBalance)
   const openingSettingsDirty =
-    cloudMode &&
-    (budget.openingBalance !== savedOpeningSettings.openingBalance ||
-      budget.openingDate !== savedOpeningSettings.openingDate)
+    budget.openingBalance !== savedOpeningSettings.openingBalance ||
+    budget.openingDate !== savedOpeningSettings.openingDate
   const recurringEvents = [...budget.events].sort((left, right) => {
     const leftNext = getNextOccurrence(left, todayIso)
     const rightNext = getNextOccurrence(right, todayIso)
@@ -379,13 +288,8 @@ function App() {
 
     return left.title.localeCompare(right.title)
   })
-  const verifiedTotpFactors = securityState.factors.filter(
-    (factor) => factor.factor_type === 'totp' && factor.status === 'verified',
-  )
-  const mfaPending =
-    verifiedTotpFactors.length > 0 &&
-    securityState.currentLevel !== 'aal2' &&
-    securityState.nextLevel === 'aal2'
+  const authMailboxUrl = getLocalMailboxUrl(authForm.email)
+  const accountMailboxUrl = getLocalMailboxUrl(session?.user?.email ?? '')
 
   const updateAuthForm = (field, value) => {
     setAuthError('')
@@ -400,6 +304,29 @@ function App() {
     setAuthMode(mode)
     setAuthError('')
     setAuthMessage('')
+
+    if (mode !== 'update-password') {
+      setPasswordResetToken('')
+    }
+  }
+
+  const resetSignedInState = () => {
+    const freshBudget = createDefaultBudgetState()
+
+    setSession(null)
+    setBudget(freshBudget)
+    setBudgetStatus('idle')
+    setBudgetBusy(false)
+    setBudgetError('')
+    setBudgetMessage('')
+    setSavedOpeningSettings(getOpeningSettings(freshBudget))
+    setEventForm(createDefaultEventForm())
+    setFormError('')
+    setEventMutationId('')
+    setIsMenuOpen(false)
+    setViewMonth(startOfMonth(today))
+    setSelectedDate(todayIso)
+    setAuthMode('sign-in')
   }
 
   const updateBudgetValue = (field, value) => {
@@ -424,9 +351,7 @@ function App() {
   const handleAuthSubmit = async (event) => {
     event.preventDefault()
 
-    if (!supabase) {
-      return
-    }
+    const email = authForm.email.trim().toLowerCase()
 
     setAuthBusy(true)
     setAuthError('')
@@ -442,41 +367,32 @@ function App() {
           throw new Error('Password confirmation does not match.')
         }
 
-        const { data, error } = await supabase.auth.signUp({
-          email: authForm.email,
+        const response = await registerUser({
+          email,
           password: authForm.password,
-          options: { emailRedirectTo: getAuthRedirectUrl() },
         })
 
-        if (error) {
-          throw error
-        }
-
-        setAuthMessage(
-          data.session
-            ? 'Account created and signed in.'
-            : 'Account created. Check your email to confirm it.',
-        )
+        setAuthForm(DEFAULT_AUTH_FORM)
+        setAuthMode('sign-in')
+        setAuthMessage(response.message)
       } else if (authMode === 'sign-in') {
-        const { error } = await supabase.auth.signInWithPassword({
-          email: authForm.email,
+        const response = await signInWithPassword({
+          email,
           password: authForm.password,
         })
 
-        if (error) {
-          throw error
-        }
+        setSession(response.session)
+        setAuthForm(DEFAULT_AUTH_FORM)
+        setAuthError('')
+        setAuthMessage('')
       } else if (authMode === 'forgot-password') {
-        const { error } = await supabase.auth.resetPasswordForEmail(authForm.email, {
-          redirectTo: getAuthRedirectUrl(),
-        })
-
-        if (error) {
-          throw error
+        const response = await requestPasswordReset(email)
+        setAuthMessage(response.message)
+      } else if (authMode === 'update-password') {
+        if (!passwordResetToken) {
+          throw new Error('That reset link is no longer active. Request a new one.')
         }
 
-        setAuthMessage('Password reset link sent. Check your inbox.')
-      } else if (authMode === 'update-password') {
         if (authForm.password.length < 8) {
           throw new Error('Use at least 8 characters for the new password.')
         }
@@ -485,18 +401,15 @@ function App() {
           throw new Error('Password confirmation does not match.')
         }
 
-        const { error } = await supabase.auth.updateUser({ password: authForm.password })
+        const response = await resetPassword({
+          token: passwordResetToken,
+          password: authForm.password,
+        })
 
-        if (error) {
-          throw error
-        }
-
-        if (typeof window !== 'undefined') {
-          window.history.replaceState({}, document.title, window.location.pathname)
-        }
-
+        setPasswordResetToken('')
+        setAuthForm(DEFAULT_AUTH_FORM)
         setAuthMode('sign-in')
-        setBudgetMessage('Password updated. You are signed in and can continue.')
+        setAuthMessage(response.message)
       }
     } catch (error) {
       setAuthError(error.message)
@@ -506,7 +419,7 @@ function App() {
   }
 
   const handleSaveOpeningSettings = async () => {
-    if (!cloudMode || !supabase || !session?.user?.id) {
+    if (!session?.user?.id) {
       return
     }
 
@@ -515,13 +428,13 @@ function App() {
     setBudgetMessage('')
 
     try {
-      const savedSettings = await saveOpeningSettings(supabase, session.user.id, {
+      const savedSettings = await saveOpeningSettings({
         openingBalance: budget.openingBalance,
         openingDate: budget.openingDate,
       })
 
       setSavedOpeningSettings(savedSettings)
-      setBudgetMessage('Opening settings saved to Supabase.')
+      setBudgetMessage('Opening settings saved to the local database.')
     } catch (error) {
       setBudgetError(error.message)
     } finally {
@@ -553,33 +466,10 @@ function App() {
     const amount =
       eventForm.direction === 'expense' ? -Math.abs(unsignedAmount) : Math.abs(unsignedAmount)
 
-    if (!cloudMode || !supabase || !session?.user?.id) {
-      const localEvent = {
-        id: createLocalEventId(),
-        title,
-        amount,
-        frequency: eventForm.frequency,
-        startDate: eventForm.startDate,
-        endDate: eventForm.frequency === 'once' ? '' : eventForm.endDate,
-      }
-
-      setBudget((current) => ({
-        ...current,
-        events: [...current.events, localEvent],
-      }))
-      setBudgetMessage('Recurring event saved in this browser.')
-      setEventForm((current) => ({
-        ...current,
-        title: '',
-        amount: '',
-      }))
-      return
-    }
-
     setEventMutationId('create')
 
     try {
-      const createdEvent = await createRecurringEvent(supabase, session.user.id, {
+      const createdEvent = await createRecurringEvent({
         title,
         amount,
         frequency: eventForm.frequency,
@@ -596,7 +486,7 @@ function App() {
         title: '',
         amount: '',
       }))
-      setBudgetMessage('Recurring event saved to Supabase.')
+      setBudgetMessage('Recurring event saved to the local database.')
     } catch (error) {
       setFormError(error.message)
     } finally {
@@ -605,19 +495,10 @@ function App() {
   }
 
   const handleDeleteEvent = async (eventId) => {
-    if (!cloudMode || !supabase || !session?.user?.id) {
-      setBudget((current) => ({
-        ...current,
-        events: current.events.filter((event) => event.id !== eventId),
-      }))
-      setBudgetMessage('Recurring event removed from this browser.')
-      return
-    }
-
     setEventMutationId(eventId)
 
     try {
-      await deleteRecurringEvent(supabase, session.user.id, eventId)
+      await deleteRecurringEvent(eventId)
       setBudget((current) => ({
         ...current,
         events: current.events.filter((event) => event.id !== eventId),
@@ -631,27 +512,12 @@ function App() {
   }
 
   const handleReplaceBudget = async (nextBudget, successMessage) => {
-    if (!cloudMode || !supabase || !session?.user?.id) {
-      const openingDate = parseISODate(nextBudget.openingDate) ?? today
-
-      setBudget(nextBudget)
-      setSavedOpeningSettings(getOpeningSettings(nextBudget))
-      setBudgetError('')
-      setBudgetMessage(successMessage)
-      setViewMonth(startOfMonth(openingDate))
-      setSelectedDate(toISODate(openingDate))
-      setEventForm(createDefaultEventForm())
-      setFormError('')
-      return
-    }
-
     setBudgetBusy(true)
     setBudgetError('')
     setBudgetMessage('')
 
     try {
-      await replaceBudgetState(supabase, session.user.id, nextBudget)
-      const savedBudget = await fetchBudgetState(supabase, session.user.id)
+      const savedBudget = await replaceBudgetState(nextBudget)
       const openingDate = parseISODate(savedBudget.openingDate) ?? today
 
       setBudget(savedBudget)
@@ -659,6 +525,8 @@ function App() {
       setViewMonth(startOfMonth(openingDate))
       setSelectedDate(toISODate(openingDate))
       setBudgetMessage(successMessage)
+      setEventForm(createDefaultEventForm())
+      setFormError('')
     } catch (error) {
       setBudgetError(error.message)
     } finally {
@@ -670,184 +538,43 @@ function App() {
     if (
       budget.events.length > 0 &&
       typeof window !== 'undefined' &&
-      !window.confirm(
-        cloudMode
-          ? 'Replace the current cloud budget with the demo budget?'
-          : 'Replace the current local budget with the demo budget?',
-      )
+      !window.confirm('Replace the current saved budget with the demo budget?')
     ) {
       return
     }
 
-    await handleReplaceBudget(
-      createDemoBudgetState(),
-      cloudMode ? 'Demo budget loaded into your account.' : 'Demo budget loaded in this browser.',
-    )
+    await handleReplaceBudget(createDemoBudgetState(), 'Demo budget loaded into your account.')
   }
 
   const handleResetBudget = async () => {
     if (
       typeof window !== 'undefined' &&
-      !window.confirm(
-        cloudMode
-          ? 'Clear all recurring events and reset the cloud budget?'
-          : 'Clear all recurring events and reset the local budget?',
-      )
+      !window.confirm('Clear all recurring events and reset the saved budget?')
     ) {
       return
     }
 
-    await handleReplaceBudget(
-      createDefaultBudgetState(),
-      cloudMode ? 'Cloud budget reset.' : 'Local budget reset.',
-    )
+    await handleReplaceBudget(createDefaultBudgetState(), 'Saved budget reset.')
   }
 
   const handleSignOut = async () => {
-    if (!supabase) {
-      return
-    }
-
     setBudgetBusy(true)
-    const { error } = await supabase.auth.signOut()
-    setBudgetBusy(false)
 
-    if (error) {
+    try {
+      await signOut()
+      resetSignedInState()
+    } catch (error) {
       setBudgetError(error.message)
-    }
-  }
-
-  const handleEnrollTotp = async () => {
-    if (!supabase) {
-      return
-    }
-
-    setMfaBusy(true)
-    setSecurityState((current) => ({ ...current, error: '', message: '' }))
-
-    try {
-      for (const factor of securityState.factors.filter(
-        (item) => item.factor_type === 'totp' && item.status === 'unverified',
-      )) {
-        await supabase.auth.mfa.unenroll({ factorId: factor.id })
-      }
-
-      const { data, error } = await supabase.auth.mfa.enroll({
-        factorType: 'totp',
-        friendlyName: 'Ledger Garden',
-        issuer: 'Ledger Garden',
-      })
-
-      if (error) {
-        throw error
-      }
-
-      setMfaEnrollment({
-        factorId: data.id,
-        qrCode: data.totp.qr_code,
-        secret: data.totp.secret,
-        code: '',
-      })
-      setSecurityState((current) => ({
-        ...current,
-        message: 'Scan the QR code, then enter the 6-digit code from your authenticator app.',
-      }))
-      setSecurityRefreshNonce((current) => current + 1)
-    } catch (error) {
-      setSecurityState((current) => ({ ...current, error: error.message }))
     } finally {
-      setMfaBusy(false)
+      setBudgetBusy(false)
     }
   }
 
-  const handleVerifyEnrollment = async () => {
-    if (!supabase || !mfaEnrollment.factorId) {
-      return
-    }
-
-    setMfaBusy(true)
-
-    try {
-      const { error } = await supabase.auth.mfa.challengeAndVerify({
-        factorId: mfaEnrollment.factorId,
-        code: mfaEnrollment.code.trim(),
-      })
-
-      if (error) {
-        throw error
-      }
-
-      setMfaEnrollment(DEFAULT_MFA_ENROLLMENT)
-      setSecurityState((current) => ({
-        ...current,
-        message: '2FA is enabled. This session is now at assurance level AAL2.',
-      }))
-      setSecurityRefreshNonce((current) => current + 1)
-    } catch (error) {
-      setSecurityState((current) => ({ ...current, error: error.message }))
-    } finally {
-      setMfaBusy(false)
-    }
+  if (!authReady) {
+    return <LoadingScreen title="Connecting to local services" body="Checking for an existing session." />
   }
 
-  const handleVerifyExistingFactor = async () => {
-    if (!supabase || verifiedTotpFactors.length === 0) {
-      return
-    }
-
-    setMfaBusy(true)
-
-    try {
-      const { error } = await supabase.auth.mfa.challengeAndVerify({
-        factorId: verifiedTotpFactors[0].id,
-        code: mfaChallengeCode.trim(),
-      })
-
-      if (error) {
-        throw error
-      }
-
-      setMfaChallengeCode('')
-      setSecurityState((current) => ({
-        ...current,
-        message: '2FA challenge passed for this session.',
-      }))
-      setSecurityRefreshNonce((current) => current + 1)
-    } catch (error) {
-      setSecurityState((current) => ({ ...current, error: error.message }))
-    } finally {
-      setMfaBusy(false)
-    }
-  }
-
-  const handleRemoveTotp = async (factorId) => {
-    if (!supabase) {
-      return
-    }
-
-    setMfaBusy(true)
-
-    try {
-      const { error } = await supabase.auth.mfa.unenroll({ factorId })
-
-      if (error) {
-        throw error
-      }
-
-      setSecurityState((current) => ({ ...current, message: 'Authenticator factor removed.' }))
-      setSecurityRefreshNonce((current) => current + 1)
-    } catch (error) {
-      setSecurityState((current) => ({ ...current, error: error.message }))
-    } finally {
-      setMfaBusy(false)
-    }
-  }
-
-  if (cloudMode && !authReady) {
-    return <LoadingScreen title="Connecting to Supabase" body="Checking for an existing session." />
-  }
-
-  if (cloudMode && (!session || authMode === 'update-password')) {
+  if (!session || authMode === 'update-password') {
     return (
       <AuthScreen
         authMode={authMode}
@@ -855,6 +582,7 @@ function App() {
         authBusy={authBusy}
         authError={authError}
         authMessage={authMessage}
+        mailboxUrl={authMailboxUrl}
         onFieldChange={updateAuthForm}
         onModeChange={setSignedOutMode}
         onSubmit={handleAuthSubmit}
@@ -862,15 +590,15 @@ function App() {
     )
   }
 
-  if (cloudMode && budgetStatus === 'loading') {
-    return <LoadingScreen title="Loading your budget" body="Pulling your data from Supabase." />
+  if (budgetStatus === 'loading') {
+    return <LoadingScreen title="Loading your budget" body="Pulling your data from the local database." />
   }
 
-  if (cloudMode && budgetStatus === 'error') {
+  if (budgetStatus === 'error') {
     return (
       <LoadingScreen
-        title="Cloud sync failed"
-        body={budgetError || 'Check the Supabase schema and policies.'}
+        title="Local sync failed"
+        body={budgetError || 'Check that the local API server is running and the SQLite database is writable.'}
       />
     )
   }
@@ -879,14 +607,11 @@ function App() {
     <main className="app-shell">
       <section className="panel hero-panel">
         <div className="hero-copy">
-          <p className="eyebrow">
-            {cloudMode ? 'Server-backed budget workspace' : 'Local-first budget workspace'}
-          </p>
+          <p className="eyebrow">SQLite-backed budget workspace</p>
           <h1>Ledger Garden</h1>
           <p className="hero-text">
-            {cloudMode
-              ? 'Your calendar is backed by Supabase Auth and Postgres. Registration, password recovery, and TOTP 2FA are wired into this app shell.'
-              : 'The calendar remains fully usable in local mode. Add Supabase configuration to turn on registration, database sync, and TOTP 2FA without changing the UI.'}
+            Your calendar is backed by a local Node API and SQLite database. Registration,
+            password resets, verification emails, and saved budget data all stay on this machine.
           </p>
         </div>
 
@@ -894,18 +619,8 @@ function App() {
           <button type="button" className="primary-button" onClick={() => setIsMenuOpen(true)}>
             Open budget menu
           </button>
-          <p className="hero-helper">
-            {cloudMode
-              ? `Signed in as ${session.user.email}`
-              : 'Everything is currently stored in this browser only.'}
-          </p>
-          <p className="hero-helper">
-            {cloudMode
-              ? mfaPending
-                ? '2FA verification is still required for this session.'
-                : 'Cloud sync is ready.'
-              : 'Configure Supabase locally or in GitHub Actions to enable accounts and 2FA.'}
-          </p>
+          <p className="hero-helper">{`Signed in as ${session.user.email}`}</p>
+          <p className="hero-helper">Local account storage is ready.</p>
         </div>
       </section>
 
@@ -942,8 +657,9 @@ function App() {
 
       <BudgetDrawer
         isOpen={isMenuOpen}
-        cloudMode={cloudMode}
-        sessionEmail={session?.user?.email ?? ''}
+        sessionEmail={session.user.email}
+        sessionVerifiedAt={session.user.emailVerifiedAt}
+        mailboxUrl={accountMailboxUrl}
         budget={budget}
         budgetBusy={budgetBusy}
         budgetError={budgetError}
@@ -964,20 +680,6 @@ function App() {
         recurringEvents={recurringEvents}
         todayIso={todayIso}
         onDeleteEvent={handleDeleteEvent}
-        securityState={securityState}
-        verifiedTotpFactors={verifiedTotpFactors}
-        mfaPending={mfaPending}
-        mfaBusy={mfaBusy}
-        mfaEnrollment={mfaEnrollment}
-        onMfaEnrollmentCodeChange={(value) =>
-          setMfaEnrollment((current) => ({ ...current, code: value }))
-        }
-        onEnrollTotp={handleEnrollTotp}
-        onVerifyEnrollment={handleVerifyEnrollment}
-        mfaChallengeCode={mfaChallengeCode}
-        onMfaChallengeCodeChange={setMfaChallengeCode}
-        onVerifyExistingFactor={handleVerifyExistingFactor}
-        onRemoveTotp={handleRemoveTotp}
         openingBalanceDisplay={openingBalanceDisplay}
         closingBalanceDisplay={closingBalanceDisplay}
         calendarSummary={calendar.summary}

@@ -53,6 +53,13 @@ button {
   cursor: pointer;
 }
 
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
 #root {
   min-height: 100vh;
 }

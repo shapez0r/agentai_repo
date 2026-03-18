@@ -1,17 +1,16 @@
 # Ledger Garden
 
-Ledger Garden is a React and Vite budget planner backed by Supabase Auth and Postgres. Users can register, sign in, store their budget in the database, and enable TOTP-based two-factor authentication for their account. If Supabase environment variables are missing, the app falls back to local browser storage so the calendar remains usable.
+Ledger Garden is a React and Vite budget planner backed by a local Node API and SQLite database. Accounts, password hashing, email verification, password resets, and saved recurring budget data all run on `localhost`.
 
 ## Features
 
-- Monthly calendar with a balance shown on every active day
-- Recurring schedules for one-time, daily, weekly, biweekly, monthly, and yearly events
-- Positive and negative cash flow tracking in euro
-- Email/password authentication with Supabase
-- Password reset and email verification flow support
-- TOTP 2FA enrollment and session verification
-- Row-level security protected Postgres tables for budgets and recurring events
-- GitHub Pages frontend deployment through GitHub Actions
+- Email and password registration with hashed passwords
+- Local email verification flow
+- Local password reset flow
+- Per-user SQLite budget storage
+- Monthly balance calendar with recurring income and expenses
+- Demo budget loader for quick testing
+- Local mailbox UI for verification and reset links
 
 ## Local Development
 
@@ -21,82 +20,44 @@ Install dependencies:
 npm install
 ```
 
-Create your local environment file:
-
-```bash
-cp .env.example .env.local
-```
-
-Fill in:
-
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
-- `VITE_AUTH_REDIRECT_URL`
-
-Apply the SQL schema in [supabase/schema.sql](/c:/Users/n38fa/agentai_repo/supabase/schema.sql) inside your Supabase project.
-
-Run the app locally:
+Start the local API and frontend together:
 
 ```bash
 npm run dev
 ```
 
-Without Supabase variables, the app will run in local-only mode and persist data to `localStorage`.
+Open:
 
-Build a production bundle:
+- App: `http://localhost:3000`
+- Local mailbox: `http://localhost:3000/api/dev/mailbox`
 
-```bash
-npm run build
-```
+The SQLite database file is created automatically at [`server/data/ledger-garden.sqlite`](/c:/Users/n38fa/agentai_repo/server/data/ledger-garden.sqlite).
 
-Lint the project:
+## Auth Flow
 
-```bash
-npm run lint
-```
+1. Create an account in the app.
+2. Open the local mailbox and click the verification link.
+3. Sign in with the verified account.
+4. Use "Reset password" in the auth screen whenever you want to test recovery.
 
-## Supabase Setup
+All verification and reset emails stay on your machine and are stored in the local mailbox table.
 
-1. Create a Supabase project.
-2. Open the SQL editor and run [supabase/schema.sql](/c:/Users/n38fa/agentai_repo/supabase/schema.sql).
-3. In `Authentication -> URL Configuration`, add your local and production URLs.
-   Local example: `http://localhost:5173/`
-   GitHub Pages example: `https://shapez0r.github.io/agentai_repo/`
-4. In `Authentication -> Providers`, keep Email enabled and choose whether email confirmation is required.
-5. In `Authentication -> Multi-Factor Auth`, enable TOTP.
+## Optional Overrides
 
-The app already includes:
+You can add a `.env.local` file using the values from [`.env.example`](/c:/Users/n38fa/agentai_repo/.env.example) to override:
 
-- sign up
-- sign in
-- password reset email flow
-- TOTP enrollment
-- TOTP session challenge verification
+- app origin
+- API host and port
+- SQLite database path
+- session lifetime
 
-## GitHub Pages Deployment
+No deployment configuration is required for this setup.
 
-This repo includes [`.github/workflows/deploy-pages.yml`](/c:/Users/n38fa/agentai_repo/.github/workflows/deploy-pages.yml), which builds the frontend and deploys `dist/` to GitHub Pages whenever `main` is pushed.
+## Helpful Scripts
 
-GitHub Pages only hosts the frontend. Supabase provides the authentication and database backend.
-
-Before deploying the live site, make sure:
-
-- the Pages URL is listed in Supabase redirect URLs
-- `VITE_AUTH_REDIRECT_URL` matches the live Pages URL
-- the SQL schema is already applied in the target Supabase project
-- repository variable `VITE_SUPABASE_URL` is set in GitHub
-- repository secret `VITE_SUPABASE_ANON_KEY` is set in GitHub
-- repository variable `VITE_AUTH_REDIRECT_URL` is set in GitHub
-
-If those variables are not configured, GitHub Pages will still build successfully, but the deployed app will stay in local-only mode.
-
-## Main Files
-
-- [`src/App.jsx`](/c:/Users/n38fa/agentai_repo/src/App.jsx): auth/session orchestration and cloud-backed app shell
-- [`src/components/AuthScreen.jsx`](/c:/Users/n38fa/agentai_repo/src/components/AuthScreen.jsx): registration, sign-in, and password recovery UI
-- [`src/components/BudgetDrawer.jsx`](/c:/Users/n38fa/agentai_repo/src/components/BudgetDrawer.jsx): account, MFA, settings, and recurring event management
-- [`src/components/CalendarPanel.jsx`](/c:/Users/n38fa/agentai_repo/src/components/CalendarPanel.jsx): main calendar viewport
-- [`src/lib/cloudBudget.js`](/c:/Users/n38fa/agentai_repo/src/lib/cloudBudget.js): Supabase read/write helpers
-- [`src/lib/localBudget.js`](/c:/Users/n38fa/agentai_repo/src/lib/localBudget.js): local browser-storage fallback helpers
-- [`src/lib/supabase.js`](/c:/Users/n38fa/agentai_repo/src/lib/supabase.js): Supabase client bootstrap
-- [`supabase/schema.sql`](/c:/Users/n38fa/agentai_repo/supabase/schema.sql): tables, triggers, and RLS policies
+- `npm run dev`: start frontend and API together
+- `npm run dev:client`: start Vite only
+- `npm run dev:server`: start the local API only
+- `npm run build`: build the frontend
+- `npm run lint`: lint the repo
+- `npm run start:server`: run the API without file watching

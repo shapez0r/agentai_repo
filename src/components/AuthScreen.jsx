@@ -3,25 +3,25 @@ function getModeCopy(mode) {
     case 'sign-up':
       return {
         title: 'Create your account',
-        body: 'We will use Supabase Auth for registration, email verification, password resets, and TOTP-based 2FA.',
+        body: 'Your account will be stored in the local SQLite database. We will send a verification link to the local mailbox on this machine.',
         action: 'Create account',
       }
     case 'forgot-password':
       return {
         title: 'Reset your password',
-        body: 'We will send a reset link to your email. The link should point back to this app.',
+        body: 'We will place a password reset link in the local mailbox so you can finish the flow without leaving localhost.',
         action: 'Send reset link',
       }
     case 'update-password':
       return {
         title: 'Choose a new password',
-        body: 'You came in through a recovery link. Set a new password to finish the recovery flow.',
+        body: 'Your reset link is active. Set a new password to finish the local recovery flow.',
         action: 'Update password',
       }
     default:
       return {
         title: 'Sign in to Ledger Garden',
-        body: 'Your budget data will load from Supabase after authentication, and 2FA can be completed from the security panel.',
+        body: 'This build runs against a local API and SQLite database. Sign in to load your saved budget data.',
         action: 'Sign in',
       }
   }
@@ -45,6 +45,7 @@ export default function AuthScreen({
   authBusy,
   authError,
   authMessage,
+  mailboxUrl,
   onFieldChange,
   onModeChange,
   onSubmit,
@@ -58,7 +59,7 @@ export default function AuthScreen({
     <main className="auth-shell">
       <section className="panel auth-card">
         <div className="auth-copy">
-          <p className="eyebrow">Supabase auth</p>
+          <p className="eyebrow">Local auth</p>
           <h1>{copy.title}</h1>
           <p className="auth-text">{copy.body}</p>
         </div>
@@ -99,9 +100,7 @@ export default function AuthScreen({
               <span className="field-label">Password</span>
               <input
                 type="password"
-                autoComplete={
-                  authMode === 'sign-in' ? 'current-password' : 'new-password'
-                }
+                autoComplete={authMode === 'sign-in' ? 'current-password' : 'new-password'}
                 value={authForm.password}
                 onChange={(event) => onFieldChange('password', event.target.value)}
               />
@@ -130,6 +129,15 @@ export default function AuthScreen({
               {authBusy ? 'Working...' : copy.action}
             </button>
 
+            <a
+              href={mailboxUrl}
+              className="ghost-button button-link"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open local mailbox
+            </a>
+
             {authMode === 'update-password' ? (
               <button
                 type="button"
@@ -143,8 +151,8 @@ export default function AuthScreen({
         </form>
 
         <p className="auth-footnote">
-          After sign-in, the app will load your server-backed budget profile and recurring
-          events. TOTP 2FA enrollment and verification live inside the budget menu.
+          Verification and password reset emails are captured locally. Use the mailbox to open
+          links instead of waiting for a real email provider.
         </p>
       </section>
     </main>
