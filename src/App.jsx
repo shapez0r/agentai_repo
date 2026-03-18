@@ -3,6 +3,7 @@ import AuthScreen from './components/AuthScreen.jsx'
 import BudgetDrawer from './components/BudgetDrawer.jsx'
 import CalendarPanel from './components/CalendarPanel.jsx'
 import {
+  DEFAULT_EVENT_ICON,
   addMonths,
   buildCalendarModel,
   createDefaultBudgetState,
@@ -11,7 +12,10 @@ import {
   formatLongDate,
   formatShortDate,
   formatSignedCurrency,
+  getDefaultScheduleType,
   getNextOccurrence,
+  getWeekdayOrdinalForDate,
+  getWeekdayValueForDate,
   parseISODate,
   startOfMonth,
   startOfToday,
@@ -31,6 +35,7 @@ import {
   saveOpeningSettings,
   signInWithPassword,
   signOut,
+  updateRecurringEvent,
 } from './lib/localApi.js'
 
 const DEFAULT_AUTH_FORM = {
@@ -40,13 +45,46 @@ const DEFAULT_AUTH_FORM = {
 }
 
 function createDefaultEventForm() {
+  const todayIso = toISODate(startOfToday())
+
   return {
     title: '',
     amount: '',
     direction: 'expense',
     frequency: 'monthly',
-    startDate: toISODate(startOfToday()),
+    intervalWeeks: '1',
+    scheduleType: getDefaultScheduleType('monthly'),
+    weekday: getWeekdayValueForDate(todayIso),
+    weekdayOrdinal: getWeekdayOrdinalForDate(todayIso),
+    icon: DEFAULT_EVENT_ICON,
+    startDate: todayIso,
     endDate: '',
+  }
+}
+
+function resolveEventScheduleType(frequency, currentScheduleType = 'date') {
+  if (frequency === 'monthly' || frequency === 'yearly') {
+    return currentScheduleType === 'weekday' ? 'weekday' : 'date'
+  }
+
+  return getDefaultScheduleType(frequency)
+}
+
+function createEventFormFromEvent(event) {
+  const frequency = event.frequency === 'biweekly' ? 'weekly' : event.frequency
+
+  return {
+    title: event.title,
+    amount: Math.abs(Number(event.amount)).toString(),
+    direction: Number(event.amount) < 0 ? 'expense' : 'income',
+    frequency,
+    intervalWeeks: event.frequency === 'biweekly' ? '2' : '1',
+    scheduleType: resolveEventScheduleType(frequency, event.scheduleType),
+    weekday: event.weekday || getWeekdayValueForDate(event.startDate),
+    weekdayOrdinal: event.weekdayOrdinal || getWeekdayOrdinalForDate(event.startDate),
+    icon: event.icon || DEFAULT_EVENT_ICON,
+    startDate: event.startDate,
+    endDate: event.endDate || '',
   }
 }
 
@@ -123,6 +161,7 @@ function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   const [eventForm, setEventForm] = useState(createDefaultEventForm)
+  const [editingEventId, setEditingEventId] = useState('')
   const [formError, setFormError] = useState('')
   const [eventMutationId, setEventMutationId] = useState('')
 
@@ -199,6 +238,8 @@ function App() {
         setSavedOpeningSettings(getOpeningSettings(loadedBudget))
         setViewMonth(startOfMonth(parseISODate(loadedBudget.openingDate) ?? parseISODate(todayIso) ?? startOfToday()))
         setSelectedDate(todayIso)
+        setEditingEventId('')
+        setEventForm(createDefaultEventForm())
         setBudgetStatus('ready')
       } catch (error) {
         if (ignore) {
@@ -321,6 +362,7 @@ function App() {
     setBudgetMessage('')
     setSavedOpeningSettings(getOpeningSettings(freshBudget))
     setEventForm(createDefaultEventForm())
+    setEditingEventId('')
     setFormError('')
     setEventMutationId('')
     setIsMenuOpen(false)
@@ -343,8 +385,35 @@ function App() {
     setBudgetMessage('')
     setEventForm((current) => ({
       ...current,
-      [field]: value,
-      endDate: field === 'frequency' && value === 'once' ? '' : current.endDate,
+      ...(field === 'frequency'
+        ? {
+            frequency: value,
+            intervalWeeks: value === 'weekly' ? current.intervalWeeks : '1',
+            scheduleType:
+              value === 'monthly' || value === 'yearly'
+                ? current.frequency === value
+                  ? resolveEventScheduleType(value, current.scheduleType)
+                  : 'date'
+                : getDefaultScheduleType(value),
+            weekday: current.weekday || getWeekdayValueForDate(current.startDate),
+            weekdayOrdinal: current.weekdayOrdinal || getWeekdayOrdinalForDate(current.startDate),
+            endDate: value === 'once' ? '' : current.endDate,
+          }
+        : field === 'startDate'
+          ? {
+              startDate: value,
+              weekday: getWeekdayValueForDate(value),
+              weekdayOrdinal: getWeekdayOrdinalForDate(value),
+            }
+        : field === 'scheduleType'
+          ? {
+              scheduleType: resolveEventScheduleType(current.frequency, value),
+              weekday: current.weekday || getWeekdayValueForDate(current.startDate),
+              weekdayOrdinal: current.weekdayOrdinal || getWeekdayOrdinalForDate(current.startDate),
+            }
+          : {
+              [field]: value,
+            }),
     }))
   }
 
@@ -442,7 +511,7 @@ function App() {
     }
   }
 
-  const handleAddEvent = async (event) => {
+  const handleSubmitEvent = async (event) => {
     event.preventDefault()
 
     const title = eventForm.title.trim()
@@ -463,35 +532,84 @@ function App() {
       return
     }
 
+    if (
+      (eventForm.frequency === 'weekly' ||
+        eventForm.frequency === 'biweekly' ||
+        (eventForm.scheduleType === 'weekday' &&
+          (eventForm.frequency === 'monthly' || eventForm.frequency === 'yearly'))) &&
+      !eventForm.weekday
+    ) {
+      setFormError('Choose which day of the week the event should land on.')
+      return
+    }
+
+    if (
+      (eventForm.frequency === 'monthly' || eventForm.frequency === 'yearly') &&
+      eventForm.scheduleType === 'weekday' &&
+      !eventForm.weekdayOrdinal
+    ) {
+      setFormError('Choose which week of the month the event should land on.')
+      return
+    }
+
     const amount =
       eventForm.direction === 'expense' ? -Math.abs(unsignedAmount) : Math.abs(unsignedAmount)
+    const eventFrequency =
+      eventForm.frequency === 'weekly' && eventForm.intervalWeeks === '2'
+        ? 'biweekly'
+        : eventForm.frequency
+    const scheduleType = resolveEventScheduleType(eventFrequency, eventForm.scheduleType)
+    const payload = {
+      title,
+      amount,
+      frequency: eventFrequency,
+      scheduleType,
+      weekday: eventForm.weekday || getWeekdayValueForDate(eventForm.startDate),
+      weekdayOrdinal: eventForm.weekdayOrdinal || getWeekdayOrdinalForDate(eventForm.startDate),
+      icon: eventForm.icon,
+      startDate: eventForm.startDate,
+      endDate: eventForm.frequency === 'once' ? '' : eventForm.endDate,
+    }
+    const mutationId = editingEventId || 'create'
 
-    setEventMutationId('create')
+    setEventMutationId(mutationId)
 
     try {
-      const createdEvent = await createRecurringEvent({
-        title,
-        amount,
-        frequency: eventForm.frequency,
-        startDate: eventForm.startDate,
-        endDate: eventForm.frequency === 'once' ? '' : eventForm.endDate,
-      })
+      const savedEvent = editingEventId
+        ? await updateRecurringEvent(editingEventId, payload)
+        : await createRecurringEvent(payload)
 
       setBudget((current) => ({
         ...current,
-        events: [...current.events, createdEvent],
+        events: editingEventId
+          ? current.events.map((item) => (item.id === editingEventId ? savedEvent : item))
+          : [...current.events, savedEvent],
       }))
-      setEventForm((current) => ({
-        ...current,
-        title: '',
-        amount: '',
-      }))
-      setBudgetMessage('Recurring event saved to the local database.')
+      setEventForm(createDefaultEventForm())
+      setEditingEventId('')
+      setBudgetMessage(
+        editingEventId
+          ? 'Recurring event updated in the local database.'
+          : 'Recurring event saved to the local database.',
+      )
     } catch (error) {
       setFormError(error.message)
     } finally {
       setEventMutationId('')
     }
+  }
+
+  const handleEditEvent = (event) => {
+    setFormError('')
+    setBudgetMessage('')
+    setEditingEventId(event.id)
+    setEventForm(createEventFormFromEvent(event))
+  }
+
+  const handleCancelEventEdit = () => {
+    setEditingEventId('')
+    setFormError('')
+    setEventForm(createDefaultEventForm())
   }
 
   const handleDeleteEvent = async (eventId) => {
@@ -503,6 +621,11 @@ function App() {
         ...current,
         events: current.events.filter((event) => event.id !== eventId),
       }))
+      if (editingEventId === eventId) {
+        setEditingEventId('')
+        setEventForm(createDefaultEventForm())
+        setFormError('')
+      }
       setBudgetMessage('Recurring event deleted.')
     } catch (error) {
       setBudgetError(error.message)
@@ -526,6 +649,7 @@ function App() {
       setSelectedDate(toISODate(openingDate))
       setBudgetMessage(successMessage)
       setEventForm(createDefaultEventForm())
+      setEditingEventId('')
       setFormError('')
     } catch (error) {
       setBudgetError(error.message)
@@ -605,30 +729,13 @@ function App() {
 
   return (
     <main className="app-shell">
-      <section className="panel hero-panel">
-        <div className="hero-copy">
-          <p className="eyebrow">SQLite-backed budget workspace</p>
-          <h1>Ledger Garden</h1>
-          <p className="hero-text">
-            Your calendar is backed by a local Node API and SQLite database. Registration,
-            password resets, verification emails, and saved budget data all stay on this machine.
-          </p>
-        </div>
-
-        <div className="hero-actions">
-          <button type="button" className="primary-button" onClick={() => setIsMenuOpen(true)}>
-            Open budget menu
-          </button>
-          <p className="hero-helper">{`Signed in as ${session.user.email}`}</p>
-          <p className="hero-helper">Local account storage is ready.</p>
-        </div>
-      </section>
-
       <CalendarPanel
+        sessionEmail={session.user.email}
         budget={budget}
         calendar={calendar}
         todayIso={todayIso}
         selectedDayIso={selectedDayIso}
+        closingBalanceDisplay={closingBalanceDisplay}
         onDaySelect={(day) => {
           setSelectedDate(day.iso)
 
@@ -672,10 +779,13 @@ function App() {
         onUpdateBudgetValue={updateBudgetValue}
         onSaveOpeningSettings={handleSaveOpeningSettings}
         eventForm={eventForm}
+        editingEventId={editingEventId}
         formError={formError}
         eventMutationId={eventMutationId}
         onUpdateEventForm={updateEventForm}
-        onAddEvent={handleAddEvent}
+        onSubmitEvent={handleSubmitEvent}
+        onEditEvent={handleEditEvent}
+        onCancelEventEdit={handleCancelEventEdit}
         selectedDay={selectedDay}
         recurringEvents={recurringEvents}
         todayIso={todayIso}

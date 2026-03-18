@@ -1,12 +1,28 @@
+import EventIcon from './EventIcon.jsx'
 import {
-  FREQUENCY_OPTIONS,
+  EVENT_ICON_OPTIONS,
+  WEEKDAY_OPTIONS,
   describeFrequency,
   formatCurrency,
   formatLongDate,
   formatShortDate,
   formatSignedCurrency,
   getNextOccurrence,
+  getWeekdayLabel,
 } from '../lib/budget.js'
+
+const EVENT_REPEAT_OPTIONS = [
+  { value: 'once', label: 'One time' },
+  { value: 'monthly', label: 'Monthly' },
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'daily', label: 'Daily' },
+  { value: 'yearly', label: 'Yearly' },
+]
+
+const WEEK_INTERVAL_OPTIONS = [
+  { value: '1', label: '1 week' },
+  { value: '2', label: '2 weeks' },
+]
 
 function SummaryCard({ label, value, detail, tone = 'neutral' }) {
   return (
@@ -32,6 +48,222 @@ function formatVerificationDate(value) {
   return new Date(value).toLocaleDateString('en-IE')
 }
 
+function getPreviewFrequency(eventForm) {
+  return eventForm.frequency === 'weekly' && eventForm.intervalWeeks === '2'
+    ? 'biweekly'
+    : eventForm.frequency
+}
+
+function buildSchedulePreview(eventForm) {
+  if (eventForm.frequency === 'monthly' && eventForm.scheduleType !== 'weekday') {
+    return 'Monthly at this date'
+  }
+
+  if (eventForm.frequency === 'weekly') {
+    const weekdayLabel = getWeekdayLabel(eventForm.weekday) || 'this weekday'
+    const intervalLabel = eventForm.intervalWeeks === '2' ? 'Every 2 weeks' : 'Every week'
+
+    return `Every ${weekdayLabel} | ${intervalLabel}`
+  }
+
+  if (
+    (eventForm.frequency === 'monthly' || eventForm.frequency === 'yearly') &&
+    eventForm.scheduleType === 'weekday'
+  ) {
+    return `Legacy rule | ${describeFrequency({
+      title: 'Preview',
+      amount: 1,
+      frequency: getPreviewFrequency(eventForm),
+      scheduleType: eventForm.scheduleType,
+      weekday: eventForm.weekday,
+      weekdayOrdinal: eventForm.weekdayOrdinal,
+      icon: eventForm.icon,
+      startDate: eventForm.startDate,
+      endDate: eventForm.endDate,
+    })}`
+  }
+
+  return describeFrequency({
+    title: 'Preview',
+    amount: 1,
+    frequency: getPreviewFrequency(eventForm),
+    scheduleType: eventForm.scheduleType,
+    weekday: eventForm.weekday,
+    weekdayOrdinal: eventForm.weekdayOrdinal,
+    icon: eventForm.icon,
+    startDate: eventForm.startDate,
+    endDate: eventForm.endDate,
+  })
+}
+
+function StaticField({ label, value }) {
+  return (
+    <div className="field field-static">
+      <span className="field-label">{label}</span>
+      <div className="field-note">{value}</div>
+    </div>
+  )
+}
+
+function EventRuleFields({ eventForm, onUpdateEventForm }) {
+  const isMonthlyOrYearly = eventForm.frequency === 'monthly' || eventForm.frequency === 'yearly'
+  const isLegacyWeekdayPattern = isMonthlyOrYearly && eventForm.scheduleType === 'weekday'
+  const showEndDate = eventForm.frequency !== 'once'
+
+  return (
+    <>
+      <div className="field-grid">
+        <label className="field">
+          <span className="field-label">Repeat</span>
+          <select
+            value={eventForm.frequency}
+            onChange={(event) => onUpdateEventForm('frequency', event.target.value)}
+          >
+            {EVENT_REPEAT_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="field">
+          <span className="field-label">Starting date</span>
+          <input
+            type="date"
+            value={eventForm.startDate}
+            onChange={(event) => onUpdateEventForm('startDate', event.target.value)}
+          />
+        </label>
+      </div>
+
+      {eventForm.frequency === 'weekly' ? (
+        <>
+          <div className="field-grid">
+            <label className="field">
+              <span className="field-label">Every</span>
+              <select
+                value={eventForm.weekday}
+                onChange={(event) => onUpdateEventForm('weekday', event.target.value)}
+              >
+                {WEEKDAY_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="field">
+              <span className="field-label">Week interval</span>
+              <select
+                value={eventForm.intervalWeeks}
+                onChange={(event) => onUpdateEventForm('intervalWeeks', event.target.value)}
+              >
+                {WEEK_INTERVAL_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          {showEndDate ? (
+            <label className="field">
+              <span className="field-label">End date (optional)</span>
+              <input
+                type="date"
+                value={eventForm.endDate}
+                onChange={(event) => onUpdateEventForm('endDate', event.target.value)}
+              />
+            </label>
+          ) : null}
+        </>
+      ) : null}
+
+      {eventForm.frequency === 'monthly' ? (
+        <div className="field-grid">
+          <StaticField
+            label={isLegacyWeekdayPattern ? 'Legacy rule' : 'Rule'}
+            value={isLegacyWeekdayPattern ? buildSchedulePreview(eventForm) : 'Monthly at this date'}
+          />
+
+          {showEndDate ? (
+            <label className="field">
+              <span className="field-label">End date (optional)</span>
+              <input
+                type="date"
+                value={eventForm.endDate}
+                onChange={(event) => onUpdateEventForm('endDate', event.target.value)}
+              />
+            </label>
+          ) : null}
+        </div>
+      ) : null}
+
+      {eventForm.frequency === 'daily' ? (
+        <div className="field-grid">
+          <StaticField label="Rule" value="Every day" />
+
+          {showEndDate ? (
+            <label className="field">
+              <span className="field-label">End date (optional)</span>
+              <input
+                type="date"
+                value={eventForm.endDate}
+                onChange={(event) => onUpdateEventForm('endDate', event.target.value)}
+              />
+            </label>
+          ) : null}
+        </div>
+      ) : null}
+
+      {eventForm.frequency === 'yearly' ? (
+        <div className="field-grid">
+          <StaticField
+            label={isLegacyWeekdayPattern ? 'Legacy rule' : 'Rule'}
+            value={isLegacyWeekdayPattern ? buildSchedulePreview(eventForm) : 'Yearly on this date'}
+          />
+
+          {showEndDate ? (
+            <label className="field">
+              <span className="field-label">End date (optional)</span>
+              <input
+                type="date"
+                value={eventForm.endDate}
+                onChange={(event) => onUpdateEventForm('endDate', event.target.value)}
+              />
+            </label>
+          ) : null}
+        </div>
+      ) : null}
+    </>
+  )
+}
+
+function IconPicker({ value, onChange }) {
+  return (
+    <div className="field">
+      <span className="field-label">Icon</span>
+      <div className="icon-grid" role="list" aria-label="Event icon options">
+        {EVENT_ICON_OPTIONS.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            className={`icon-option ${value === option.value ? 'is-selected' : ''}`}
+            aria-pressed={value === option.value}
+            onClick={() => onChange(option.value)}
+          >
+            <EventIcon icon={option.value} />
+            <span className="icon-option-label">{option.label}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function BudgetDrawer({
   isOpen,
   sessionEmail,
@@ -49,10 +281,13 @@ export default function BudgetDrawer({
   onUpdateBudgetValue,
   onSaveOpeningSettings,
   eventForm,
+  editingEventId,
   formError,
   eventMutationId,
   onUpdateEventForm,
-  onAddEvent,
+  onSubmitEvent,
+  onEditEvent,
+  onCancelEventEdit,
   selectedDay,
   recurringEvents,
   todayIso,
@@ -61,21 +296,32 @@ export default function BudgetDrawer({
   closingBalanceDisplay,
   calendarSummary,
 }) {
+  const isEditingEvent = Boolean(editingEventId)
+  const isSavingEvent = eventMutationId === (editingEventId || 'create')
+  const schedulePreview = buildSchedulePreview(eventForm)
+  const scheduleWindow = [
+    eventForm.startDate ? `Starts ${formatShortDate(eventForm.startDate)}` : '',
+    eventForm.endDate ? `Ends ${formatShortDate(eventForm.endDate)}` : '',
+  ]
+    .filter(Boolean)
+    .join(' | ')
+
   return (
     <div className={`menu-shell ${isOpen ? 'is-open' : ''}`} aria-hidden={!isOpen}>
       <button
         type="button"
         className="menu-backdrop"
-        aria-label="Close budget menu"
+        aria-label="Close workspace menu"
         tabIndex={isOpen ? 0 : -1}
         onClick={onClose}
       />
 
-      <aside className="menu-drawer" role="dialog" aria-modal="true" aria-label="Budget menu">
+      <aside className="menu-drawer" role="dialog" aria-modal="true" aria-label="Workspace menu">
         <div className="menu-header">
           <div>
-            <p className="section-kicker">Budget menu</p>
-            <h2>Account and data</h2>
+            <p className="section-kicker">Workspace</p>
+            <h2>Budget controls</h2>
+            <p className="menu-subtitle">{sessionEmail}</p>
           </div>
 
           <button type="button" className="ghost-button ghost-button-small" onClick={onClose}>
@@ -84,174 +330,75 @@ export default function BudgetDrawer({
         </div>
 
         <div className="menu-body">
-          <section className="drawer-card">
-            <div className="panel-heading panel-heading-compact">
-              <div>
-                <p className="section-kicker">Account</p>
-                <h3>{sessionEmail}</h3>
-              </div>
-              <button
-                type="button"
-                className="ghost-button ghost-button-small"
-                disabled={budgetBusy}
-                onClick={onSignOut}
-              >
-                Sign out
-              </button>
-            </div>
-
-            <div className="detail-balance-row">
-              <article className="detail-stat">
-                <span className="detail-label">Storage</span>
-                <p className="detail-value">SQLite on localhost</p>
-              </article>
-
-              <article className="detail-stat">
-                <span className="detail-label">Email verified</span>
-                <p className="detail-value">{formatVerificationDate(sessionVerifiedAt)}</p>
-              </article>
-            </div>
-
-            <p className="helper-copy">
-              Verification and password reset links stay on this machine. Open the mailbox any
-              time to inspect recent messages for this account.
-            </p>
-
-            <div className="section-actions">
-              <a
-                href={mailboxUrl}
-                className="ghost-button button-link"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Open local mailbox
-              </a>
-            </div>
-          </section>
-
           {budgetError ? <p className="status-banner status-banner-error">{budgetError}</p> : null}
           {budgetMessage ? <p className="status-banner status-banner-success">{budgetMessage}</p> : null}
 
-          <div className="drawer-summary" aria-label="Month summary">
-            <SummaryCard
-              label="Opening balance"
-              value={openingBalanceDisplay}
-              detail="Balance before this month's scheduled transactions."
-            />
-            <SummaryCard
-              label="Inflow this month"
-              value={formatSignedCurrency(calendarSummary.income)}
-              detail="Recurring income scheduled inside the visible month."
-              tone="positive"
-            />
-            <SummaryCard
-              label="Outflow this month"
-              value={formatSignedCurrency(calendarSummary.expenses)}
-              detail="Recurring costs scheduled inside the visible month."
-              tone="negative"
-            />
-            <SummaryCard
-              label="Closing balance"
-              value={closingBalanceDisplay}
-              detail={
-                calendarSummary.hasActiveDays
-                  ? `Net change ${formatSignedCurrency(calendarSummary.net)}`
-                  : `Budget starts ${formatShortDate(budget.openingDate)}`
-              }
-              tone="accent"
-            />
-          </div>
-
-          <div className="menu-quick-actions">
-            <button
-              type="button"
-              className="primary-button"
-              disabled={budgetBusy}
-              onClick={onLoadDemoBudget}
-            >
-              Load demo budget
-            </button>
-            <button
-              type="button"
-              className="ghost-button"
-              disabled={budgetBusy}
-              onClick={onResetBudget}
-            >
-              Reset saved budget
-            </button>
-          </div>
-
           <section className="drawer-card">
             <div className="panel-heading panel-heading-compact">
               <div>
-                <p className="section-kicker">Budget baseline</p>
-                <h3>Opening settings</h3>
+                <p className="section-kicker">Month snapshot</p>
+                <h3>{calendarSummary.hasActiveDays ? 'Active month' : 'Waiting to start'}</h3>
               </div>
             </div>
 
-            <div className="field-grid">
-              <label className="field">
-                <span className="field-label">Opening balance</span>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={budget.openingBalance}
-                  onChange={(event) =>
-                    onUpdateBudgetValue(
-                      'openingBalance',
-                      event.target.value === '' ? 0 : Number(event.target.value),
-                    )
-                  }
-                />
-              </label>
-
-              <label className="field">
-                <span className="field-label">Opening date</span>
-                <input
-                  type="date"
-                  value={budget.openingDate}
-                  onChange={(event) => onUpdateBudgetValue('openingDate', event.target.value)}
-                />
-              </label>
-            </div>
-
-            <p className="helper-copy">
-              Opening settings update the calendar instantly in the browser, and the Save button
-              writes them back to the local SQLite database.
-            </p>
-
-            <div className="section-actions">
-              <button
-                type="button"
-                className="primary-button"
-                disabled={budgetBusy || !openingSettingsDirty}
-                onClick={onSaveOpeningSettings}
-              >
-                {budgetBusy ? 'Saving...' : 'Save opening settings'}
-              </button>
-              {openingSettingsDirty ? (
-                <span className="detail-item-meta">Unsaved opening settings</span>
-              ) : (
-                <span className="detail-item-meta">Opening settings are synced</span>
-              )}
+            <div className="drawer-summary" aria-label="Month summary">
+              <SummaryCard
+                label="Opening balance"
+                value={openingBalanceDisplay}
+                detail="Balance before this month's scheduled transactions."
+              />
+              <SummaryCard
+                label="Inflow"
+                value={formatSignedCurrency(calendarSummary.income)}
+                detail="Recurring income inside the visible month."
+                tone="positive"
+              />
+              <SummaryCard
+                label="Outflow"
+                value={formatSignedCurrency(calendarSummary.expenses)}
+                detail="Recurring costs inside the visible month."
+                tone="negative"
+              />
+              <SummaryCard
+                label="Closing balance"
+                value={closingBalanceDisplay}
+                detail={
+                  calendarSummary.hasActiveDays
+                    ? `Net change ${formatSignedCurrency(calendarSummary.net)}`
+                    : `Budget starts ${formatShortDate(budget.openingDate)}`
+                }
+                tone="accent"
+              />
             </div>
           </section>
 
           <section className="drawer-card">
             <div className="panel-heading panel-heading-compact">
               <div>
-                <p className="section-kicker">Add recurring event</p>
-                <h3>Schedule cash flow</h3>
+                <p className="section-kicker">
+                  {isEditingEvent ? 'Edit recurring event' : 'Add recurring event'}
+                </p>
+                <h3>{isEditingEvent ? 'Update cash flow' : 'Schedule cash flow'}</h3>
               </div>
+
+              {isEditingEvent ? (
+                <button
+                  type="button"
+                  className="ghost-button ghost-button-small"
+                  onClick={onCancelEventEdit}
+                >
+                  Cancel edit
+                </button>
+              ) : null}
             </div>
 
-            <form className="event-form" onSubmit={onAddEvent}>
+            <form className="event-form" onSubmit={onSubmitEvent}>
               <label className="field">
                 <span className="field-label">Label</span>
                 <input
                   type="text"
                   value={eventForm.title}
-                  placeholder="Salary, rent, internal bill..."
+                  placeholder="Salary, rent, subscriptions"
                   onChange={(event) => onUpdateEventForm('title', event.target.value)}
                 />
               </label>
@@ -281,46 +428,30 @@ export default function BudgetDrawer({
                 </label>
               </div>
 
-              <div className="field-grid">
-                <label className="field">
-                  <span className="field-label">Repeat</span>
-                  <select
-                    value={eventForm.frequency}
-                    onChange={(event) => onUpdateEventForm('frequency', event.target.value)}
-                  >
-                    {FREQUENCY_OPTIONS.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+              <EventRuleFields eventForm={eventForm} onUpdateEventForm={onUpdateEventForm} />
 
-                <label className="field">
-                  <span className="field-label">Start date</span>
-                  <input
-                    type="date"
-                    value={eventForm.startDate}
-                    onChange={(event) => onUpdateEventForm('startDate', event.target.value)}
-                  />
-                </label>
-              </div>
+              <IconPicker value={eventForm.icon} onChange={(icon) => onUpdateEventForm('icon', icon)} />
 
-              <label className="field">
-                <span className="field-label">End date (optional)</span>
-                <input
-                  type="date"
-                  value={eventForm.endDate}
-                  disabled={eventForm.frequency === 'once'}
-                  onChange={(event) => onUpdateEventForm('endDate', event.target.value)}
-                />
-              </label>
+              <p className="helper-copy helper-copy-compact">
+                {schedulePreview}
+                {scheduleWindow ? ` | ${scheduleWindow}` : ''}
+              </p>
 
               {formError ? <p className="status-banner status-banner-error">{formError}</p> : null}
 
-              <button type="submit" className="primary-button" disabled={eventMutationId === 'create'}>
-                {eventMutationId === 'create' ? 'Saving...' : 'Add to calendar'}
-              </button>
+              <div className="section-actions">
+                <button type="submit" className="primary-button" disabled={isSavingEvent}>
+                  {isSavingEvent
+                    ? 'Saving...'
+                    : isEditingEvent
+                      ? 'Save changes'
+                      : 'Add to calendar'}
+                </button>
+
+                <span className="detail-item-meta">
+                  {isEditingEvent ? 'Editing the selected rule' : 'New rules save directly to your account'}
+                </span>
+              </div>
             </form>
           </section>
 
@@ -361,11 +492,12 @@ export default function BudgetDrawer({
                   <ul className="detail-list">
                     {selectedDay.events.map((occurrence) => (
                       <li key={`${selectedDay.iso}-${occurrence.id}`} className="detail-item">
-                        <div>
-                          <p className="detail-item-title">{occurrence.title}</p>
-                          <p className="detail-item-meta">
-                            {describeFrequency(occurrence)} - lands on this date
-                          </p>
+                        <div className="event-heading">
+                          <EventIcon icon={occurrence.icon} />
+                          <div>
+                            <p className="detail-item-title">{occurrence.title}</p>
+                            <p className="detail-item-meta">{describeFrequency(occurrence)}</p>
+                          </div>
                         </div>
                         <AmountBadge amount={occurrence.amount} />
                       </li>
@@ -396,18 +528,28 @@ export default function BudgetDrawer({
               <div className="event-list">
                 {recurringEvents.map((event) => {
                   const nextOccurrence = getNextOccurrence(event, todayIso)
+                  const isBusy = eventMutationId === event.id
 
                   return (
-                    <article key={event.id} className="event-row">
+                    <article
+                      key={event.id}
+                      className={`event-row ${editingEventId === event.id ? 'is-editing' : ''}`}
+                    >
                       <div className="event-row-main">
                         <div className="event-row-top">
-                          <p className="event-title">{event.title}</p>
+                          <div className="event-heading">
+                            <EventIcon icon={event.icon} />
+                            <div>
+                              <p className="event-title">{event.title}</p>
+                              <p className="event-meta">{describeFrequency(event)}</p>
+                            </div>
+                          </div>
                           <AmountBadge amount={event.amount} />
                         </div>
 
                         <p className="event-meta">
-                          {describeFrequency(event)} - starts {formatShortDate(event.startDate)}
-                          {event.endDate ? ` - ends ${formatShortDate(event.endDate)}` : ''}
+                          Starts {formatShortDate(event.startDate)}
+                          {event.endDate ? ` | Ends ${formatShortDate(event.endDate)}` : ''}
                         </p>
                         <p className="event-meta">
                           {nextOccurrence
@@ -416,19 +558,135 @@ export default function BudgetDrawer({
                         </p>
                       </div>
 
-                      <button
-                        type="button"
-                        className="ghost-button ghost-button-small"
-                        disabled={eventMutationId === event.id}
-                        onClick={() => onDeleteEvent(event.id)}
-                      >
-                        {eventMutationId === event.id ? 'Deleting...' : 'Delete'}
-                      </button>
+                      <div className="event-row-actions">
+                        <button
+                          type="button"
+                          className="ghost-button ghost-button-small"
+                          disabled={isBusy}
+                          onClick={() => onEditEvent(event)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          className="ghost-button ghost-button-small"
+                          disabled={isBusy}
+                          onClick={() => onDeleteEvent(event.id)}
+                        >
+                          {isBusy ? 'Deleting...' : 'Delete'}
+                        </button>
+                      </div>
                     </article>
                   )
                 })}
               </div>
             )}
+          </section>
+
+          <section className="drawer-card">
+            <div className="panel-heading panel-heading-compact">
+              <div>
+                <p className="section-kicker">Opening settings</p>
+                <h3>Budget baseline</h3>
+              </div>
+            </div>
+
+            <div className="field-grid">
+              <label className="field">
+                <span className="field-label">Opening balance</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={budget.openingBalance}
+                  onChange={(event) =>
+                    onUpdateBudgetValue(
+                      'openingBalance',
+                      event.target.value === '' ? 0 : Number(event.target.value),
+                    )
+                  }
+                />
+              </label>
+
+              <label className="field">
+                <span className="field-label">Opening date</span>
+                <input
+                  type="date"
+                  value={budget.openingDate}
+                  onChange={(event) => onUpdateBudgetValue('openingDate', event.target.value)}
+                />
+              </label>
+            </div>
+
+            <div className="section-actions">
+              <button
+                type="button"
+                className="primary-button"
+                disabled={budgetBusy || !openingSettingsDirty}
+                onClick={onSaveOpeningSettings}
+              >
+                {budgetBusy ? 'Saving...' : 'Save opening settings'}
+              </button>
+
+              <span className="detail-item-meta">
+                {openingSettingsDirty ? 'Unsaved changes' : 'Saved'}
+              </span>
+            </div>
+          </section>
+
+          <section className="drawer-card">
+            <div className="panel-heading panel-heading-compact">
+              <div>
+                <p className="section-kicker">Account and tools</p>
+                <h3>{sessionEmail}</h3>
+              </div>
+              <button
+                type="button"
+                className="ghost-button ghost-button-small"
+                disabled={budgetBusy}
+                onClick={onSignOut}
+              >
+                Sign out
+              </button>
+            </div>
+
+            <div className="detail-balance-row">
+              <article className="detail-stat">
+                <span className="detail-label">Storage</span>
+                <p className="detail-value">SQLite on this machine</p>
+              </article>
+
+              <article className="detail-stat">
+                <span className="detail-label">Email verified</span>
+                <p className="detail-value">{formatVerificationDate(sessionVerifiedAt)}</p>
+              </article>
+            </div>
+
+            <div className="section-actions">
+              <a
+                href={mailboxUrl}
+                className="ghost-button button-link"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Open local mailbox
+              </a>
+              <button
+                type="button"
+                className="ghost-button"
+                disabled={budgetBusy}
+                onClick={onLoadDemoBudget}
+              >
+                Load demo budget
+              </button>
+              <button
+                type="button"
+                className="ghost-button"
+                disabled={budgetBusy}
+                onClick={onResetBudget}
+              >
+                Reset saved budget
+              </button>
+            </div>
           </section>
         </div>
       </aside>

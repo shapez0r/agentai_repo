@@ -1,8 +1,46 @@
+import EventIcon from './EventIcon.jsx'
+
+function IconButton({ label, onClick, children }) {
+  return (
+    <button type="button" className="toolbar-icon-button" aria-label={label} onClick={onClick}>
+      {children}
+    </button>
+  )
+}
+
+function MenuIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+      <path d="M4 7h16" />
+      <path d="M4 12h16" />
+      <path d="M4 17h16" />
+    </svg>
+  )
+}
+
+function ChevronLeftIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m15 18-6-6 6-6" />
+    </svg>
+  )
+}
+
+function ChevronRightIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m9 18 6-6-6-6" />
+    </svg>
+  )
+}
+
 export default function CalendarPanel({
+  sessionEmail,
   budget,
   calendar,
   todayIso,
   selectedDayIso,
+  closingBalanceDisplay,
   onDaySelect,
   onShiftMonth,
   onJumpToToday,
@@ -13,39 +51,75 @@ export default function CalendarPanel({
   formatSignedCurrency,
   WEEKDAY_LABELS,
 }) {
+  const heading =
+    calendar.summary.closingBalance === null
+      ? 'Budlendar'
+      : `Budlendar (${closingBalanceDisplay})`
+
   return (
     <section className="panel calendar-panel">
-      <div className="panel-heading">
-        <div>
-          <p className="section-kicker">Monthly view</p>
-          <h2>{calendar.monthLabel}</h2>
+      <header className="calendar-toolbar">
+        <button
+          type="button"
+          className="menu-toggle"
+          aria-label="Open workspace menu"
+          onClick={onOpenMenu}
+        >
+          <MenuIcon />
+        </button>
+
+        <div className="calendar-brand">
+          <p className="calendar-brand-kicker">Local budget calendar</p>
+          <h1>{heading}</h1>
+          <p className="calendar-brand-subtitle">{sessionEmail}</p>
         </div>
 
-        <div className="calendar-actions">
-          <button type="button" className="secondary-button" onClick={() => onShiftMonth(-1)}>
-            Previous
-          </button>
-          <button type="button" className="secondary-button" onClick={onJumpToToday}>
-            Today
-          </button>
-          <button type="button" className="secondary-button" onClick={() => onShiftMonth(1)}>
-            Next
-          </button>
-          <button type="button" className="primary-button" onClick={onOpenMenu}>
-            Budget menu
-          </button>
+        <div className="calendar-toolbar-actions">
+          <div className="toolbar-chip-row">
+            <span className="toolbar-chip">
+              {calendar.summary.scheduledItems} scheduled{' '}
+              {calendar.summary.scheduledItems === 1 ? 'item' : 'items'}
+            </span>
+            <span
+              className={`toolbar-chip ${
+                calendar.summary.net > 0
+                  ? 'is-positive'
+                  : calendar.summary.net < 0
+                    ? 'is-negative'
+                    : ''
+              }`}
+            >
+              Net {formatSignedCurrency(calendar.summary.net)}
+            </span>
+          </div>
+
+          <div className="month-controls">
+            <IconButton label="Previous month" onClick={() => onShiftMonth(-1)}>
+              <ChevronLeftIcon />
+            </IconButton>
+
+            <h2 className="month-label">{calendar.monthLabel}</h2>
+
+            <IconButton label="Next month" onClick={() => onShiftMonth(1)}>
+              <ChevronRightIcon />
+            </IconButton>
+
+            <button type="button" className="secondary-button today-button" onClick={onJumpToToday}>
+              Today
+            </button>
+          </div>
         </div>
-      </div>
+      </header>
 
-      <div className="weekday-row" aria-hidden="true">
-        {WEEKDAY_LABELS.map((label) => (
-          <span key={label} className="weekday-pill">
-            {label}
-          </span>
-        ))}
-      </div>
+      <div className="calendar-grid-shell">
+        <div className="weekday-row" aria-hidden="true">
+          {WEEKDAY_LABELS.map((label) => (
+            <span key={label} className="weekday-pill">
+              {label}
+            </span>
+          ))}
+        </div>
 
-      <div className="calendar-scroll">
         <div className="calendar-grid">
           {calendar.days.map((day) => {
             const classNames = ['day-card']
@@ -77,56 +151,30 @@ export default function CalendarPanel({
               >
                 <div className="day-card-top">
                   <span className="day-number">{day.dayNumber}</span>
-                  <span className="day-stamp">
-                    {day.iso === todayIso
-                      ? 'Today'
-                      : day.inCurrentMonth
-                        ? formatShortDate(day.iso)
-                        : 'Carry-over'}
-                  </span>
-                </div>
-
-                <div className="day-balance-group">
-                  <span className="day-balance-label">Closing balance</span>
-                  <p className="day-balance">
+                  <span className="day-balance">
                     {day.balance === null
                       ? `Starts ${formatShortDate(budget.openingDate)}`
                       : formatCurrency(day.balance)}
-                  </p>
+                  </span>
                 </div>
 
-                <p
-                  className={`day-change ${
-                    day.dayChange > 0 ? 'is-positive' : day.dayChange < 0 ? 'is-negative' : ''
-                  }`}
-                >
-                  {day.balance === null
-                    ? 'No balance yet'
-                    : day.dayChange === 0
-                      ? 'No scheduled change'
-                      : formatSignedCurrency(day.dayChange)}
-                </p>
-
                 <div className="day-events">
-                  {day.events.length === 0 ? (
-                    <span className="empty-copy">
-                      {day.balance === null ? 'Budget not active yet' : 'No recurring items'}
-                    </span>
-                  ) : (
-                    day.events.slice(0, 3).map((occurrence) => (
-                      <span
-                        key={`${day.iso}-${occurrence.id}`}
-                        className={`transaction-chip ${
-                          occurrence.amount > 0 ? 'is-positive' : 'is-negative'
-                        }`}
-                      >
-                        <span className="transaction-title">{occurrence.title}</span>
-                        <span className="transaction-amount">
-                          {formatSignedCurrency(occurrence.amount)}
-                        </span>
+                  {day.events.slice(0, 3).map((occurrence) => (
+                    <span
+                      key={`${day.iso}-${occurrence.id}`}
+                      className={`day-event-row ${
+                        occurrence.amount > 0 ? 'is-positive' : 'is-negative'
+                      }`}
+                    >
+                      <span className="day-event-main">
+                        <EventIcon icon={occurrence.icon} className="day-event-icon" />
+                        <span className="day-event-title">{occurrence.title}</span>
                       </span>
-                    ))
-                  )}
+                      <span className="day-event-amount">
+                        {formatSignedCurrency(occurrence.amount)}
+                      </span>
+                    </span>
+                  ))}
 
                   {day.events.length > 3 ? (
                     <span className="more-events">+{day.events.length - 3} more</span>
