@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import EventIcon from './EventIcon.jsx'
 
 function IconButton({ label, onClick, children }) {
@@ -69,6 +70,7 @@ export default function CalendarPanel({
   formatSignedCurrency,
   WEEKDAY_LABELS,
 }) {
+  const [hoveredDayIso, setHoveredDayIso] = useState('')
   const heading =
     calendar.summary.closingBalance === null
       ? 'Budlendar'
@@ -163,6 +165,8 @@ export default function CalendarPanel({
                 key={day.iso}
                 className={classNames.join(' ')}
                 aria-pressed={day.iso === selectedDayIso}
+                onMouseEnter={() => setHoveredDayIso(day.iso)}
+                onMouseLeave={() => setHoveredDayIso('')}
               >
                 <div
                   className="day-card-surface"
@@ -181,18 +185,20 @@ export default function CalendarPanel({
                           ? `Starts ${formatShortDate(budget.openingDate)}`
                           : formatCurrency(day.balance)}
                       </span>
-                      <button
-                        type="button"
-                        className="day-add-button"
-                        aria-label={`Add event on ${formatLongDate(day.iso)}`}
-                        title={`Add event on ${formatLongDate(day.iso)}`}
-                        onClick={(event) => {
-                          event.stopPropagation()
-                          onDayAdd(day)
-                        }}
-                      >
-                        <PlusIcon />
-                      </button>
+                      {hoveredDayIso === day.iso ? (
+                        <button
+                          type="button"
+                          className="day-add-button"
+                          aria-label={`Add event on ${formatLongDate(day.iso)}`}
+                          title={`Add event on ${formatLongDate(day.iso)}`}
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            onDayAdd(day)
+                          }}
+                        >
+                          <PlusIcon />
+                        </button>
+                      ) : null}
                     </div>
                   </div>
                 </div>

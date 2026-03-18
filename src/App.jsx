@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import AuthScreen from './components/AuthScreen.jsx'
 import BudgetDrawer from './components/BudgetDrawer.jsx'
 import CalendarPanel from './components/CalendarPanel.jsx'
+import EventEditor from './components/EventEditor.jsx'
 import {
   DEFAULT_EVENT_ICON,
   addMonths,
@@ -170,6 +171,7 @@ function App() {
   const [viewMonth, setViewMonth] = useState(() => startOfMonth(today))
   const [selectedDate, setSelectedDate] = useState(todayIso)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isEventEditorOpen, setIsEventEditorOpen] = useState(false)
 
   const [eventForm, setEventForm] = useState(createDefaultEventForm)
   const [editingEventId, setEditingEventId] = useState('')
@@ -277,14 +279,14 @@ function App() {
 
     const previousOverflow = document.body.style.overflow
 
-    if (isMenuOpen) {
+    if (isMenuOpen || isEventEditorOpen) {
       document.body.style.overflow = 'hidden'
     }
 
     return () => {
       document.body.style.overflow = previousOverflow
     }
-  }, [isMenuOpen])
+  }, [isMenuOpen, isEventEditorOpen])
 
   useEffect(() => {
     if (!isMenuOpen || typeof window === 'undefined') {
@@ -604,6 +606,7 @@ function App() {
           ? 'Recurring event updated in the local database.'
           : 'Recurring event saved to the local database.',
       )
+      setIsEventEditorOpen(false)
     } catch (error) {
       setFormError(error.message)
     } finally {
@@ -614,7 +617,7 @@ function App() {
   const handleEditEvent = (event) => {
     setFormError('')
     setBudgetMessage('')
-    setIsMenuOpen(true)
+    setIsEventEditorOpen(true)
     setEditingEventId(event.id)
     setEventForm(createEventFormFromEvent(event))
     setEventFormFocusKey((current) => current + 1)
@@ -624,6 +627,11 @@ function App() {
     setEditingEventId('')
     setFormError('')
     setEventForm(createDefaultEventForm())
+  }
+
+  const handleCloseEventEditor = () => {
+    setIsEventEditorOpen(false)
+    handleCancelEventEdit()
   }
 
   const handleDeleteEvent = async (eventId) => {
@@ -662,7 +670,7 @@ function App() {
 
   const handleAddEventForDay = (day) => {
     handleSelectDay(day)
-    setIsMenuOpen(true)
+    setIsEventEditorOpen(true)
     setEditingEventId('')
     setFormError('')
     setBudgetMessage('')
@@ -811,10 +819,29 @@ function App() {
         onResetBudget={handleResetBudget}
         onUpdateBudgetValue={updateBudgetValue}
         onSaveOpeningSettings={handleSaveOpeningSettings}
+        editingEventId={editingEventId}
+        eventMutationId={eventMutationId}
+        onEditEvent={handleEditEvent}
+        recurringEvents={recurringEvents}
+        todayIso={todayIso}
+        onDeleteEvent={handleDeleteEvent}
+        openingBalanceDisplay={openingBalanceDisplay}
+        closingBalanceDisplay={closingBalanceDisplay}
+        calendarSummary={calendar.summary}
+      />
+
+      <EventEditor
+        isOpen={isEventEditorOpen}
+        onClose={handleCloseEventEditor}
         eventForm={eventForm}
         editingEventId={editingEventId}
         formError={formError}
         eventMutationId={eventMutationId}
+        eventFormFocusKey={eventFormFocusKey}
+        onUpdateEventForm={updateEventForm}
+        onSubmitEvent={handleSubmitEvent}
+        onCancelEventEdit={handleCancelEventEdit}
+      />d}
         eventFormFocusKey={eventFormFocusKey}
         onUpdateEventForm={updateEventForm}
         onSubmitEvent={handleSubmitEvent}
