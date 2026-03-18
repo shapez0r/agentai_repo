@@ -34,6 +34,13 @@ function ChevronRightIcon() {
   )
 }
 
+function handleDayCardKeyDown(event, onActivate) {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault()
+    onActivate()
+  }
+}
+
 export default function CalendarPanel({
   sessionEmail,
   budget,
@@ -42,6 +49,7 @@ export default function CalendarPanel({
   selectedDayIso,
   closingBalanceDisplay,
   onDaySelect,
+  onDayEventSelect,
   onShiftMonth,
   onJumpToToday,
   onOpenMenu,
@@ -141,30 +149,40 @@ export default function CalendarPanel({
             }
 
             return (
-              <button
+              <article
                 key={day.iso}
-                type="button"
                 className={classNames.join(' ')}
                 aria-pressed={day.iso === selectedDayIso}
-                title={formatLongDate(day.iso)}
-                onClick={() => onDaySelect(day)}
               >
-                <div className="day-card-top">
-                  <span className="day-number">{day.dayNumber}</span>
-                  <span className="day-balance">
-                    {day.balance === null
-                      ? `Starts ${formatShortDate(budget.openingDate)}`
-                      : formatCurrency(day.balance)}
-                  </span>
+                <div
+                  className="day-card-surface"
+                  role="button"
+                  tabIndex={0}
+                  title={formatLongDate(day.iso)}
+                  aria-label={`Edit ${formatLongDate(day.iso)}`}
+                  onClick={() => onDaySelect(day)}
+                  onKeyDown={(event) => handleDayCardKeyDown(event, () => onDaySelect(day))}
+                >
+                  <div className="day-card-top">
+                    <span className="day-number">{day.dayNumber}</span>
+                    <span className="day-balance">
+                      {day.balance === null
+                        ? `Starts ${formatShortDate(budget.openingDate)}`
+                        : formatCurrency(day.balance)}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="day-events">
                   {day.events.slice(0, 3).map((occurrence) => (
-                    <span
+                    <button
                       key={`${day.iso}-${occurrence.id}`}
-                      className={`day-event-row ${
+                      type="button"
+                      className={`day-event-row day-event-button ${
                         occurrence.amount > 0 ? 'is-positive' : 'is-negative'
                       }`}
+                      title={`Edit ${occurrence.title}`}
+                      onClick={() => onDayEventSelect(day, occurrence)}
                     >
                       <span className="day-event-main">
                         <EventIcon icon={occurrence.icon} className="day-event-icon" />
@@ -173,14 +191,30 @@ export default function CalendarPanel({
                       <span className="day-event-amount">
                         {formatSignedCurrency(occurrence.amount)}
                       </span>
-                    </span>
+                    </button>
                   ))}
 
+                  {day.events.length === 0 ? (
+                    <button
+                      type="button"
+                      className="day-empty-action"
+                      onClick={() => onDaySelect(day)}
+                    >
+                      Add one-time event
+                    </button>
+                  ) : null}
+
                   {day.events.length > 3 ? (
-                    <span className="more-events">+{day.events.length - 3} more</span>
+                    <button
+                      type="button"
+                      className="more-events more-events-button"
+                      onClick={() => onDaySelect(day)}
+                    >
+                      +{day.events.length - 3} more
+                    </button>
                   ) : null}
                 </div>
-              </button>
+              </article>
             )
           })}
         </div>

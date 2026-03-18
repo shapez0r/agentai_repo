@@ -287,6 +287,7 @@ export default function BudgetDrawer({
   onUpdateEventForm,
   onSubmitEvent,
   onEditEvent,
+  onEditDay,
   onCancelEventEdit,
   selectedDay,
   recurringEvents,
@@ -461,7 +462,18 @@ export default function BudgetDrawer({
                 <p className="section-kicker">Selected day</p>
                 <h3>{selectedDay ? formatLongDate(selectedDay.iso) : 'Pick a day'}</h3>
               </div>
-              {selectedDay ? <AmountBadge amount={selectedDay.dayChange} /> : null}
+              <div className="selected-day-actions">
+                {selectedDay ? (
+                  <button
+                    type="button"
+                    className="ghost-button ghost-button-small"
+                    onClick={() => onEditDay(selectedDay)}
+                  >
+                    Edit day
+                  </button>
+                ) : null}
+                {selectedDay ? <AmountBadge amount={selectedDay.dayChange} /> : null}
+              </div>
             </div>
 
             {selectedDay ? (
@@ -491,15 +503,21 @@ export default function BudgetDrawer({
                 ) : (
                   <ul className="detail-list">
                     {selectedDay.events.map((occurrence) => (
-                      <li key={`${selectedDay.iso}-${occurrence.id}`} className="detail-item">
-                        <div className="event-heading">
-                          <EventIcon icon={occurrence.icon} />
-                          <div>
-                            <p className="detail-item-title">{occurrence.title}</p>
-                            <p className="detail-item-meta">{describeFrequency(occurrence)}</p>
+                      <li key={`${selectedDay.iso}-${occurrence.id}`}>
+                        <button
+                          type="button"
+                          className="detail-item detail-item-button"
+                          onClick={() => onEditEvent(occurrence)}
+                        >
+                          <div className="event-heading">
+                            <EventIcon icon={occurrence.icon} />
+                            <div>
+                              <p className="detail-item-title">{occurrence.title}</p>
+                              <p className="detail-item-meta">{describeFrequency(occurrence)}</p>
+                            </div>
                           </div>
-                        </div>
-                        <AmountBadge amount={occurrence.amount} />
+                          <AmountBadge amount={occurrence.amount} />
+                        </button>
                       </li>
                     ))}
                   </ul>

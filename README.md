@@ -79,9 +79,3 @@ You can add a `.env.local` file using the values from [`.env.example`](/c:/Users
 - `npm run start:server`: serve the built Budlendar app and API on `http://127.0.0.1:8787`
 - `npm run start:local`: build the frontend and serve the built app plus API on `http://127.0.0.1:8787`
 - `npm run preview`: same as `npm run start:local`
-
-## Deployment
-
-- Pushing to `main` triggers the GitHub Pages workflow in [`deploy-pages.yml`](/c:/Users/n38fa/agentai_repo/.github/workflows/deploy-pages.yml).
-- That workflow publishes the built `dist/` folder from this repo.
-- Important: the signed-in app still expects the local Node API and SQLite endpoints under `/api/*`, so GitHub Pages only publishes the frontend shell unless you provide a compatible backend separately.

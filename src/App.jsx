@@ -62,6 +62,17 @@ function createDefaultEventForm() {
   }
 }
 
+function createDayEventForm(dateIso) {
+  return {
+    ...createDefaultEventForm(),
+    frequency: 'once',
+    scheduleType: getDefaultScheduleType('once'),
+    weekday: getWeekdayValueForDate(dateIso),
+    weekdayOrdinal: getWeekdayOrdinalForDate(dateIso),
+    startDate: dateIso,
+  }
+}
+
 function resolveEventScheduleType(frequency, currentScheduleType = 'date') {
   if (frequency === 'monthly' || frequency === 'yearly') {
     return currentScheduleType === 'weekday' ? 'weekday' : 'date'
@@ -602,6 +613,7 @@ function App() {
   const handleEditEvent = (event) => {
     setFormError('')
     setBudgetMessage('')
+    setIsMenuOpen(true)
     setEditingEventId(event.id)
     setEventForm(createEventFormFromEvent(event))
   }
@@ -632,6 +644,37 @@ function App() {
     } finally {
       setEventMutationId('')
     }
+  }
+
+  const handleEditDay = (day) => {
+    setSelectedDate(day.iso)
+    setIsMenuOpen(true)
+    setEditingEventId('')
+    setFormError('')
+    setBudgetMessage('')
+    setEventForm(createDayEventForm(day.iso))
+
+    if (!day.inCurrentMonth) {
+      const dayDate = parseISODate(day.iso)
+
+      if (dayDate) {
+        setViewMonth(startOfMonth(dayDate))
+      }
+    }
+  }
+
+  const handleEditDayEvent = (day, event) => {
+    setSelectedDate(day.iso)
+
+    if (!day.inCurrentMonth) {
+      const dayDate = parseISODate(day.iso)
+
+      if (dayDate) {
+        setViewMonth(startOfMonth(dayDate))
+      }
+    }
+
+    handleEditEvent(event)
   }
 
   const handleReplaceBudget = async (nextBudget, successMessage) => {
@@ -736,17 +779,8 @@ function App() {
         todayIso={todayIso}
         selectedDayIso={selectedDayIso}
         closingBalanceDisplay={closingBalanceDisplay}
-        onDaySelect={(day) => {
-          setSelectedDate(day.iso)
-
-          if (!day.inCurrentMonth) {
-            const dayDate = parseISODate(day.iso)
-
-            if (dayDate) {
-              setViewMonth(startOfMonth(dayDate))
-            }
-          }
-        }}
+        onDaySelect={handleEditDay}
+        onDayEventSelect={handleEditDayEvent}
         onShiftMonth={(direction) =>
           setViewMonth((current) => startOfMonth(addMonths(current, direction)))
         }
@@ -785,6 +819,7 @@ function App() {
         onUpdateEventForm={updateEventForm}
         onSubmitEvent={handleSubmitEvent}
         onEditEvent={handleEditEvent}
+        onEditDay={handleEditDay}
         onCancelEventEdit={handleCancelEventEdit}
         selectedDay={selectedDay}
         recurringEvents={recurringEvents}
