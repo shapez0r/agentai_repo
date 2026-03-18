@@ -3,13 +3,30 @@ import { mkdirSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { DatabaseSync } from 'node:sqlite'
 import { fileURLToPath } from 'node:url'
-import { FREQUENCY_OPTIONS, coerceBudgetState, createDefaultBudgetState, parseISODate } from '../src/lib/budget.js'
+import {
+  DEFAULT_EVENT_ICON,
+  EVENT_ICON_OPTIONS,
+  EVENT_SCHEDULE_TYPE_OPTIONS,
+  FREQUENCY_OPTIONS,
+  WEEKDAY_OPTIONS,
+  WEEKDAY_ORDINAL_OPTIONS,
+  coerceBudgetState,
+  createDefaultBudgetState,
+  getDefaultScheduleType,
+  getWeekdayOrdinalForDate,
+  getWeekdayValueForDate,
+  parseISODate,
+} from '../src/lib/budget.js'
 import { createOpaqueToken, hashToken } from './auth.js'
 import { DATABASE_FILE } from './config.js'
 
 const serverDirectory = dirname(fileURLToPath(import.meta.url))
 const schemaFilePath = join(serverDirectory, 'schema.sql')
 const allowedFrequencies = new Set(FREQUENCY_OPTIONS.map((option) => option.value))
+const allowedEventIcons = new Set(EVENT_ICON_OPTIONS.map((option) => option.value))
+const allowedScheduleTypes = new Set(EVENT_SCHEDULE_TYPE_OPTIONS.map((option) => option.value))
+const allowedWeekdays = new Set(WEEKDAY_OPTIONS.map((option) => option.value))
+const allowedWeekdayOrdinals = new Set(WEEKDAY_ORDINAL_OPTIONS.map((option) => option.value))
 
 mkdirSync(dirname(DATABASE_FILE), { recursive: true })
 
@@ -17,6 +34,29 @@ export const databaseFilePath = DATABASE_FILE
 export const db = new DatabaseSync(DATABASE_FILE)
 
 db.exec(readFileSync(schemaFilePath, 'utf8'))
+runMigrations()
+
+function runMigrations() {
+  const recurringEventColumns = new Set(
+    db.prepare("PRAGMA table_info('recurring_events')").all().map((column) => column.name),
+  )
+
+  if (!recurringEventColumns.has('schedule_type')) {
+    db.exec("ALTER TABLE recurring_events ADD COLUMN schedule_type TEXT NOT NULL DEFAULT 'date'")
+  }
+
+  if (!recurringEventColumns.has('weekday')) {
+    db.exec('ALTER TABLE recurring_events ADD COLUMN weekday TEXT')
+  }
+
+  if (!recurringEventColumns.has('weekday_ordinal')) {
+    db.exec('ALTER TABLE recurring_events ADD COLUMN weekday_ordinal TEXT')
+  }
+
+  if (!recurringEventColumns.has('icon')) {
+    db.exec(`ALTER TABLE recurring_events ADD COLUMN icon TEXT NOT NULL DEFAULT '${DEFAULT_EVENT_ICON}'`)
+  }
+}
 
 function createTimestamp(offsetMs = 0) {
   return new Date(Date.now() + offsetMs).toISOString()
@@ -67,6 +107,11 @@ function normalizeEvent(event = {}) {
   const frequency = typeof event.frequency === 'string' ? event.frequency : ''
   const startDate = typeof event.startDate === 'string' ? event.startDate : ''
   const endDate = typeof event.endDate === 'string' ? event.endDate : ''
+  const rawScheduleType = typeof event.scheduleType === 'string' ? event.scheduleType : ''
+  const rawWeekday = typeof event.weekday === 'string' ? event.weekday : ''
+  const rawWeekdayOrdinal =
+    typeof event.weekdayOrdinal === 'string' ? event.weekdayOrdinal : ''
+  const rawIcon = typeof event.icon === 'string' ? event.icon : ''
 
   if (!title) {
     throw new Error('Add a short label for the recurring event.')
@@ -92,6 +137,30 @@ function normalizeEvent(event = {}) {
     throw new Error('The end date must be on or after the start date.')
   }
 
+  if (rawScheduleType && !allowedScheduleTypes.has(rawScheduleType)) {
+    throw new Error('Choose a valid schedule type.')
+  }
+
+  const scheduleType =
+    frequency === 'monthly' || frequency === 'yearly'
+      ? rawScheduleType || getDefaultScheduleType(frequency)
+      : getDefaultScheduleType(frequency)
+  const weekday = rawWeekday || getWeekdayValueForDate(startDate)
+  const weekdayOrdinal = rawWeekdayOrdinal || getWeekdayOrdinalForDate(startDate)
+  const icon = rawIcon || DEFAULT_EVENT_ICON
+
+  if ((frequency === 'weekly' || frequency === 'biweekly' || scheduleType === 'weekday') && !allowedWeekdays.has(weekday)) {
+    throw new Error('Choose which day of the week the event should land on.')
+  }
+
+  if ((frequency === 'monthly' || frequency === 'yearly') && scheduleType === 'weekday' && !allowedWeekdayOrdinals.has(weekdayOrdinal)) {
+    throw new Error('Choose which week of the month the event should land on.')
+  }
+
+  if (!allowedEventIcons.has(icon)) {
+    throw new Error('Choose a valid event icon.')
+  }
+
   return {
     id: typeof event.id === 'string' && event.id ? event.id : randomUUID(),
     title,
@@ -99,6 +168,10 @@ function normalizeEvent(event = {}) {
     frequency,
     startDate,
     endDate,
+    scheduleType,
+    weekday,
+    weekdayOrdinal,
+    icon,
   }
 }
 
@@ -110,6 +183,22 @@ function mapEventFromRow(row) {
     frequency: row.frequency,
     startDate: row.start_date,
     endDate: row.end_date ?? '',
+    scheduleType:
+      typeof row.schedule_type === 'string' && row.schedule_type
+        ? row.schedule_type
+        : getDefaultScheduleType(row.frequency),
+    weekday:
+      typeof row.weekday === 'string' && row.weekday
+        ? row.weekday
+        : getWeekdayValueForDate(row.start_date),
+    weekdayOrdinal:
+      typeof row.weekday_ordinal === 'string' && row.weekday_ordinal
+        ? row.weekday_ordinal
+        : getWeekdayOrdinalForDate(row.start_date),
+    icon:
+      typeof row.icon === 'string' && row.icon
+        ? row.icon
+        : DEFAULT_EVENT_ICON,
   }
 }
 
@@ -372,7 +461,7 @@ export function fetchBudgetState(userId) {
   const events = db
     .prepare(
       `
-        SELECT id, title, amount, frequency, start_date, end_date
+        SELECT id, title, amount, frequency, start_date, end_date, schedule_type, weekday, weekday_ordinal, icon
         FROM recurring_events
         WHERE user_id = ?
         ORDER BY start_date ASC, created_at ASC
@@ -427,10 +516,14 @@ export function createRecurringEvent(userId, event) {
         frequency,
         start_date,
         end_date,
+        schedule_type,
+        weekday,
+        weekday_ordinal,
+        icon,
         created_at,
         updated_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
   ).run(
     normalizedEvent.id,
@@ -440,9 +533,57 @@ export function createRecurringEvent(userId, event) {
     normalizedEvent.frequency,
     normalizedEvent.startDate,
     normalizedEvent.endDate || null,
+    normalizedEvent.scheduleType,
+    normalizedEvent.weekday,
+    normalizedEvent.weekdayOrdinal,
+    normalizedEvent.icon,
     timestamp,
     timestamp,
   )
+
+  return normalizedEvent
+}
+
+export function updateRecurringEvent(userId, eventId, event) {
+  const normalizedEvent = normalizeEvent({
+    ...event,
+    id: eventId,
+  })
+  const timestamp = createTimestamp()
+  const result = db.prepare(
+    `
+      UPDATE recurring_events
+      SET
+        title = ?,
+        amount = ?,
+        frequency = ?,
+        start_date = ?,
+        end_date = ?,
+        schedule_type = ?,
+        weekday = ?,
+        weekday_ordinal = ?,
+        icon = ?,
+        updated_at = ?
+      WHERE id = ? AND user_id = ?
+    `,
+  ).run(
+    normalizedEvent.title,
+    normalizedEvent.amount,
+    normalizedEvent.frequency,
+    normalizedEvent.startDate,
+    normalizedEvent.endDate || null,
+    normalizedEvent.scheduleType,
+    normalizedEvent.weekday,
+    normalizedEvent.weekdayOrdinal,
+    normalizedEvent.icon,
+    timestamp,
+    eventId,
+    userId,
+  )
+
+  if (result.changes === 0) {
+    throw new Error('That event could not be found.')
+  }
 
   return normalizedEvent
 }

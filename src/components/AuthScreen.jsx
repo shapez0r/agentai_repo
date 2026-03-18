@@ -9,7 +9,7 @@ function getModeCopy(mode) {
     case 'forgot-password':
       return {
         title: 'Reset your password',
-        body: 'We will place a password reset link in the local mailbox so you can finish the flow without leaving localhost.',
+        body: 'We will place a password reset link in the local mailbox so you can finish the flow without leaving Budlendar on this machine.',
         action: 'Send reset link',
       }
     case 'update-password':
@@ -20,7 +20,7 @@ function getModeCopy(mode) {
       }
     default:
       return {
-        title: 'Sign in to Ledger Garden',
+        title: 'Sign in to Budlendar',
         body: 'This build runs against a local API and SQLite database. Sign in to load your saved budget data.',
         action: 'Sign in',
       }

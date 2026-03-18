@@ -33,6 +33,10 @@ CREATE TABLE IF NOT EXISTS recurring_events (
   frequency TEXT NOT NULL CHECK (frequency IN ('once', 'daily', 'weekly', 'biweekly', 'monthly', 'yearly')),
   start_date TEXT NOT NULL,
   end_date TEXT,
+  schedule_type TEXT NOT NULL DEFAULT 'date' CHECK (schedule_type IN ('date', 'weekday')),
+  weekday TEXT,
+  weekday_ordinal TEXT,
+  icon TEXT NOT NULL DEFAULT 'calendar',
   created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
 );

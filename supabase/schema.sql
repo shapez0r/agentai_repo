@@ -26,6 +26,10 @@ create table if not exists public.recurring_events (
   frequency text not null check (frequency in ('once', 'daily', 'weekly', 'biweekly', 'monthly', 'yearly')),
   start_date date not null,
   end_date date null,
+  schedule_type text not null default 'date' check (schedule_type in ('date', 'weekday')),
+  weekday text null,
+  weekday_ordinal text null,
+  icon text not null default 'calendar',
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now()),
   constraint recurring_events_end_after_start

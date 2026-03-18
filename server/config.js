@@ -9,7 +9,7 @@ function parsePositiveNumber(value, fallback) {
   return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : fallback
 }
 
-export const APP_ORIGIN = process.env.APP_ORIGIN ?? 'http://localhost:3000'
+export const APP_ORIGIN = process.env.APP_ORIGIN ?? 'http://127.0.0.1:8787'
 export const API_HOST = process.env.API_HOST ?? '127.0.0.1'
 export const API_PORT = parsePositiveNumber(process.env.API_PORT, 8787)
 export const DATABASE_FILE =

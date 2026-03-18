@@ -1,17 +1,19 @@
 {
-  "name": "agentai_repo",
+  "name": "budlendar",
   "private": true,
   "version": "0.0.0",
-  "description": "Recurring budget calendar with local SQLite auth and budget storage.",
+  "description": "Budlendar recurring budget calendar with local SQLite auth and budget storage.",
   "type": "module",
   "scripts": {
     "dev": "concurrently \"npm:dev:server\" \"npm:dev:client\"",
     "dev:client": "vite",
-    "dev:server": "node --watch server/index.js",
+    "dev:server": "node --watch server/dev.js",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "start:server": "node server/index.js"
+    "test": "node --test",
+    "preview": "npm run start:local",
+    "start:server": "node server/index.js",
+    "start:local": "npm run build && node server/index.js"
   },
   "dependencies": {
     "express": "^5.1.0",

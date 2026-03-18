@@ -39,7 +39,7 @@ export function renderMailboxPage({ emails, filterEmail }) {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Ledger Garden Local Mailbox</title>
+    <title>Budlendar Local Mailbox</title>
     <style>
       :root {
         color-scheme: light;
@@ -167,7 +167,7 @@ export function renderMailboxPage({ emails, filterEmail }) {
     <main>
       <section class="hero">
         <p class="eyebrow">Local mailbox</p>
-        <h1>Ledger Garden emails stay on this machine</h1>
+        <h1>Budlendar emails stay on this machine</h1>
         <p class="muted">
           ${
             filterEmail

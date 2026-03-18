@@ -86,6 +86,15 @@ export async function createRecurringEvent(event) {
   return payload.event
 }
 
+export async function updateRecurringEvent(eventId, event) {
+  const payload = await request(`/api/budget/events/${encodeURIComponent(eventId)}`, {
+    method: 'PUT',
+    body: JSON.stringify(event),
+  })
+
+  return payload.event
+}
+
 export async function deleteRecurringEvent(eventId) {
   await request(`/api/budget/events/${encodeURIComponent(eventId)}`, {
     method: 'DELETE',
@@ -103,7 +112,7 @@ export async function replaceBudgetState(budget) {
 
 export function getLocalMailboxUrl(email = '') {
   const baseUrl =
-    typeof window === 'undefined' ? 'http://localhost:3000' : window.location.origin
+    typeof window === 'undefined' ? 'http://127.0.0.1:8787' : window.location.origin
   const mailboxUrl = new URL('/api/dev/mailbox', baseUrl)
   const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : ''
 

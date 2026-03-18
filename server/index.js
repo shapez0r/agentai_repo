@@ -1,4 +1,7 @@
 import express from 'express'
+import { existsSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { isValidEmail, isValidPassword, normalizeEmail, hashPassword, verifyPassword } from './auth.js'
 import {
   createEmailVerificationToken,
@@ -19,6 +22,7 @@ import {
   consumeEmailVerificationToken,
   consumePasswordResetToken,
   listDevEmails,
+  updateRecurringEvent,
 } from './db.js'
 import {
   API_HOST,
@@ -32,6 +36,9 @@ import {
 import { renderMailboxPage } from './mailboxPage.js'
 
 const app = express()
+const serverDirectory = dirname(fileURLToPath(import.meta.url))
+const builtClientDirectory = join(serverDirectory, '..', 'dist')
+const builtClientEntry = join(builtClientDirectory, 'index.html')
 
 function readCookies(request) {
   const cookieHeader = request.headers.cookie
@@ -92,8 +99,29 @@ function clearSessionCookie(response) {
   )
 }
 
-function createAuthRedirect(query = {}) {
-  const redirectUrl = new URL('/', APP_ORIGIN)
+function getRequestOrigin(request) {
+  const originHeader =
+    typeof request.headers.origin === 'string' ? request.headers.origin.trim() : ''
+
+  if (originHeader) {
+    return originHeader
+  }
+
+  const forwardedProtocol =
+    typeof request.headers['x-forwarded-proto'] === 'string'
+      ? request.headers['x-forwarded-proto'].split(',')[0].trim()
+      : ''
+  const hostHeader = typeof request.headers.host === 'string' ? request.headers.host.trim() : ''
+
+  if (hostHeader) {
+    return `${forwardedProtocol || request.protocol || 'http'}://${hostHeader}`
+  }
+
+  return APP_ORIGIN
+}
+
+function createAuthRedirect(origin = APP_ORIGIN, query = {}) {
+  const redirectUrl = new URL('/', origin)
 
   for (const [key, value] of Object.entries(query)) {
     if (value) {
@@ -193,14 +221,14 @@ app.post('/api/auth/register', (request, response) => {
     passwordHash: hashPassword(password),
   })
   const verificationToken = createEmailVerificationToken(user.id, VERIFICATION_TOKEN_TTL_HOURS)
-  const verificationUrl = `${APP_ORIGIN}/api/auth/verify-email?token=${verificationToken}`
+  const verificationUrl = `${getRequestOrigin(request)}/api/auth/verify-email?token=${verificationToken}`
 
   sendDevEmail({
     toEmail: user.email,
-    subject: 'Verify your Ledger Garden account',
+    subject: 'Verify your Budlendar account',
     actionUrl: verificationUrl,
     textBody: [
-      'Welcome to Ledger Garden.',
+      'Welcome to Budlendar.',
       '',
       'Use the link below to verify your email and activate sign-in:',
       verificationUrl,
@@ -221,7 +249,7 @@ app.get('/api/auth/verify-email', (request, response) => {
   if (!user) {
     response.redirect(
       302,
-      createAuthRedirect({
+      createAuthRedirect(getRequestOrigin(request), {
         auth: 'error',
         message: 'That verification link is invalid or has expired.',
       }),
@@ -231,7 +259,7 @@ app.get('/api/auth/verify-email', (request, response) => {
 
   response.redirect(
     302,
-    createAuthRedirect({
+    createAuthRedirect(getRequestOrigin(request), {
       auth: 'verified',
       message: 'Email verified. You can sign in now.',
     }),
@@ -286,14 +314,14 @@ app.post('/api/auth/request-password-reset', (request, response) => {
 
   if (user) {
     const resetToken = createPasswordResetToken(user.id, RESET_TOKEN_TTL_HOURS)
-    const resetUrl = `${APP_ORIGIN}/?mode=reset-password&token=${resetToken}`
+    const resetUrl = `${getRequestOrigin(request)}/?mode=reset-password&token=${resetToken}`
 
     sendDevEmail({
       toEmail: user.email,
-      subject: 'Reset your Ledger Garden password',
+      subject: 'Reset your Budlendar password',
       actionUrl: resetUrl,
       textBody: [
-        'A password reset was requested for your Ledger Garden account.',
+        'A password reset was requested for your Budlendar account.',
         '',
         'Open the link below and choose a new password:',
         resetUrl,
@@ -360,6 +388,12 @@ app.post('/api/budget/events', requireAuth, (request, response) => {
   response.status(201).json({ event })
 })
 
+app.put('/api/budget/events/:eventId', requireAuth, (request, response) => {
+  const event = updateRecurringEvent(request.session.user.id, request.params.eventId, request.body ?? {})
+
+  response.json({ event })
+})
+
 app.delete('/api/budget/events/:eventId', requireAuth, (request, response) => {
   deleteRecurringEvent(request.session.user.id, request.params.eventId)
   response.status(204).end()
@@ -371,6 +405,14 @@ app.put('/api/budget/replace', requireAuth, (request, response) => {
   })
 })
 
+if (existsSync(builtClientEntry)) {
+  app.use(express.static(builtClientDirectory))
+
+  app.get(/^(?!\/api(?:\/|$)).*/, (_request, response) => {
+    response.sendFile(builtClientEntry)
+  })
+}
+
 app.use((error, _request, response) => {
   console.error(error)
   response.status(500).json({
@@ -379,7 +421,10 @@ app.use((error, _request, response) => {
 })
 
 app.listen(API_PORT, API_HOST, () => {
-  console.log(`Ledger Garden API running at http://${API_HOST}:${API_PORT}`)
+  console.log(`Budlendar API running at http://${API_HOST}:${API_PORT}`)
+  if (existsSync(builtClientEntry)) {
+    console.log(`Built Budlendar client available at http://${API_HOST}:${API_PORT}`)
+  }
   console.log(`App origin for email links: ${APP_ORIGIN}`)
   console.log(`SQLite database file: ${databaseFilePath}`)
 })

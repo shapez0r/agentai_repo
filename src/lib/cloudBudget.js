@@ -8,17 +8,26 @@ function mapEventFromRow(row) {
     frequency: row.frequency,
     startDate: row.start_date,
     endDate: row.end_date ?? '',
+    scheduleType: row.schedule_type ?? 'date',
+    weekday: row.weekday ?? '',
+    weekdayOrdinal: row.weekday_ordinal ?? '',
+    icon: row.icon ?? 'calendar',
   }
 }
 
 function mapEventToRow(userId, event) {
   return {
+    id: event.id,
     user_id: userId,
     title: event.title,
     amount: Number(event.amount),
     frequency: event.frequency,
     start_date: event.startDate,
     end_date: event.endDate || null,
+    schedule_type: event.scheduleType,
+    weekday: event.weekday || null,
+    weekday_ordinal: event.weekdayOrdinal || null,
+    icon: event.icon,
   }
 }
 
@@ -32,7 +41,9 @@ export async function fetchBudgetState(client, userId) {
       .maybeSingle(),
     client
       .from('recurring_events')
-      .select('id, title, amount, frequency, start_date, end_date')
+      .select(
+        'id, title, amount, frequency, start_date, end_date, schedule_type, weekday, weekday_ordinal, icon',
+      )
       .eq('user_id', userId)
       .order('start_date', { ascending: true })
       .order('created_at', { ascending: true }),
@@ -78,7 +89,27 @@ export async function createRecurringEvent(client, userId, event) {
   const { data, error } = await client
     .from('recurring_events')
     .insert(mapEventToRow(userId, event))
-    .select('id, title, amount, frequency, start_date, end_date')
+    .select(
+      'id, title, amount, frequency, start_date, end_date, schedule_type, weekday, weekday_ordinal, icon',
+    )
+    .single()
+
+  if (error) {
+    throw error
+  }
+
+  return mapEventFromRow(data)
+}
+
+export async function updateRecurringEvent(client, userId, eventId, event) {
+  const { data, error } = await client
+    .from('recurring_events')
+    .update(mapEventToRow(userId, { ...event, id: eventId }))
+    .eq('user_id', userId)
+    .eq('id', eventId)
+    .select(
+      'id, title, amount, frequency, start_date, end_date, schedule_type, weekday, weekday_ordinal, icon',
+    )
     .single()
 
   if (error) {
