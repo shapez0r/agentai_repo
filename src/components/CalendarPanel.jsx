@@ -168,15 +168,7 @@ export default function CalendarPanel({
                 onMouseEnter={() => setHoveredDayIso(day.iso)}
                 onMouseLeave={() => setHoveredDayIso('')}
               >
-                <div
-                  className="day-card-surface"
-                  role="button"
-                  tabIndex={0}
-                  title={formatLongDate(day.iso)}
-                  aria-label={`Select ${formatLongDate(day.iso)}`}
-                  onClick={() => onDaySelect(day)}
-                  onKeyDown={(event) => handleDayCardKeyDown(event, () => onDaySelect(day))}
-                >
+                <div className="day-card-surface">
                   <div className="day-card-top">
                     <span className="day-number">{day.dayNumber}</span>
                     <div className="day-card-actions">
@@ -185,20 +177,18 @@ export default function CalendarPanel({
                           ? `Starts ${formatShortDate(budget.openingDate)}`
                           : formatCurrency(day.balance)}
                       </span>
-                      {hoveredDayIso === day.iso ? (
-                        <button
-                          type="button"
-                          className="day-add-button"
-                          aria-label={`Add event on ${formatLongDate(day.iso)}`}
-                          title={`Add event on ${formatLongDate(day.iso)}`}
-                          onClick={(event) => {
-                            event.stopPropagation()
-                            onDayAdd(day)
-                          }}
-                        >
-                          <PlusIcon />
-                        </button>
-                      ) : null}
+                      <button
+                        type="button"
+                        className={`day-add-button ${hoveredDayIso === day.iso ? '' : 'is-hidden'}`}
+                        aria-label={`Add event on ${formatLongDate(day.iso)}`}
+                        title={`Add event on ${formatLongDate(day.iso)}`}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          onDayAdd(day)
+                        }}
+                      >
+                        <PlusIcon />
+                      </button>
                     </div>
                   </div>
                 </div>

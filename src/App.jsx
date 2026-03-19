@@ -281,7 +281,7 @@ function App() {
     const previousOverflow = document.body.style.overflow
 
     if (isMenuOpen || isEventEditorOpen) {
-      document.body.style.overflow = 'hidden'
+      document.body.style.overflow = 'scroll'
     }
 
     return () => {

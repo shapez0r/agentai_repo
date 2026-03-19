@@ -421,8 +421,15 @@ button:disabled {
   text-align: left;
   background: var(--bg-panel);
   transition:
-    background-color 0.14s ease,
-    box-shadow 0.14s ease;
+    background-color 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.day-card:hover:not(.is-outside) {
+  transform: translateY(-2px) scale(1.2);
+  box-shadow: 0 16px 40px rgba(31, 147, 230, 0.24);
+  background: linear-gradient(135deg, #f0f8ff 0%, #e8f4ff 100%);
 }
 
 .day-card.is-outside {
@@ -430,13 +437,10 @@ button:disabled {
   color: #98a3ad;
 }
 
-.day-card.is-selected {
-  background: #fbfdff;
-  box-shadow: inset 0 0 0 2px rgba(31, 147, 230, 0.14);
-}
-
 .day-card.is-today {
-  background: linear-gradient(180deg, #f7fbff 0%, var(--bg-panel) 18%);
+  background: linear-gradient(180deg, #e8f4ff 0%, #f0f9ff 50%, var(--bg-panel) 100%);
+  border: 2px solid rgba(31, 147, 230, 0.3);
+  box-shadow: inset 0 2px 8px rgba(31, 147, 230, 0.1);
 }
 
 .day-card.is-empty .day-events {
@@ -446,11 +450,6 @@ button:disabled {
 .day-card-surface {
   border-radius: 0.95rem;
   outline: none;
-  cursor: pointer;
-}
-
-.day-card-surface:focus-visible {
-  box-shadow: 0 0 0 3px rgba(31, 147, 230, 0.12);
 }
 
 .day-card:hover .day-card-top,
@@ -468,13 +467,9 @@ button:disabled {
   background: var(--bg-panel-soft);
 }
 
-.day-card.is-selected .day-card-top {
-  background: var(--accent);
-  color: #ffffff;
-}
-
-.day-card.is-today:not(.is-selected) .day-card-top {
-  background: var(--accent-soft);
+.day-card.is-today .day-card-top {
+  background: linear-gradient(180deg, rgba(31, 147, 230, 0.15) 0%, rgba(31, 147, 230, 0.08) 100%);
+  border: 1px solid rgba(31, 147, 230, 0.25);
 }
 
 .day-number {
@@ -509,9 +504,16 @@ button:disabled {
   box-shadow: 0 8px 18px rgba(31, 147, 230, 0.12);
   transition:
     transform 0.14s ease,
+    opacity 0.15s ease,
     border-color 0.14s ease,
     box-shadow 0.14s ease,
     background-color 0.14s ease;
+  opacity: 1;
+}
+
+.day-add-button.is-hidden {
+  visibility: hidden;
+  opacity: 0;
 }
 
 .day-add-button svg {
@@ -528,16 +530,7 @@ button:disabled {
   box-shadow: 0 12px 24px rgba(31, 147, 230, 0.18);
 }
 
-.day-card.is-selected .day-balance {
-  color: #ffffff;
-}
 
-.day-card.is-selected .day-add-button {
-  border-color: rgba(255, 255, 255, 0.34);
-  background: rgba(255, 255, 255, 0.18);
-  color: #ffffff;
-  box-shadow: none;
-}
 
 .day-events {
   display: flex;
