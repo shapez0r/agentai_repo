@@ -7,10 +7,10 @@ export default defineConfig({
   server: {
     host: '127.0.0.1',
     port: 8787,
-    strictPort: true,
+    strictPort: false,
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:8788',
+        target: 'http://127.0.0.1:8787',
       },
     },
   },

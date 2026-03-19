@@ -42,6 +42,7 @@ body {
   background:
     radial-gradient(circle at top left, rgba(31, 147, 230, 0.08), transparent 28%),
     linear-gradient(180deg, #f6f8fb 0%, var(--bg-app) 100%);
+  scrollbar-gutter: stable;
 }
 
 button,

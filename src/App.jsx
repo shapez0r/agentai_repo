@@ -848,19 +848,6 @@ function App() {
         onUpdateEventForm={updateEventForm}
         onSubmitEvent={handleSubmitEvent}
         onCancelEventEdit={handleCancelEventEdit}
-      />d}
-        eventFormFocusKey={eventFormFocusKey}
-        onUpdateEventForm={updateEventForm}
-        onSubmitEvent={handleSubmitEvent}
-        onEditEvent={handleEditEvent}
-        onCancelEventEdit={handleCancelEventEdit}
-        selectedDay={selectedDay}
-        recurringEvents={recurringEvents}
-        todayIso={todayIso}
-        onDeleteEvent={handleDeleteEvent}
-        openingBalanceDisplay={openingBalanceDisplay}
-        closingBalanceDisplay={closingBalanceDisplay}
-        calendarSummary={calendar.summary}
       />
     </main>
   )
