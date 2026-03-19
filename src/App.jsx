@@ -779,6 +779,7 @@ function App() {
 
   return (
     <main className="app-shell">
+      {__DEV__ && <div className="dev-badge">Development</div>}
       <CalendarPanel
         sessionEmail={session.user.email}
         budget={budget}

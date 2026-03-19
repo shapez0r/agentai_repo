@@ -405,7 +405,8 @@ app.put('/api/budget/replace', requireAuth, (request, response) => {
   })
 })
 
-if (existsSync(builtClientEntry)) {
+// Only serve static client files in production (API_PORT === 8787)
+if (API_PORT === 8787 && existsSync(builtClientEntry)) {
   app.use(express.static(builtClientDirectory))
 
   app.get(/^(?!\/api(?:\/|$)).*/, (_request, response) => {

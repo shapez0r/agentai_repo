@@ -912,6 +912,21 @@ button:disabled {
   color: #cb6a4d;
 }
 
+.dev-badge {
+  position: fixed;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: #ff9800;
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  z-index: 9999;
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+}
+
 .event-icon-shopping {
   background: #f6f1e7;
   color: #8d7541;
