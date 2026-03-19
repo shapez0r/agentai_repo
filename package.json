@@ -11,11 +11,12 @@
     "build": "vite build",
     "lint": "eslint .",
     "test": "node --test",
-    "preview": "concurrently \"npm:prod:client\" \"npm:prod:server\"",
-    "prod:client": "vite preview",
-    "prod:server": "node server/index.js",
-    "start:server": "node server/index.js",
-    "start:local": "npm run build && npm run prod:server"
+    "preview": "npm run build && concurrently \"npm:preview:server\" \"npm:preview:client\"",
+    "preview:client": "vite preview",
+    "preview:server": "node server/preview.js",
+    "prod:server": "node server/prod.js",
+    "start:server": "node server/prod.js",
+    "start:local": "npm run preview"
   },
   "dependencies": {
     "express": "^5.1.0",

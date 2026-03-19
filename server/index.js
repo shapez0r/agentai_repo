@@ -25,10 +25,12 @@ import {
   updateRecurringEvent,
 } from './db.js'
 import {
+  APP_ENV,
   API_HOST,
   API_PORT,
   APP_ORIGIN,
   RESET_TOKEN_TTL_HOURS,
+  SERVE_STATIC_CLIENT,
   SESSION_COOKIE_NAME,
   SESSION_TTL_DAYS,
   VERIFICATION_TOKEN_TTL_HOURS,
@@ -181,7 +183,9 @@ app.use(express.json())
 app.get('/api/health', (_request, response) => {
   response.json({
     ok: true,
+    appEnv: APP_ENV,
     appOrigin: APP_ORIGIN,
+    serveStaticClient: SERVE_STATIC_CLIENT,
     databaseFilePath,
   })
 })
@@ -405,8 +409,7 @@ app.put('/api/budget/replace', requireAuth, (request, response) => {
   })
 })
 
-// Only serve static client files in production API (API_PORT === 8788)
-if (API_PORT === 8787 && existsSync(builtClientEntry)) {
+if (SERVE_STATIC_CLIENT && existsSync(builtClientEntry)) {
   app.use(express.static(builtClientDirectory))
 
   app.get(/^(?!\/api(?:\/|$)).*/, (_request, response) => {
@@ -422,9 +425,12 @@ app.use((error, _request, response) => {
 })
 
 app.listen(API_PORT, API_HOST, () => {
+  console.log(`Budlendar runtime environment: ${APP_ENV}`)
   console.log(`Budlendar API running at http://${API_HOST}:${API_PORT}`)
-  if (API_PORT === 8788 && existsSync(builtClientEntry)) {
-    console.log(`Built Budlendar client available at http://127.0.0.1:8787`)
+  if (SERVE_STATIC_CLIENT && existsSync(builtClientEntry)) {
+    console.log(`Built Budlendar client available at http://${API_HOST}:${API_PORT}`)
+  } else if (existsSync(builtClientEntry)) {
+    console.log(`Built Budlendar client available at ${APP_ORIGIN}`)
   }
   if (APP_ORIGIN !== `http://${API_HOST}:${API_PORT}`) {
     console.log(`App origin for email links: ${APP_ORIGIN}`)

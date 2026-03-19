@@ -4,7 +4,8 @@ Budlendar is a React and Vite budget planner backed by a local Node API and SQLi
 
 The signed-in UI uses a flatter month-grid calendar with a compact workspace drawer for summaries, recurring rules, and account controls.
 
-The canonical local app URL is `http://127.0.0.1:8787`.
+The development app runs at `http://127.0.0.1:8785`.
+The production-style single-process app runs at `http://127.0.0.1:8787`.
 
 ## Features
 
@@ -38,11 +39,12 @@ npm run dev
 
 Open:
 
-- App: `http://127.0.0.1:8787`
-- Local mailbox: `http://127.0.0.1:8787/api/dev/mailbox`
+- App: `http://127.0.0.1:8785`
+- Local mailbox: `http://127.0.0.1:8785/api/dev/mailbox`
 
-The SQLite database file is created automatically at [`server/data/ledger-garden.sqlite`](/c:/Users/n38fa/agentai_repo/server/data/ledger-garden.sqlite).
-The filename stays as-is so existing local data keeps working after the Budlendar rename.
+The development server writes to [`server/data/budlendar.dev.sqlite`](/c:/Users/n38fa/agentai_repo/server/data/budlendar.dev.sqlite) by default.
+The production-style server and deployed server both write to [`server/data/budlendar.prod.sqlite`](/c:/Users/n38fa/agentai_repo/server/data/budlendar.prod.sqlite) by default.
+Set `DATABASE_FILE` explicitly in `.env.local` if you want a custom location for either environment.
 
 ## Scheduling Rules
 
@@ -64,19 +66,21 @@ All verification and reset emails stay on your machine and are stored in the loc
 
 You can add a `.env.local` file using the values from [`.env.example`](/c:/Users/n38fa/agentai_repo/.env.example) to override:
 
+- application environment
 - app origin
 - API host and port
+- static client serving
 - SQLite database path
 - session lifetime
 
 ## Helpful Scripts
 
 - `npm run dev`: start frontend and API together
-- `npm run dev:client`: start the Budlendar frontend on `http://127.0.0.1:8787`
-- `npm run dev:server`: start the internal development API on `http://127.0.0.1:8788`
+- `npm run dev:client`: start the Budlendar frontend on `http://127.0.0.1:8785`
+- `npm run dev:server`: start the internal development API on `http://127.0.0.1:8786`
 - `npm run build`: build the frontend
 - `npm run lint`: lint the repo
 - `npm run test`: run the automated budget and database tests
-- `npm run start:server`: serve the built Budlendar app and API on `http://127.0.0.1:8787`
-- `npm run start:local`: build the frontend and serve the built app plus API on `http://127.0.0.1:8787`
-- `npm run preview`: same as `npm run start:local`
+- `npm run preview`: build the frontend, serve it through Vite preview on `http://127.0.0.1:8787`, and keep the API on `http://127.0.0.1:8788` while using the production database defaults
+- `npm run start:server`: serve the built Budlendar app and API on `http://127.0.0.1:8787` with the production database defaults
+- `npm run start:local`: local production-style verification flow with client on `http://127.0.0.1:8787` and API on `http://127.0.0.1:8788`

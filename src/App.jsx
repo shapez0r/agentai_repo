@@ -314,7 +314,6 @@ function App() {
     calendar.days.find((day) => day.inCurrentMonth)?.iso ??
     calendar.days[0]?.iso ??
     ''
-  const selectedDay = calendar.days.find((day) => day.iso === selectedDayIso) ?? null
   const openingBalanceDisplay =
     calendar.summary.openingBalanceForMonth === null
       ? `Starts ${formatShortDate(budget.openingDate)}`
@@ -777,12 +776,11 @@ function App() {
     )
   }
 
-  return (
+    return (
     <main className="app-shell">
-      {__DEV__ && <div className="dev-badge">Development</div>}
+      {import.meta.env.DEV && <div className="dev-badge">Development</div>}
       <CalendarPanel
         sessionEmail={session.user.email}
-        budget={budget}
         calendar={calendar}
         todayIso={todayIso}
         selectedDayIso={selectedDayIso}
@@ -800,7 +798,6 @@ function App() {
         onOpenMenu={() => setIsMenuOpen(true)}
         formatCurrency={formatCurrency}
         formatLongDate={formatLongDate}
-        formatShortDate={formatShortDate}
         formatSignedCurrency={formatSignedCurrency}
         WEEKDAY_LABELS={WEEKDAY_LABELS}
       />

@@ -1,7 +1,6 @@
 import EventIcon from './EventIcon.jsx'
 import {
   describeFrequency,
-  formatCurrency,
   formatLongDate,
   formatShortDate,
   formatSignedCurrency,

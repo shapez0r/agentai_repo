@@ -57,7 +57,7 @@ export default function AuthScreen({
 
   return (
     <main className="auth-shell">
-      {__DEV__ && <div className="dev-badge">Development</div>}
+      {import.meta.env.DEV && <div className="dev-badge">Development</div>}
       <section className="panel auth-card">
         <div className="auth-copy">
           <p className="eyebrow">Local auth</p>

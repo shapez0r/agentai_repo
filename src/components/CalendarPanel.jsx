@@ -44,16 +44,8 @@ function PlusIcon() {
   )
 }
 
-function handleDayCardKeyDown(event, onActivate) {
-  if (event.key === 'Enter' || event.key === ' ') {
-    event.preventDefault()
-    onActivate()
-  }
-}
-
 export default function CalendarPanel({
   sessionEmail,
-  budget,
   calendar,
   todayIso,
   selectedDayIso,
@@ -66,7 +58,6 @@ export default function CalendarPanel({
   onOpenMenu,
   formatCurrency,
   formatLongDate,
-  formatShortDate,
   formatSignedCurrency,
   WEEKDAY_LABELS,
 }) {
