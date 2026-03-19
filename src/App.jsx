@@ -3,6 +3,7 @@ import AuthScreen from './components/AuthScreen.jsx'
 import BudgetDrawer from './components/BudgetDrawer.jsx'
 import CalendarPanel from './components/CalendarPanel.jsx'
 import EventEditor from './components/EventEditor.jsx'
+import DayDetails from './components/DayDetails.jsx'
 import {
   DEFAULT_EVENT_ICON,
   addMonths,
@@ -801,6 +802,12 @@ function App() {
         formatShortDate={formatShortDate}
         formatSignedCurrency={formatSignedCurrency}
         WEEKDAY_LABELS={WEEKDAY_LABELS}
+      />
+
+      <DayDetails
+        selectedDay={selectedDay}
+        budget={budget}
+        onEditEvent={handleEditEvent}
       />
 
       <BudgetDrawer
