@@ -423,9 +423,11 @@ app.use((error, _request, response) => {
 
 app.listen(API_PORT, API_HOST, () => {
   console.log(`Budlendar API running at http://${API_HOST}:${API_PORT}`)
-  if (existsSync(builtClientEntry)) {
+  if (API_PORT === 8787 && existsSync(builtClientEntry)) {
     console.log(`Built Budlendar client available at http://${API_HOST}:${API_PORT}`)
   }
-  console.log(`App origin for email links: ${APP_ORIGIN}`)
+  if (APP_ORIGIN !== `http://${API_HOST}:${API_PORT}`) {
+    console.log(`App origin for email links: ${APP_ORIGIN}`)
+  }
   console.log(`SQLite database file: ${databaseFilePath}`)
 })
