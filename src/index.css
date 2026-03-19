@@ -204,7 +204,6 @@ button:disabled {
 .ghost-button:hover:not(:disabled),
 .auth-tab:hover:not(:disabled),
 .toolbar-icon-button:hover:not(:disabled),
-.day-card:hover:not(:disabled),
 .icon-option:hover:not(:disabled) {
   transform: translateY(-1px);
 }
@@ -381,6 +380,7 @@ button:disabled {
 
 .calendar-grid-shell {
   overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .weekday-row,
