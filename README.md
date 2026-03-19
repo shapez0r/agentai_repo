@@ -83,4 +83,4 @@ You can add a `.env.local` file using the values from [`.env.example`](/c:/Users
 - `npm run test`: run the automated budget and database tests
 - `npm run preview`: build the frontend, serve it through Vite preview on `http://127.0.0.1:8787`, and keep the API on `http://127.0.0.1:8788` while using the production database defaults
 - `npm run start:server`: serve the built Budlendar app and API on `http://127.0.0.1:8787` with the production database defaults
-- `npm run start:local`: local production-style verification flow with client on `http://127.0.0.1:8787` and API on `http://127.0.0.1:8788`
+- `npm run start:local`: hidden local production-style verification flow for AI VS Code plugin use, with client on `http://127.0.0.1:8787` and API on `http://127.0.0.1:8788` without opening extra console windows
