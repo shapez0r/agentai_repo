@@ -618,7 +618,6 @@ button:disabled {
   font-weight: 700;
 }
 
-.day-empty-copy,
 .more-events-button {
   display: inline-flex;
   align-items: center;
@@ -628,11 +627,6 @@ button:disabled {
   color: var(--muted);
   font-size: 0.8rem;
   font-weight: 700;
-}
-
-.day-empty-copy {
-  border: 1px dashed rgba(123, 136, 150, 0.26);
-  background: rgba(123, 136, 150, 0.05);
 }
 
 .menu-shell {

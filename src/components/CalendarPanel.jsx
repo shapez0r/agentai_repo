@@ -203,10 +203,6 @@ export default function CalendarPanel({
                     </button>
                   ))}
 
-                  {day.events.length === 0 ? (
-                    <span className="day-empty-copy">No scheduled events</span>
-                  ) : null}
-
                   {day.events.length > 3 ? (
                     <button
                       type="button"
