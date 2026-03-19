@@ -804,12 +804,6 @@ function App() {
         WEEKDAY_LABELS={WEEKDAY_LABELS}
       />
 
-      <DayDetails
-        selectedDay={selectedDay}
-        budget={budget}
-        onEditEvent={handleEditEvent}
-      />
-
       <BudgetDrawer
         isOpen={isMenuOpen}
         sessionEmail={session.user.email}

@@ -173,9 +173,7 @@ export default function CalendarPanel({
                     <span className="day-number">{day.dayNumber}</span>
                     <div className="day-card-actions">
                       <span className="day-balance">
-                        {day.balance === null
-                          ? `Starts ${formatShortDate(budget.openingDate)}`
-                          : formatCurrency(day.balance)}
+                        {day.balance === null ? '' : formatCurrency(day.balance)}
                       </span>
                       <button
                         type="button"
