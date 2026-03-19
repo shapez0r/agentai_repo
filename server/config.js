@@ -11,7 +11,7 @@ function parsePositiveNumber(value, fallback) {
 
 export const APP_ORIGIN = process.env.APP_ORIGIN ?? 'http://127.0.0.1:8787'
 export const API_HOST = process.env.API_HOST ?? '127.0.0.1'
-export const API_PORT = parsePositiveNumber(process.env.API_PORT, 8787)
+export const API_PORT = parsePositiveNumber(process.env.API_PORT, 8788)
 export const DATABASE_FILE =
   process.env.DATABASE_FILE ?? join(serverDirectory, 'data', 'budlendar.sqlite')
 export const SESSION_COOKIE_NAME = 'budlendar_session'

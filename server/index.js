@@ -405,7 +405,7 @@ app.put('/api/budget/replace', requireAuth, (request, response) => {
   })
 })
 
-// Only serve static client files in production (API_PORT === 8787)
+// Only serve static client files in production API (API_PORT === 8788)
 if (API_PORT === 8787 && existsSync(builtClientEntry)) {
   app.use(express.static(builtClientDirectory))
 
@@ -423,8 +423,8 @@ app.use((error, _request, response) => {
 
 app.listen(API_PORT, API_HOST, () => {
   console.log(`Budlendar API running at http://${API_HOST}:${API_PORT}`)
-  if (API_PORT === 8787 && existsSync(builtClientEntry)) {
-    console.log(`Built Budlendar client available at http://${API_HOST}:${API_PORT}`)
+  if (API_PORT === 8788 && existsSync(builtClientEntry)) {
+    console.log(`Built Budlendar client available at http://127.0.0.1:8787`)
   }
   if (APP_ORIGIN !== `http://${API_HOST}:${API_PORT}`) {
     console.log(`App origin for email links: ${APP_ORIGIN}`)
