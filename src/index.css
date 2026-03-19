@@ -452,7 +452,7 @@ button:disabled {
   outline: none;
 }
 
-.day-card:hover .day-card-top,
+.day-card:not(.is-outside):hover .day-card-top,
 .day-card-surface:focus-visible .day-card-top {
   background: #eef6fd;
 }

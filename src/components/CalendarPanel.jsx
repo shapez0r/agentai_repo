@@ -134,6 +134,7 @@ export default function CalendarPanel({
         <div className="calendar-grid">
           {calendar.days.map((day) => {
             const classNames = ['day-card']
+            const isHoverableDay = day.inCurrentMonth
 
             if (!day.inCurrentMonth) {
               classNames.push('is-outside')
@@ -156,8 +157,8 @@ export default function CalendarPanel({
                 key={day.iso}
                 className={classNames.join(' ')}
                 aria-pressed={day.iso === selectedDayIso}
-                onMouseEnter={() => setHoveredDayIso(day.iso)}
-                onMouseLeave={() => setHoveredDayIso('')}
+                onMouseEnter={isHoverableDay ? () => setHoveredDayIso(day.iso) : undefined}
+                onMouseLeave={isHoverableDay ? () => setHoveredDayIso('') : undefined}
               >
                 <div className="day-card-surface">
                   <div className="day-card-top">
@@ -168,9 +169,12 @@ export default function CalendarPanel({
                       </span>
                       <button
                         type="button"
-                        className={`day-add-button ${hoveredDayIso === day.iso ? '' : 'is-hidden'}`}
+                        className={`day-add-button ${
+                          isHoverableDay && hoveredDayIso === day.iso ? '' : 'is-hidden'
+                        }`}
                         aria-label={`Add event on ${formatLongDate(day.iso)}`}
                         title={`Add event on ${formatLongDate(day.iso)}`}
+                        tabIndex={isHoverableDay ? 0 : -1}
                         onClick={(event) => {
                           event.stopPropagation()
                           onDayAdd(day)
