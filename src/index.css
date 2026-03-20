@@ -31,10 +31,12 @@
 }
 
 html {
+  height: 100%;
   min-width: 320px;
 }
 
 body {
+  height: 100%;
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
@@ -42,7 +44,7 @@ body {
   background:
     radial-gradient(circle at top left, rgba(31, 147, 230, 0.08), transparent 28%),
     linear-gradient(180deg, #f6f8fb 0%, var(--bg-app) 100%);
-  scrollbar-gutter: stable;
+  overflow: hidden;
 }
 
 button,
@@ -70,11 +72,17 @@ button:disabled {
 
 #root {
   min-height: 100vh;
+  min-height: 100dvh;
+  height: 100dvh;
 }
 
 .app-shell {
   width: 100%;
-  padding: 1rem 1.25rem 1.5rem;
+  height: 100%;
+  padding: clamp(0.55rem, 1vw, 1rem);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  overflow: hidden;
 }
 
 .auth-shell {
@@ -284,6 +292,10 @@ button:disabled {
 .calendar-panel {
   overflow: hidden;
   padding: 0;
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
 }
 
 .calendar-toolbar {
@@ -314,7 +326,7 @@ button:disabled {
   align-content: center;
   gap: 0.25rem;
   min-width: 0;
-  padding: 1.35rem 1.5rem;
+  padding: clamp(0.85rem, 1.6vw, 1.35rem) clamp(0.95rem, 1.8vw, 1.5rem);
 }
 
 .calendar-toolbar-actions {
@@ -322,7 +334,8 @@ button:disabled {
   align-content: center;
   justify-items: end;
   gap: 0.8rem;
-  padding: 1rem 1.4rem;
+  min-width: 0;
+  padding: clamp(0.8rem, 1.4vw, 1rem) clamp(0.9rem, 1.6vw, 1.4rem);
 }
 
 .toolbar-chip-row,
@@ -332,6 +345,7 @@ button:disabled {
   align-items: center;
   justify-content: flex-end;
   gap: 0.65rem;
+  min-width: 0;
 }
 
 .toolbar-chip {
@@ -379,55 +393,68 @@ button:disabled {
 }
 
 .calendar-grid-shell {
-  overflow-x: auto;
-  overflow-y: hidden;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
 }
 
 .weekday-row,
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, minmax(10rem, 1fr));
-  min-width: 76rem;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 
 .weekday-row {
-  padding: 1.35rem 1.5rem 1rem;
+  padding: clamp(0.85rem, 1.3vw, 1.35rem) clamp(0.7rem, 1.3vw, 1.5rem) clamp(0.65rem, 1vw, 1rem);
 }
 
 .weekday-pill {
-  padding: 0 0.7rem;
+  padding: 0 clamp(0.18rem, 0.45vw, 0.7rem);
   color: var(--muted);
-  font-size: 0.86rem;
+  font-size: clamp(0.62rem, 0.8vw, 0.86rem);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  min-width: 0;
+  text-align: center;
 }
 
 .calendar-grid {
   border-top: 1px solid var(--line);
   border-left: 1px solid var(--line);
+  min-height: 0;
+  height: 100%;
+  align-content: stretch;
+  grid-auto-rows: minmax(0, 1fr);
 }
 
 .day-card {
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
-  min-height: 12.8rem;
-  padding: 0.85rem 0.8rem 1rem;
+  gap: clamp(0.28rem, 0.55vw, 0.8rem);
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  padding: clamp(0.35rem, 0.75vw, 0.85rem) clamp(0.35rem, 0.7vw, 0.8rem)
+    clamp(0.45rem, 0.8vw, 1rem);
   border: 0;
   border-right: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
   color: var(--ink);
   text-align: left;
   background: var(--bg-panel);
+  overflow: hidden;
   transition:
-    background-color 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
-    box-shadow 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
-    transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    background-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
 }
 
 .day-card:hover:not(.is-outside) {
-  transform: translateY(-2px) scale(1.2);
+  transform: translateY(-2px);
   box-shadow: 0 16px 40px rgba(31, 147, 230, 0.24);
   background: linear-gradient(135deg, #f0f8ff 0%, #e8f4ff 100%);
 }
@@ -450,6 +477,7 @@ button:disabled {
 .day-card-surface {
   border-radius: 0.95rem;
   outline: none;
+  min-width: 0;
 }
 
 .day-card:not(.is-outside):hover .day-card-top,
@@ -462,7 +490,8 @@ button:disabled {
   align-items: center;
   justify-content: space-between;
   gap: 0.7rem;
-  padding: 0.55rem 0.7rem;
+  min-width: 0;
+  padding: clamp(0.32rem, 0.55vw, 0.55rem) clamp(0.38rem, 0.7vw, 0.7rem);
   border-radius: 0.75rem;
   background: var(--bg-panel-soft);
 }
@@ -473,14 +502,17 @@ button:disabled {
 }
 
 .day-number {
-  font-size: 2rem;
+  font-size: clamp(1rem, 1.9vw, 2rem);
   font-weight: 700;
   letter-spacing: -0.05em;
   line-height: 1;
 }
 
 .day-balance {
-  font-size: 0.98rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: clamp(0.62rem, 0.9vw, 0.98rem);
   font-weight: 700;
   color: var(--muted);
   white-space: nowrap;
@@ -490,6 +522,7 @@ button:disabled {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  min-width: 0;
 }
 
 .day-add-button {
@@ -535,7 +568,9 @@ button:disabled {
 .day-events {
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  gap: clamp(0.2rem, 0.42vw, 0.55rem);
+  min-height: 0;
+  overflow: hidden;
 }
 
 .day-event-row {
@@ -543,7 +578,8 @@ button:disabled {
   align-items: center;
   justify-content: space-between;
   gap: 0.6rem;
-  font-size: 0.92rem;
+  min-width: 0;
+  font-size: clamp(0.66rem, 0.78vw, 0.92rem);
 }
 
 .day-event-button,
@@ -557,7 +593,8 @@ button:disabled {
 }
 
 .day-event-button {
-  padding: 0.38rem 0.45rem;
+  min-width: 0;
+  padding: clamp(0.18rem, 0.36vw, 0.38rem) clamp(0.22rem, 0.4vw, 0.45rem);
   border-radius: 0.7rem;
   border: 1px solid transparent;
   transition:
@@ -593,6 +630,7 @@ button:disabled {
 }
 
 .day-event-amount {
+  font-size: clamp(0.64rem, 0.76vw, 0.92rem);
   font-weight: 700;
   white-space: nowrap;
 }
@@ -606,9 +644,9 @@ button:disabled {
 }
 
 .day-event-icon {
-  width: 1.45rem;
-  height: 1.45rem;
-  min-width: 1.45rem;
+  width: clamp(0.95rem, 1.15vw, 1.45rem);
+  height: clamp(0.95rem, 1.15vw, 1.45rem);
+  min-width: clamp(0.95rem, 1.15vw, 1.45rem);
   border-radius: 0.5rem;
 }
 
@@ -621,11 +659,12 @@ button:disabled {
 .more-events-button {
   display: inline-flex;
   align-items: center;
-  min-height: 2rem;
-  padding: 0.28rem 0.4rem;
+  min-width: 0;
+  min-height: 0;
+  padding: clamp(0.14rem, 0.28vw, 0.28rem) clamp(0.2rem, 0.36vw, 0.4rem);
   border-radius: 0.55rem;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: clamp(0.62rem, 0.72vw, 0.8rem);
   font-weight: 700;
 }
 
@@ -1046,12 +1085,11 @@ button:disabled {
 
   .weekday-row,
   .calendar-grid {
-    min-width: 60rem;
-    grid-template-columns: repeat(7, minmax(8rem, 1fr));
+    grid-template-columns: repeat(7, minmax(0, 1fr));
   }
 
   .day-card {
-    min-height: 11rem;
+    min-height: 0;
   }
 
   .menu-drawer {

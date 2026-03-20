@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import EventIcon from './EventIcon.jsx'
 
+const MAX_VISIBLE_DAY_EVENTS = 2
+
 function IconButton({ label, onClick, children }) {
   return (
     <button type="button" className="toolbar-icon-button" aria-label={label} onClick={onClick}>
@@ -187,7 +189,7 @@ export default function CalendarPanel({
                 </div>
 
                 <div className="day-events">
-                  {day.events.slice(0, 3).map((occurrence) => (
+                  {day.events.slice(0, MAX_VISIBLE_DAY_EVENTS).map((occurrence) => (
                     <button
                       key={`${day.iso}-${occurrence.id}`}
                       type="button"
@@ -207,13 +209,13 @@ export default function CalendarPanel({
                     </button>
                   ))}
 
-                  {day.events.length > 3 ? (
+                  {day.events.length > MAX_VISIBLE_DAY_EVENTS ? (
                     <button
                       type="button"
                       className="more-events more-events-button"
                       onClick={() => onDaySelect(day)}
                     >
-                      +{day.events.length - 3} more
+                      +{day.events.length - MAX_VISIBLE_DAY_EVENTS} more
                     </button>
                   ) : null}
                 </div>
